@@ -1,0 +1,271 @@
+\documentclass[twoside]{article}
+\usepackage{graphicx}
+\usepackage{polski}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{epigraph}
+\usepackage{listings}
+\usepackage{soul}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+	basicstyle=\ttfamily\small,
+	breaklines=true,
+	frame=single,
+	backgroundcolor=\color{gray!10},
+	xleftmargin=0pt,           % <-- Usuwa lewe wcięcie
+	framexleftmargin=0pt       % <-- Usuwa wcięcie ramki
+}
+
+\title{Z5 331720}
+\author{Paweł Myszka}
+\date{\today}
+
+\makeatletter
+
+\begin{document}
+	
+	\pagestyle{fancy}
+	\fancyhead{}
+	\fancyhead[L]{\@title}
+	\fancyhead[R]{\@author}
+	\fancyhead[C]{\@date}
+	
+	\cfoot{\thepage\ / \pageref{LastPage}}
+	
+	\newpage
+	\begin{center}
+		{\Huge \textbf{Laboratorium nr 5}}\\[0.5cm]
+		{\Large Temat: Tworzenie aplikacji rozproszonych}
+	\end{center}
+	
+	\newpage
+
+\section{Inicjalizacja projektu}
+
+Projekt Aspire utworzono komendą:
+\begin{verbatim}
+	dotnet new aspire -n ShopPlatform
+\end{verbatim}
+
+Wygenerowana struktura:
+\begin{verbatim}
+	ShopPlatform/
+	├── ShopPlatform.AppHost (Orchestrator)
+	└── ShopPlatform.ServiceDefaults (Wspólne konfiguracje)
+\end{verbatim}
+
+\subsection{Aktualizacja do .NET 9.0}
+
+Zarówno w \texttt{ShopPlatform.AppHost.csproj} jak i 
+\texttt{ShopPlatform.ServiceDefaults.csproj} zmieniono:
+
+\begin{verbatim}
+	<TargetFramework>net8.0</TargetFramework>
+\end{verbatim}
+
+na:
+
+\begin{verbatim}
+	<TargetFramework>net9.0</TargetFramework>
+\end{verbatim}
+
+Dostępny SDK: \texttt{9.0.307 [C:\textbackslash Program Files\textbackslash dotnet\textbackslash sdk]}
+
+\subsection{Uruchomienie}
+
+\begin{verbatim}
+	dotnet run --project ShopPlatform.AppHost
+\end{verbatim}
+
+Aplikacja uruchomiła się pomyślnie. Dashboard dostępny pod:
+\begin{center}
+	\texttt{http://localhost:18888}
+\end{center}
+
+\subsection{ServiceDefaults}
+
+Plik \texttt{Extensions.cs} zawiera:
+
+\begin{lstlisting}
+	public static IServiceCollection AddServiceDefaults(
+	this IServiceCollection services)
+	{
+		services.AddOpenTelemetry()
+		.WithTraces(tracing => tracing
+		.AddAspNetCoreInstrumentation()
+		.AddHttpClientInstrumentation())
+		.WithMetrics(metrics => metrics
+		.AddAspNetCoreInstrumentation()
+		.AddHttpClientInstrumentation());
+		
+		services.AddHealthChecks();
+		return services;
+	}
+\end{lstlisting}
+
+\subsection{Rola}
+\begin{itemize}
+	\item \textbf{OpenTelemetry:} Obserwabilność (traces, metryki)
+	\item \textbf{Health Checks:} Sprawdzanie stanu usług
+	\item \textbf{Wspólna konfiguracja:} Do użytku przez wszystkie mikrousługi
+\end{itemize}
+
+\section{Dodanie API i frontendu}
+
+\subsection{Tworzenie projektów}
+
+\begin{verbatim}
+	dotnet new webapi -n Shop.Api --framework net9.0
+	dotnet new blazor -n ShopPlatform.Frontend --interactivity Server --framework net9.0
+	dotnet sln add Shop.Api/Shop.Api.csproj
+	dotnet sln add ShopPlatform.Frontend/ShopPlatform.Frontend.csproj
+\end{verbatim}
+
+\subsection{Konfiguracja AppHost}
+
+\begin{lstlisting}[language=C#]
+var builder = DistributedApplication.CreateBuilder(args);
+	
+builder.AddProject("api", "../Shop.Api/Shop.Api.csproj");
+builder.AddProject("frontend", "../ShopPlatform.Frontend/ShopPlatform.Frontend.csproj");
+	
+builder.Build().Run();
+\end{lstlisting}
+
+\subsection{ServiceDefaults w obydwu projektach}
+
+Dodano referencję i w \texttt{Program.cs}:
+\begin{verbatim}
+builder.AddServiceDefaults();
+\end{verbatim}
+
+\subsection{Dashboard}
+
+Po uruchomieniu widoczne są 2 resources:
+\begin{itemize}
+	\item \textbf{api} -- WebAPI na porcie ~5001
+	\item \textbf{frontend} -- Blazor na porcie ~5002
+\end{itemize}
+
+\textbf{URL:} \texttt{https://localhost:17178}
+
+\section{Service Discovery}
+
+\subsection{Zmiana nazwy projektu API}
+
+W \texttt{ShopPlatform.AppHost/Program.cs} zmieniono nazwę z "api" na "products":
+
+\begin{lstlisting}[language=C#]
+	var builder = DistributedApplication.CreateBuilder(args);
+	
+	builder.AddProject("products", "../Shop.Api/Shop.Api.csproj");
+	builder.AddProject("frontend", "../ShopPlatform.Frontend/ShopPlatform.Frontend.csproj");
+	
+	builder.Build().Run();
+\end{lstlisting}
+
+\subsection{Konfiguracja HttpClient z Service Discovery}
+
+W \texttt{ShopPlatform.Frontend/Program.cs} dodano named client z automatyczną rezolucją:
+
+\begin{lstlisting}[language=C#]
+builder.Services.AddHttpClient("products", client =>
+{
+	client.BaseAddress = new Uri("https+http://products");
+});
+\end{lstlisting}
+
+Schemat \texttt{https+http://} umożliwia automatyczną rezolucję nazwy serwisu 
+przez service discovery Aspire.
+
+\subsection{Usunięcie hardcodowanych portów}
+
+Pliki \texttt{appsettings.json} w obu projektach zawierają tylko konfiguracje logowania 
+i nie zawierają hardcodowanych portów. Porty są przydzielane dynamicznie przez AppHost.
+
+\subsection{Wnioski}
+
+\begin{itemize}
+	\item Service discovery eliminuje potrzebę hardcodowania adresów IP/portów
+	\item Named clients ułatwiają zarządzanie połączeniami między usługami
+	\item Aspire automatycznie rezolwuje nazwy serwisów na adresy sieciowe
+	\item Aplikacja jest bardziej elastyczna i gotowa na deployment
+\end{itemize}
+
+\section{Redis jako cache}
+
+\subsection{Dodanie Redis do AppHost}
+
+W \texttt{ShopPlatform.AppHost/Program.cs} dodano connection string dla cache:
+
+\begin{lstlisting}[language=C#]
+	var builder = DistributedApplication.CreateBuilder(args);
+	
+	var cache = builder.AddConnectionString("cache");
+	
+	var api = builder.AddProject("products", "../Shop.Api/Shop.Api.csproj");
+	var frontend = builder.AddProject("frontend", "../ShopPlatform.Frontend/ShopPlatform.Frontend.csproj");
+	
+	builder.Build().Run();
+\end{lstlisting}
+
+\subsection{Konfiguracja Output Cache w API}
+
+W \texttt{Shop.Api/Program.cs} dodano StackExchange Redis Output Cache:
+
+\begin{lstlisting}[language=C#]
+	builder.Services.AddStackExchangeRedisOutputCache(options =>
+	{
+		options.Configuration = builder.Configuration.GetConnectionString("cache");
+	});
+	
+	app.UseOutputCache();
+\end{lstlisting}
+
+\subsection{Cache na endpoint'u WeatherForecast}
+
+Endpoint skonfigurowano z cache'em na 5 sekund:
+
+\begin{lstlisting}[language=C#]
+	app.MapGet("/weatherforecast", () => { ... })
+	.WithName("GetWeatherForecast")
+	.CacheOutput(p => p.Expire(TimeSpan.FromSeconds(5)));
+\end{lstlisting}
+
+\subsection{Konfiguracja connection string}
+
+W \texttt{Shop.Api/appsettings.Development.json}:
+
+\begin{verbatim}
+	"ConnectionStrings": {
+		"cache": "localhost:6379"
+	}
+\end{verbatim}
+
+\subsection{Obserwacja w Dashboard}
+
+Po uruchomieniu aplikacji, Dashboard wyświetla traces z informacjami o:
+\begin{itemize}
+	\item \textbf{Cache Hit} -- odpowiedź z cache'u (ms < 5)
+	\item \textbf{Cache Miss} -- odpowiedź ze źródła (brak w cache'u)
+	\item \textbf{Latency} -- czas odpowiedzi (szybciej z cache'u)
+\end{itemize}
+
+\subsection{Wnioski}
+
+\begin{itemize}
+	\item Output Cache Redis zmniejsza latency odpowiedzi
+	\item \texttt{CacheOutput()} automatycznie cache'uje wyniki HTTP
+	\item Traces w Dashboard pozwalają obserwować cache hit/miss
+	\item 5-sekundowy TTL pozwala na automatyczne odświeżenie danych
+\end{itemize}
+
+\end{document}

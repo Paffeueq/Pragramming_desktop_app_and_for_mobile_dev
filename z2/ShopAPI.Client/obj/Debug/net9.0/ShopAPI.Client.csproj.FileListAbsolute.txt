@@ -1,0 +1,14 @@
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\obj\Debug\net9.0\ShopAPI.Client.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\obj\Debug\net9.0\ShopAPI.Client.AssemblyInfoInputs.cache
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\obj\Debug\net9.0\ShopAPI.Client.AssemblyInfo.cs
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\obj\Debug\net9.0\ShopAPI.Client.csproj.CoreCompileInputs.cache
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\bin\Debug\net9.0\ShopAPI.Client.exe
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\bin\Debug\net9.0\ShopAPI.Client.deps.json
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\bin\Debug\net9.0\ShopAPI.Client.runtimeconfig.json
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\bin\Debug\net9.0\ShopAPI.Client.dll
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\bin\Debug\net9.0\ShopAPI.Client.pdb
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\obj\Debug\net9.0\ShopAPI.Client.dll
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\obj\Debug\net9.0\refint\ShopAPI.Client.dll
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\obj\Debug\net9.0\ShopAPI.Client.pdb
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\obj\Debug\net9.0\ShopAPI.Client.genruntimeconfig.cache
+C:\Users\pawel\Desktop\Desktop\z2\ShopAPI.Client\obj\Debug\net9.0\ref\ShopAPI.Client.dll

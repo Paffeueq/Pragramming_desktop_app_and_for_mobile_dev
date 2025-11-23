@@ -1,0 +1,198 @@
+Programowanie AI - Copilot, VS Code
+Materiały wideo
+5 New VS Code AI Features & Settings You Need To Try Today
+How To Get Better AI Reponses from GitHub Copilot in Seconds!
+Turn ON these new VS Code AI features NOW! (v1.103)
+Grok Code Fast 1 in VS Code is Fast - Let’s take a look
+Hello Claude Sonnet 4.5! This things is a BEAST!
+Background Coding Agents change EVERYTHING - 5 ways to use them today!
+Tematy do poruszenia
+Agent Mode i jego zastosowania praktyczne
+
+Różnice między klasycznym Copilotem a trybem Agent Mode.
+Scenariusze, w których warto uruchamiać agenta (np. build/test, długotrwałe zadania).
+Porównanie trybu interaktywnego i w pełni automatycznego.
+Allow / Deny List – bezpieczeństwo i kontrola
+
+Rola listy dozwolonych komend w zapewnieniu bezpieczeństwa.
+Jak unikać ryzyka przypadkowego wykonania niepożądanych poleceń.
+Przykłady praktyczne (dotnet build/test vs komendy niebezpieczne).
+Zarządzanie limitami i wydajnością (Max Requests)
+
+Jak limit requestów wpływa na płynność pracy.
+Praktyczne ustawienia w projektach średnich i dużych.
+Kiedy warto zwiększyć, a kiedy ograniczyć limit.
+Copilot Instructions i personalizacja stylu pracy
+
+Automatyczne generowanie instrukcji z projektu.
+Dodawanie własnych reguł i konwencji kodu.
+Rozdzielanie zasad dla backendu i frontendu.
+Użycie instrukcji jako dokumentacji zespołowej.
+Snooze Completions – balans między AI a samodzielnym kodowaniem
+
+Kiedy warto wyciszyć podpowiedzi Copilota.
+Porównanie efektywności pracy z i bez asysty AI.
+Ćwiczenie świadomego programowania z przerwami od AI.
+Custom Chat Modes (Beast Mode i inne)
+
+Czym są tryby czatu i jak je definiować w repozytorium.
+Jak różne tryby wpływają na sposób rozwiązywania problemów przez AI.
+Przykłady własnych trybów dopasowanych do zespołu/projektu.
+Coding Agents – nowa rola agenta jako wirtualnego współprogramisty
+
+Przypisywanie zadań i issue do agenta.
+Delegowanie PR i kontynuacja pracy w tle.
+Code review od agenta – ograniczenia i zalety.
+Scenariusze współpracy: człowiek + agent.
+Integracja z GitHub Actions i workflow zespołowym
+
+Automatyzacja setupu środowiska (copilot-setup-steps.yml).
+Dependabot i aktualizacje zależności.
+Agents.mmd – orkiestracja wielu agentów w projekcie.
+Statystyki użycia AI i refleksja nad produktywnością
+
+Analiza AI vs typing – co naprawdę daje Copilot.
+Eksperymenty porównawcze (samodzielne kodowanie vs z AI).
+Jak wykorzystać dane statystyczne do poprawy efektywności zespołu.
+Modele AI i ich zarządzanie
+
+Przegląd dostępnych modeli (GPT-5, GPT-5 mini).
+Kryteria wyboru modelu do danego zadania.
+Usuwanie starszych modeli i utrzymywanie spójnego środowiska.
+MCP Auto Start i narzędzia developerskie
+
+Rola MCP w pracy Copilota.
+Konfiguracja serwerów MCP i rozszerzeń.
+Zarządzanie narzędziami, które są naprawdę potrzebne w projekcie.
+Najlepsze praktyki w pracy z AI w projekcie .NET
+
+Konwencje kodu i ujednolicenie stylu w zespole.
+Integracja AI w pipeline CI/CD.
+Granice automatyzacji – co warto zostawić programistom.
+Ćwiczenia
+1. Terminal – Allow / Deny List
+Otwórz swój projekt .NET w VS Code.
+Włącz agent mode i poproś AI o zbudowanie projektu. Zwróć uwagę, że prosi o potwierdzenie.
+Wejdź w Settings → Copilot → Experimental i skonfiguruj allow list.
+
+dodaj dotnet build,
+dodaj dotnet test.
+Spróbuj ponownie – projekt powinien budować się i testować automatycznie, bez pytania.
+2. Max Requests
+W ustawieniach znajdź opcję max requests.
+Zmień domyślną wartość (20) np. na 100.
+Uruchom agent mode i zleć AI dłuższe zadanie – np. wygenerowanie kilku endpointów API.
+Zauważ, że teraz proces jest płynny i nie wymaga częstego potwierdzania.
+3. Generate Instructions
+W Agent Mode Settings znajdź opcję Generate Instructions.
+Uruchom generowanie – Copilot przeskanuje cały projekt i utworzy plik copilot-instructions.md.
+Sprawdź, czy zawiera:
+
+opis struktury projektu,
+komendy budowania i uruchamiania,
+konwencje kodu.
+Dodaj nową klasę i ponownie wygeneruj instrukcje. Porównaj zmiany.
+4. Snooze Completions
+Napisz prostą klasę User w C#.
+Zauważ podpowiedzi (ghost text) Copilota.
+Kliknij ikonę Copilota w pasku statusu i wybierz Snooze na 5 minut.
+Kontynuuj pisanie kodu – działają tylko podpowiedzi IntelliSense.
+Anuluj Snooze i sprawdź, że podpowiedzi Copilota wracają.
+5. Tryb Beast Mode
+Otwórz repozytorium copilot repo na GitHub.
+Skopiuj zawartość pliku z trybem Beast Mode (np. wersja od Burke Hollanda).
+W projekcie utwórz katalog .github/chat-modes i plik beast.json.
+Uruchom agent mode, wybierz tryb Beast Mode.
+Poproś o dodanie endpointu API do zarządzania użytkownikami.
+Obserwuj, jak AI rozbija zadanie na kroki i realizuje je sekwencyjnie.
+6. Copilot Instructions i Customizacja
+a) Dodawanie własnych instrukcji
+Utwórz folder .github i plik copilot-instructions.md.
+Dodaj własne reguły, np.:
+
+klasy i metody w PascalCase,
+zmienne w camelCase,
+DTO z atrybutami JSON,
+proste komentarze w kodzie.
+b) Automatyczne generowanie instrukcji
+Otwórz chat Copilota.
+Kliknij Customize chat → Generate Instructions.
+Obejrzyj wygenerowane zasady – sprawdź backend, frontend, komendy, konwencje.
+c) Testowanie instrukcji
+W chat poproś o dodanie nowego endpointu API dla użytkowników.
+Zobacz, czy Copilot stosuje się do ustalonych reguł (np. PascalCase, JSON DTO).
+d) Aktualizacja instrukcji
+Dodaj klasę Order.
+Ponownie wygeneruj instrukcje i sprawdź, jak zostały rozszerzone.
+Dodaj własne reguły, np. walidacja zamówień.
+e) Wersje rozbite
+W .github dodaj:
+
+csharp-guidelines.md (zasady dla C#),
+blazor-guidelines.md (zasady dla Blazora).
+Sprawdź, czy Copilot stosuje inne reguły w backendzie i frontendzie.
+
+7. Zarządzanie modelami AI
+W VS Code 1.103 otwórz model selector.
+Wybierz GPT-5 i sprawdź GPT-5 mini.
+W Manage Models usuń starsze modele (np. GPT-4).
+Sprawdź, że lista modeli zawiera tylko wybrane przez Ciebie.
+8. MCP Auto Start i narzędzia
+W ustawieniach znajdź MCP Auto Start i ustaw tryb (np. always).
+Otwórz Configure Tools – przejrzyj wbudowane narzędzia, wyłącz nieużywane.
+Dodaj MCP server i sprawdź jego widoczność w Extensions → MCP servers.
+9. Statystyki użycia AI
+Włącz opcję AI Stats.
+W dolnym rogu sprawdź wykres AI vs typing z 24h.
+Zrób eksperyment: koduj 5 minut samodzielnie, potem 5 minut z Copilotem.
+Porównaj różnice w statystykach.
+10. Task Lists (To-Do w czacie)
+Wpisz w chat: „Dodaj stronę z formularzem kontaktowym”.
+Copilot wygeneruje listę kroków (task list).
+Obserwuj, jak lista aktualizuje się podczas pracy (UI, CSS, endpoint).
+Po zakończeniu sprawdź, czy wszystkie kroki oznaczone są jako wykonane.
+11. Background Agents i sesje w tle
+Włącz w ustawieniach Agent Sessions (UI integration).
+Otwórz panel Agent Sessions – sprawdź aktywne sesje.
+Dodaj zadanie (np. raport) i oddeleguj je do coding agent.
+Sprawdź na GitHub, że powstał automatyczny pull request.
+Kontynuuj pracę lokalnie, podczas gdy agent działa w tle.
+12. Coding Agents – praca praktyczna
+a) Przypisywanie issue do agenta
+Utwórz issue w GitHub: „Dodać skeleton loading na stronie logowania”.
+Przypisz je do Copilot.
+Obserwuj, jak agent tworzy branch i PR.
+b) Delegowanie pracy z dowolnego brancha
+W VS Code wybierz dowolny branch.
+W panelu agenta kliknij +, dodaj zadanie.
+Sprawdź, że Copilot tworzy nowy branch, sesję i PR.
+c) Kontynuowanie pracy agenta
+Utwórz branch feature/tools-refactor i wprowadź zmiany.
+W czacie wpisz: „Uzupełnij dokumentację i README”.
+Kliknij Delegate to Coding Agent i uwzględnij lokalne zmiany.
+Obserwuj, że agent kontynuuje pracę w tle.
+d) Współpraca z agentem przy PR
+Utwórz pull request z dużą zmianą.
+W komentarzu dodaj: „@copilot napraw null reference w API”.
+Obserwuj, jak agent aktualizuje kod i PR.
+e) Code review od agenta
+Utwórz PR z małą zmianą (np. Console.WriteLine).
+Dodaj Copilota jako reviewera.
+Sprawdź sugestie (np. użycie ILogger).
+13. Dependabot i automatyczne aktualizacje
+W repo włącz Dependabot security updates.
+Skonfiguruj dependabot.yml (aktualizacje NuGet i SDK raz w tygodniu).
+Poczekaj na automatyczne PR.
+Przejrzyj zmiany i zaakceptuj.
+14. Najlepsze praktyki i konfiguracja środowiska
+W .github/workflows utwórz copilot-setup-steps.yml:
+
+instalacja .NET 9,
+restore paczek,
+Aspire CLI lub workload MAUI.
+W .github dodaj copilot-instructions.md:
+
+architektura projektu,
+konwencje kodu,
+zasady CSS.
+(Opcjonalnie) dodaj agents.mmd dla wielu agentów.

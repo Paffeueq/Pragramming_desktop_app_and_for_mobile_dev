@@ -1,0 +1,125 @@
+\section{Testy jednostkowe, typowe błędy i ściąga z komend .NET}
+
+\subsection{Testy jednostkowe w .NET}
+Testy jednostkowe (unit tests) pozwalają zweryfikować działanie pojedynczych metod lub komponentów bez uruchamiania całej aplikacji.
+
+\subsubsection{Tworzenie projektu testowego}
+\begin{lstlisting}[language=bash, caption={Tworzenie projektu testowego w .NET}]
+dotnet new xunit -n ShopAPI.Tests
+dotnet add ShopAPI.Tests reference ShopAPI.Api
+\end{lstlisting}
+
+\subsubsection{Przykład prostego testu}
+\begin{lstlisting}[language=C, caption={Przykładowy test jednostkowy}]
+public class MathServiceTests
+{
+    [Fact]
+    public void Add_ReturnsSum()
+    {
+        var service = new MathService();
+        var result = service.Add(2, 3);
+        Assert.Equal(5, result);
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Testy kontrolerów API}
+Testy kontrolerów można wykonywać z wykorzystaniem pakietu \texttt{Microsoft.AspNetCore.Mvc.Testing}.
+
+\begin{lstlisting}[language=C, caption={Przykład testu kontrolera CitiesController}]
+public class CitiesControllerTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly HttpClient _client;
+
+    public CitiesControllerTests(WebApplicationFactory<Program> factory)
+    {
+        _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task GetCities_ReturnsSuccess()
+    {
+        var response = await _client.GetAsync("/api/cities");
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Warszawa", json);
+    }
+}
+\end{lstlisting}
+
+\subsection{Testy z wykorzystaniem DI i Mocków}
+Do testowania zależności stosuje się tzw. \textbf{mocki} – sztuczne implementacje interfejsów.  
+Biblioteki takie jak \texttt{Moq} pozwalają emulować zachowanie serwisów w testach.
+
+\begin{lstlisting}[language=C, caption={Przykład testu z użyciem Moq}]
+var mockService = new Mock<IWeatherService>();
+mockService.Setup(s => s.GetTemperature()).Returns(25);
+
+var vm = new WeatherViewModel(mockService.Object);
+Assert.Equal("25°C", vm.DisplayTemperature);
+\end{lstlisting}
+
+\subsection{Testy UI i integracyjne}
+\begin{itemize}
+    \item \textbf{Testy UI} – np. przy użyciu frameworka \texttt{Playwright} lub \texttt{Selenium},
+    \item \textbf{Testy integracyjne} – sprawdzają współdziałanie komponentów aplikacji,
+    \item \textbf{Testy wydajnościowe} – badają czas odpowiedzi API.
+\end{itemize}
+
+\subsection{Typowe błędy na kolokwium}
+\begin{itemize}
+    \item Mylenie \texttt{MVC} z \texttt{MVVM} – brak zrozumienia roli ViewModelu.
+    \item Brak implementacji \texttt{INotifyPropertyChanged} – dane nie aktualizują się w interfejsie.
+    \item Zapominanie o \texttt{await} przy wywołaniu metod asynchronicznych.
+    \item Niepoprawna rejestracja serwisów w DI (np. brak \texttt{AddSingleton}).
+    \item Zła konfiguracja routingu w kontrolerze (błędny atrybut \texttt{[Route]}).
+    \item Niewłaściwe kody HTTP w odpowiedziach (np. zwracanie 200 zamiast 201).
+    \item Użycie \texttt{code-behind} zamiast MVVM w WPF/MAUI.
+    \item Błędny binding (np. literówka w nazwie właściwości w XAML).
+    \item Zapomniany \texttt{PropertyChanged.Invoke()} – UI nie aktualizuje danych.
+    \item Brak testów jednostkowych dla metod serwisowych.
+\end{itemize}
+
+\subsection{Ściąga z komend .NET CLI}
+\begin{lstlisting}[language=bash, caption={Najważniejsze komendy .NET CLI}]
+dotnet new webapi -n MyApi            # Tworzenie nowego projektu Web API
+dotnet new maui -n MyApp              # Tworzenie nowej aplikacji MAUI
+dotnet run                            # Uruchomienie projektu
+dotnet build                          # Kompilacja projektu
+dotnet test                           # Uruchomienie testów
+dotnet restore                        # Przywrócenie pakietów NuGet
+dotnet add package <nazwa>            # Dodanie paczki NuGet
+dotnet watch run                      # Automatyczne odświeżanie aplikacji
+dotnet clean                          # Czyszczenie kompilacji
+dotnet publish -c Release             # Publikacja projektu w trybie Release
+\end{lstlisting}
+
+\subsection{Skróty klawiszowe w Visual Studio Code}
+\begin{itemize}
+    \item \texttt{Ctrl + `} – otwarcie terminala,
+    \item \texttt{Ctrl + Shift + P} – paleta poleceń,
+    \item \texttt{Ctrl + K, Ctrl + C} – komentowanie kodu,
+    \item \texttt{Ctrl + F5} – uruchomienie aplikacji,
+    \item \texttt{Alt + Shift + F} – formatowanie kodu.
+\end{itemize}
+
+\subsection{Pytania kontrolne}
+\begin{enumerate}
+    \item Jakie są główne etapy cyklu życia testu jednostkowego?
+    \item Do czego służy biblioteka Moq?
+    \item Czym różni się test jednostkowy od integracyjnego?
+    \item Jakie błędy najczęściej pojawiają się przy implementacji MVVM?
+    \item Jakie są podstawowe komendy .NET CLI przy tworzeniu i testowaniu projektu?
+\end{enumerate}
+
+\subsection{Podsumowanie końcowe}
+\begin{itemize}
+    \item Testy jednostkowe zapewniają stabilność i niezawodność aplikacji.
+    \item DI pozwala na łatwe testowanie komponentów dzięki mockom.
+    \item Znajomość cyklu życia aplikacji i wzorców architektonicznych to klucz do zdania kolokwium.
+    \item Warto pamiętać o poprawnych kodach HTTP, bindingach i walidacji danych.
+\end{itemize}
+
+\begin{center}
+\textit{„Dobry kod to taki, który nie wymaga komentarzy, a jego testy mówią wszystko.”}
+\end{center}

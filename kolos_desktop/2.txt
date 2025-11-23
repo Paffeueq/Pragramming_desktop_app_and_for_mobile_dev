@@ -1,0 +1,174 @@
+Tworzenie API REST
+Materiały wideo
+Explore, Test, & Debug API Endpoints in Visual Studio Faster Than Ever!
+Faster API Development in Visual Studio is Here! Say Hello to .http/.rest Files!
+.NET 9 Web API & Entity Framework 🚀 Full Course: CRUD, Code-First Migrations & SQL Server
+.NET 7 Minimal API for Beginners 🚀 Full CRUD in 10 Minutes!
+Connect from your Blazor app to your API
+Configure Blazor WebAssembly with Entra ID (.NET 8)
+Tematy do poruszenia
+Stworzenie nowego Web API w Visual Studio
+Uruchomienie API – omijanie zabezpieczenia SSL w Chrome:
+w przeglądarce wpisać chrome://flags/#allow-insecure-localhost i ustawić na Enabled
+omówienie generowania certyfikatów SSL deweloperskich
+Testowanie API:
+w Swaggerze
+w curlu – mini program do testowania API w konsoli
+w Postmanie – rozbudowany program do testowania API
+w przeglądarce
+w Visual Studio używając plików .http
+Omówienie czasowników HTTP i zasady działania kontrolerów – np. na przykładzie WeatherForecastController
+Połączenie się z API i użycie schematów (models, DTOs, contracts)
+Autentykacja i autoryzacja (OAuth 2.0 / OpenID Connect): logowanie przez Google i Microsoft Entra ID (tenant, Application/Client ID, Secret, Redirect URI, wymiana kodu na token)
+Ćwiczenia
+1. Stworzenie projektu Web API
+dotnet new webapi -n ShopAPI.Api
+cd ShopAPI.Api
+code .
+dotnet run
+Test startowy: https://localhost:7294/swagger/index.html
+
+2. Certyfikat developerski i HTTPS
+HTTPS działa od początku, nawet w trybie lokalnym.
+Certyfikat developerski chroni transmisję w środowisku deweloperskim.
+dotnet dev-certs https --check
+dotnet dev-certs https --trust
+Chrome → chrome://flags/#allow-insecure-localhost → Enabled
+
+3. Testowanie API
+Swagger
+curl
+Postman
+Pliki .http w VS Code
+Przeglądarka (dla GET)
+4. Czasowniki HTTP i dobre praktyki REST
+REST korzysta z kilku podstawowych metod, ale warto znać ich szerszy zestaw:
+
+GET – pobieranie danych
+POST – dodawanie nowych danych
+PUT – aktualizacja całego zasobu
+PATCH – częściowa aktualizacja (np. tylko jednego pola)
+DELETE – usunięcie zasobu
+HEAD – pobiera tylko nagłówki (np. do sprawdzenia, czy zasób istnieje)
+OPTIONS – zwraca, jakie metody są dostępne dla danego endpointu
+Ćwiczenie 1 – proste przykłady
+W CitiesController utwórz endpointy:
+
+GET /api/cities → pobiera wszystkie miasta
+GET /api/cities/{id} → pobiera jedno miasto
+POST /api/cities → dodaje nowe miasto
+PUT /api/cities/{id} → aktualizuje całe miasto
+PATCH /api/cities/{id} → zmienia tylko jedno pole (np. Country)
+DELETE /api/cities/{id} → usuwa miasto
+HEAD /api/cities/{id} → sprawdza, czy miasto istnieje (status 200/404)
+OPTIONS /api/cities → zwraca listę dostępnych metod (Allow: GET, POST, PUT, PATCH, DELETE)
+5. DTO i modele
+public class CityDto 
+{
+    public string Name { get; set; }
+    public string Country { get; set; }
+}
+Omów:
+
+DTO = obiekt wymiany danych
+oddziela API od logiki biznesowej
+6. Statusy HTTP – praktyczne scenariusze
+Kod	Znaczenie	Przykład
+200 OK	poprawne pobranie	GET miast
+201 Created	nowy zasób utworzony	POST miasto
+204 No Content	usunięto, brak treści	DELETE
+400 Bad Request	zła składnia danych	POST bez pola Name
+401 Unauthorized	brak autoryzacji	brak JWT tokena
+403 Forbidden	użytkownik nie ma uprawnień	np. zwykły user próbuje usunąć admina
+404 Not Found	zasób nie istnieje	GET /cities/999
+409 Conflict	konflikt danych	próba dodania istniejącego miasta
+500 Internal Server Error	błąd serwera	wyjątek w kodzie
+👉 Ćwiczenie: w POST zwróć 201 Created z nagłówkiem Location. 👉 Ćwiczenie: w PUT zwróć 404, jeśli miasto nie istnieje. 👉 Ćwiczenie: w PATCH zwróć 409, jeśli próba zmiany koliduje z innymi danymi.
+
+7. Schematy i generowanie klienta
+Swagger → swagger.json zawiera definicje endpointów i modeli.
+Można generować klienta automatycznie (NSwag, OpenAPI Generator).
+👉 Ćwiczenie:
+
+Otwórz https://localhost:7294/swagger/v1/swagger.json.
+Znajdź definicję CityDto.
+Pokaż, że na tej podstawie można wygenerować klasę klienta w C#.
+8. Wysyłanie zapytań do API z aplikacji klienckiej
+Ćwiczenie – prosta aplikacja konsolowa
+Utwórz nowy projekt:
+
+dotnet new console -n ShopAPI.Client
+cd ShopAPI.Client
+Dodaj pakiet:
+
+dotnet add package System.Net.Http.Json
+W Program.cs:
+
+using System.Net.Http.Json;
+
+var client = new HttpClient();
+client.BaseAddress = new Uri("https://localhost:7294");
+
+// GET
+var cities = await client.GetFromJsonAsync<List<CityDto>>("/api/cities");
+Console.WriteLine($"Miasta: {string.Join(", ", cities.Select(c => c.Name))}");
+
+// POST
+var newCity = new CityDto { Name = "Warsaw", Country = "Poland" };
+var response = await client.PostAsJsonAsync("/api/cities", newCity);
+Console.WriteLine($"Dodano miasto, status: {response.StatusCode}");
+9. Ćwiczenia dodatkowe – „REST w realnym świecie”
+1. Paginacja i filtrowanie
+GET /api/cities?page=1&pageSize=10
+GET /api/cities?country=Poland
+omów, dlaczego nie zwracamy od razu całej bazy.
+2. Walidacja danych
+Dodaj [Required] do CityDto.Name.
+Omów walidację automatyczną i status 400.
+3. Idempotencja metod
+GET, PUT, DELETE są idempotentne (wielokrotne wywołanie daje ten sam efekt).
+POST nie jest (dodaje za każdym razem nowy obiekt).
+4. HATEOAS – linki w odpowiedzi
+W GET /cities/{id} oprócz danych zwróć linki do:
+PUT (edycja),
+DELETE (usunięcie).
+Dzięki temu klient „wie”, jakie akcje są możliwe.
+10. Autentykacja i autoryzacja (OAuth 2.0 / OpenID Connect)
+Podstawy:
+
+Flow: Authorization Code + PKCE (dla SPA/native) lub Authorization Code (dla aplikacji serwerowych).
+Kluczowe elementy: Tenant, Client/Application ID, Client Secret (dla „confidential clients”), Redirect URI, Scopes (openid, profile, email), Token endpoints.
+Logowanie w przeglądarce → kod autoryzacyjny → wymiana na tokeny (access_token, id_token, refresh_token).
+Google (Google Cloud Console):
+
+Utwórz OAuth consent screen (External/Internal), dodaj zakresy: openid, email, profile.
+Utwórz OAuth Client ID: typ (Web/SPA/Android/iOS), ustaw Redirect URI (np. https://localhost:7294/signin-oidc albo dla SPA: http://localhost:5173/callback).
+Zanotuj: Client ID, Client Secret (jeśli wymagane), Redirect URIs.
+Autoryzacja:
+Authorize endpoint: https://accounts.google.com/o/oauth2/v2/auth
+Token endpoint: https://oauth2.googleapis.com/token
+Przykład żądania (PKCE, skrótowo):
+GET authorize z parametrami: client_id, redirect_uri, response_type=code, scope=openid email profile, code_challenge, code_challenge_method=S256, state.
+Wymiana kodu: POST do token endpoint z code, client_id, redirect_uri, code_verifier (+ client_secret dla confidential).
+Weryfikacja id_token (JWT) podpisu i aud, iss.
+Microsoft Entra ID (Azure Portal):
+
+Tenant: zapis Directory (tenant) ID.
+App registrations: zarejestruj aplikację, dodaj Redirect URIs, włącz „ID tokens”.
+Zanotuj: Application (client) ID, Directory (tenant) ID, Client Secret (jeśli potrzebny).
+Endpoints (v2.0):
+Authorize: https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize
+Token: https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token
+Scope: openid profile email (+ offline_access dla refresh), dla API: api://<app-id>/.<scope> lub Microsoft Graph: https://graph.microsoft.com/.default.
+Użyj PKCE dla public clients; dla confidential dołącz client_secret.
+Integracja w .NET API (skrót):
+
+API zwykle weryfikuje JWT (Bearer) zamiast wykonywać interaktywny login.
+Konfiguracja (Minimal API):
+AddAuthentication(JwtBearer).AddJwtBearer z Authority (np. Entra: https://login.microsoftonline.com/{tenant}/v2.0 lub Google: https://accounts.google.com) i Audience (Client ID / API App ID URI).
+Klient (SPA/Native) wykonuje login przez przeglądarkę i przekazuje access_token w Authorization: Bearer <token>.
+Ćwiczenia:
+
+Skonfiguruj aplikację w Entra ID i zaloguj użytkownika przez Authorization Code + PKCE, wyświetl id_token claims (sub, name, email).
+Skonfiguruj login przez Google, odbierz code, wymień na access_token, zweryfikuj id_token.
+Dodaj do API middleware JWT Bearer i zabezpiecz endpointy [Authorize].

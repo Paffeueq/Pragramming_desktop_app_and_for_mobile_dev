@@ -1,0 +1,25 @@
+### POST - zwróć 201 Created z nagłówkiem Location
+POST https://localhost:7221/api/cities
+Content-Type: application/json
+
+{
+    "name": "Rome",
+    "country": "Italy"
+}
+
+### PUT - zwróć 404, jeśli miasto nie istnieje
+PUT https://localhost:7221/api/cities/999
+Content-Type: application/json
+
+{
+    "name": "Nowhere",
+    "country": "Unknown"
+}
+
+### PATCH - zwróć 409, jeśli próba zmiany koliduje z innymi danymi
+PATCH https://localhost:7221/api/cities/2
+Content-Type: application/json
+
+{
+    "Name": "Rome"
+}

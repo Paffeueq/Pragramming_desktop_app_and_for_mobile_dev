@@ -1,0 +1,87 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\stud\\sem 5\\Desktop\\z5\\ShopPlatform\\ShopPlatform.AppHost\\ShopPlatform.AppHost.csproj": {}
+  },
+  "projects": {
+    "D:\\stud\\sem 5\\Desktop\\z5\\ShopPlatform\\ShopPlatform.AppHost\\ShopPlatform.AppHost.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\stud\\sem 5\\Desktop\\z5\\ShopPlatform\\ShopPlatform.AppHost\\ShopPlatform.AppHost.csproj",
+        "projectName": "ShopPlatform.AppHost",
+        "projectPath": "D:\\stud\\sem 5\\Desktop\\z5\\ShopPlatform\\ShopPlatform.AppHost\\ShopPlatform.AppHost.csproj",
+        "packagesPath": "C:\\Users\\pawel\\.nuget\\packages\\",
+        "outputPath": "D:\\stud\\sem 5\\Desktop\\z5\\ShopPlatform\\ShopPlatform.AppHost\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\pawel\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Aspire.Dashboard.Sdk.win-x64": {
+              "target": "Package",
+              "version": "[8.2.2, )",
+              "autoReferenced": true
+            },
+            "Aspire.Hosting.AppHost": {
+              "target": "Package",
+              "version": "[8.2.2, )"
+            },
+            "Aspire.Hosting.Orchestration.win-x64": {
+              "target": "Package",
+              "version": "[8.2.2, )",
+              "autoReferenced": true
+            },
+            "Aspire.Hosting.Redis": {
+              "target": "Package",
+              "version": "[8.2.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.307/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

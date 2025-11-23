@@ -1,0 +1,26 @@
+{
+  "month": "Wrzesień",
+  "year": "2025",
+  "preparedBy": "Jan Kowalski",
+  "datePrepared": "2025-10-01",
+  "kpis": [
+    { "name": "Liczba zgłoszeń kontaktowych", "goal": "100", "value": "118", "deviation": "+18", "status": "✅" },
+    { "name": "Średni czas odpowiedzi (h)", "goal": "<24", "value": "20", "deviation": "-4", "status": "✅" },
+    { "name": "Konwersja formularzy (%)", "goal": "5%", "value": "4.1%", "deviation": "-0.9%", "status": "⚠️" }
+  ],
+  "kpiNotes": ["Dane pobrane z bazy ContactFormTest (tabela Submissions)", "Zliczenie wg daty przesłania formularza"],
+  "events": [
+    { "title": "Wdrożenie nowego walidatora", "description": "Zmniejszyło liczbę błędnych zgłoszeń", "date": "2025-09-12" }
+  ],
+  "problems": [
+    { "title": "Przestój systemu mailingowego", "description": "Usługa wysyłki maili niedostępna ~4h", "impact": "Opóźnienia w powiadomieniach", "actions": "Przełączenie na backup; analiza logów", "owner": "Ops Team", "due": "2025-10-05" }
+  ],
+  "actions": [
+    { "id": 1, "task": "Analiza spadku konwersji", "owner": "Marketing", "due": "2025-10-15", "status": "W toku" },
+    { "id": 2, "task": "Audyt źródeł ruchu", "owner": "Analytics", "due": "2025-10-20", "status": "Otwarty" }
+  ],
+  "finances": { "budget": "5000 PLN", "expenses": "4320 PLN", "deviation": "-680 PLN" },
+  "analysis": "Część danych z GA jest niekompletna — filtry IP były aktywne przez część miesiąca.",
+  "conclusions": { "short": ["Poprawić onboarding formularza"], "long": ["Zainwestować w testy A/B dla CTA"] },
+  "attachments": ["link-do-dashboardu", "wykresy/kpi-september.png"]
+}

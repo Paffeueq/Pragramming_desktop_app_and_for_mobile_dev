@@ -1,0 +1,206 @@
+Materiały
+(MVVM) What is the MVVM pattern, What benefits does MVVM have? – https://www.youtube.com/watch?v=AXpTeiWtbC8
+(MAUI) Learn .NET MAUI - Full Course for Beginners	Build cross-platform apps in C# – https://www.youtube.com/watch?v=DuNLR_NJv8U
+Dokumentacja:
+ASP.NET Core MVC – https://learn.microsoft.com/aspnet/core/mvc
+.NET MAUI – https://learn.microsoft.com/dotnet/maui
+WPF – https://learn.microsoft.com/dotnet/desktop/wpf
+CommunityToolkit.Mvvm – https://learn.microsoft.com/dotnet/communitytoolkit/mvvm/
+Repo przykładowe (oficjalne): https://github.com/dotnet/maui / https://github.com/CommunityToolkit/dotnet
+Tematy do poruszenia
+Dlaczego architektura w aplikacjach .NET MAUI?
+
+Oddzielenie warstw (UI, logika prezentacji, logika biznesowa).
+Ułatwione testowanie (ViewModel bez zależności od UI).
+Łatwiejsze utrzymanie i rozwój projektu (czystszy kod, mniejsza ilość duplikacji).
+Eliminacja problemów z podejściem code-behind – zdarzenia i logika w widoku powodują tight coupling i trudność w testach.
+Przegląd wzorców: MVC vs MVVM
+
+MVC (ASP.NET Core) – Controller pośredniczy między Modelem a Widokiem (HTML / Razor).
+MVVM (WPF / MAUI) – ViewModel = stan + logika prezentacji + INotifyPropertyChanged.
+Data Binding
+
+Tryby: OneWay, TwoWay, OneTime.
+x:DataType → compiled bindings (lepsza wydajność, IntelliSense).
+Własności i INotifyPropertyChanged.
+CommunityToolkit.Mvvm
+
+ObservableObject, [ObservableProperty], [RelayCommand].
+Source Generators – eliminacja boilerplate.
+Commands vs event handlers
+
+ICommand, [RelayCommand], CanExecute (np. IsBusy).
+Zalety używania Command zamiast eventów w UI.
+Model vs DTO vs Entity
+
+Rozdzielenie obiektów domenowych, transferowych i mapowanych z bazy.
+Unikanie mieszania warstw danych z UI.
+Walidacja i konwersje
+
+ValueConverter, MultiBinding.
+ValidationAttributes lub FluentValidation.
+Stylizacja i zasoby
+
+ResourceDictionary, globalne i lokalne style.
+Obsługa jasnego/ciemnego motywu (AppThemeBinding).
+Ikony, fonty, obrazy (SVG, PNG, TTF/OTF).
+Nawigacja
+
+MAUI Shell: Routing, Flyout, TabBar, GoToAsync.
+WPF: NavigationService / Frame.
+Rejestrowanie tras i przekazywanie parametrów.
+Integracja z API systemów
+
+MAUI Essentials: Connectivity, Geolocation, czujniki, kamera, powiadomienia.
+Natywne API Android/iOS/macOS/Windows w C#.
+Kompilacja warunkowa #if ANDROID / #if IOS.
+Różnice .NET MAUI vs WPF
+
+Platformy: MAUI (Android, iOS, Windows, macOS) vs WPF (Windows).
+Single Project (MAUI) vs klasyczny desktop (WPF).
+Handlers (MAUI) vs Dependency Properties (WPF).
+Lifecycle:
+
+W MAUI (mobile) aplikacja działa w cyklu życia urządzenia: uruchomienie (OnStart), przejście w tło (OnSleep / suspend), wznowienie (OnResume).
+Na Android/iOS wymagane są też obsługi uprawnień (kamera, lokalizacja).
+W WPF aplikacja desktopowa działa inaczej – brak stanów „uśpienia” typowych dla urządzeń mobilnych.
+Dialekty XAML – podobne, ale różne kontrolki i przestrzenie nazw.
+Hot Reload wieloplatformowy vs desktopowy.
+Kiedy wybrać WPF, a kiedy MAUI
+
+MAUI – gdy aplikacja ma działać na wielu platformach (Android, iOS, Windows, macOS).
+WPF – gdy aplikacja jest typowo desktopowa (Windows), istnieje duża baza kodu legacy lub potrzeba specyficznych integracji z Windows.
+Testowalność
+
+Testy jednostkowe ViewModeli (brak UI).
+Mockowanie serwisów (HttpClient, repozytoria).
+Dependency Injection: MauiProgram.Services w MAUI / zewnętrzny kontener w WPF.
+Mechanizmy produktywności
+
+XAML Hot Reload, C# Hot Reload.
+Live Preview, Live Visual Tree.
+Debugowanie i breakpoints na wielu platformach.
+Ćwiczenia
+1. Szybki start – projekt MVC (backend)
+dotnet new mvc -n DemoMvc
+cd DemoMvc
+dotnet run
+Uruchom aplikację i wejdź na wskazany adres w przeglądarce.
+Obejrzyj strukturę katalogów: /Controllers, /Views, /Models.
+Dodaj prosty kontroler HelloController i akcję Index, która zwróci np. View("Hello").
+Zrozum przepływ: żądanie HTTP → routing → Controller → View.
+2. Aplikacja UI bez MVVM (MAUI lub WPF)
+Utwórz projekt:
+
+MAUI: dotnet new maui -n DemoMaui
+WPF: dotnet new wpf -n DemoWpf
+W głównym oknie / stronie dodaj elementy:
+
+Pole tekstowe Imię, pole tekstowe Nazwisko, etykietę (Label/TextBlock), przycisk Połącz.
+W code-behind obsłuż zdarzenia:
+
+TextChanged dla pól tekstowych → zapisz dane do zmiennych.
+Click dla przycisku → ustaw w etykiecie wartość Imię + Nazwisko.
+Zanotuj problemy: logika umieszczona w UI, brak testów, trudna rozbudowa (np. walidacja, komunikacja z API).
+
+3. Refaktoryzacja do MVVM (Toolkit)
+Dodaj pakiet:
+dotnet add package CommunityToolkit.Mvvm
+Utwórz klasę MainViewModel dziedziczącą po ObservableObject.
+Dodaj pola [ObservableProperty] string FirstName, [ObservableProperty] string LastName.
+Dodaj właściwość FullName => $"{FirstName} {LastName}".
+Zaimplementuj [RelayCommand] SaveAsync() (symulacja np. zapisu, await Task.Delay).
+Powiąż ViewModel z UI:
+
+MAUI – w konstruktorze strony: BindingContext = new MainViewModel();
+WPF – DataContext = new MainViewModel(); w MainWindow.xaml.cs.
+Zamień kontrolki w XAML na bindingi:
+
+Entry/TextBox → {Binding FirstName, Mode=TwoWay}
+Button → {Binding SaveCommand}
+Label → {Binding FullName}
+4. Dodanie IsNotBusy / CanExecute
+W ViewModel dodaj:
+
+public bool IsNotBusy => !IsBusy;
+W atrybucie RelayCommand ustaw:
+
+[RelayCommand(CanExecute = nameof(IsNotBusy))]
+Uruchom aplikację i sprawdź: przycisk powinien być nieaktywny, kiedy IsBusy == true.
+
+5. Walidacja
+Dodaj do ViewModelu logikę:
+
+Jeśli string.IsNullOrWhiteSpace(FirstName) → ustaw właściwość ValidationMessage = "Imię jest wymagane".
+W XAML dodaj Label powiązany z ValidationMessage.
+Przetestuj: pozostaw pole puste i kliknij „Zapisz” → powinien pojawić się komunikat.
+6. ValueConverter
+Utwórz konwerter, np. BoolInverseConverter.
+Zarejestruj go w ResourceDictionary.
+Użyj w XAML, np. do włączania/wyłączania przycisku:
+
+<Button Text="Zapisz" 
+        Command="{Binding SaveCommand}" 
+        IsEnabled="{Binding IsBusy, Converter={StaticResource BoolInverseConverter}}"/>
+Sprawdź – przycisk staje się nieaktywny podczas wykonywania operacji.
+7. Dependency Injection
+W MAUI – w MauiProgram.cs:
+
+builder.Services.AddSingleton<MainViewModel>();
+builder.Services.AddTransient<MainPage>();
+W MainPage.xaml.cs:
+
+public MainPage(MainViewModel vm)
+{
+    InitializeComponent();
+    BindingContext = vm;
+}
+W WPF skonfiguruj kontener (np. Microsoft.Extensions.DependencyInjection) w App.xaml.cs i rejestruj ViewModel/okna.
+
+8. Testy jednostkowe ViewModelu
+Utwórz projekt testowy:
+
+dotnet new nunit -n DemoTests
+dotnet add DemoTests/DemoTests.csproj reference DemoMaui/DemoMaui.csproj
+Napisz test:
+
+[Test]
+public void FullName_Updates_OnFirstOrLastChange()
+{
+    var vm = new MainViewModel();
+    vm.FirstName = "Anna";
+    vm.LastName = "Nowak";
+    Assert.That(vm.FullName, Is.EqualTo("Anna Nowak"));
+}
+Uruchom testy i upewnij się, że logika działa niezależnie od UI.
+
+9. Nawigacja
+Dodaj nową stronę / okno DetailsPage.
+MAUI Shell:
+
+  
+await Shell.Current.GoToAsync("details", 
+    new Dictionary<string,object>{{"Item", SelectedContact}});
+  
+WPF:
+
+NavigationService.Navigate(new DetailsPage(contact));
+Przekaż obiekt do drugiej strony i wyświetl dane (np. pełne imię i nazwisko).
+10. Stylizacja i zasoby
+W Resources/Styles.xaml zdefiniuj własne style:
+
+Kolor główny aplikacji.
+Styl globalny dla przycisków (marginesy, font-size).
+Użyj AppThemeBinding, aby zmienić kolor tła w trybie jasnym/ciemnym.
+Dodaj własny font (TTF/OTF) i użyj w etykiecie.
+Dodaj ikonę (SVG) i ustaw jako Image.
+11. Lifecycle (MAUI vs WPF)
+W MAUI:
+
+Obsłuż OnStart, OnSleep (lub OnAppStateChanged), OnResume.
+Dodaj log do konsoli (np. „aplikacja w tle”, „aplikacja wznowiona”).
+Zrozum – aplikacja może zostać uśpiona przez system.
+W WPF:
+
+Sprawdź zdarzenia Startup, Exit.
+Zrozum różnicę – aplikacja desktopowa działa dopóki użytkownik jej nie zamknie.

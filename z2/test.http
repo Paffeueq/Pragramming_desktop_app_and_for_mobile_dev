@@ -1,0 +1,40 @@
+### Pobierz wszystkie miasta
+GET https://localhost:7221/api/cities
+Accept: application/json
+
+### Pobierz miasto o ID = 1
+GET https://localhost:7221/api/cities/1
+Accept: application/json
+
+### Dodaj nowe miasto
+POST https://localhost:7221/api/cities
+Content-Type: application/json
+
+{
+  "name": "Rome",
+  "country": "Italy"
+}
+
+### Zaktualizuj miasto o ID = 1
+PUT https://localhost:7221/api/cities/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "ILZA",
+  "country": "Polska"
+}
+
+### Zmień tylko kraj (PATCH)
+PATCH https://localhost:7221/api/cities/2
+Content-Type: application/json
+
+{
+  "Country": "Deutschland"
+}
+
+### Sprawdź istnienie miasta (HEAD)
+HEAD https://localhost:7221/api/cities/1
+
+### Wyświetl dostępne metody (OPTIONS)
+OPTIONS https://localhost:7221/api/cities
