@@ -7,6 +7,7 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddHttpClient();
 builder.Services.AddHttpClient("products", client =>
 {
     client.BaseAddress = new Uri("https+http://products");

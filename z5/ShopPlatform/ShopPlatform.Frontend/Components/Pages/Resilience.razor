@@ -1,0 +1,74 @@
+@page "/resilience"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@inject HttpClient HttpClient
+
+<h1>Resilience Test - Retry Pattern</h1>
+
+<p>
+    Endpoint /weatherforecast ma 25% szansy na awarię.
+    Polly retry automatycznie ponawia żądania.
+</p>
+
+<button class="btn btn-primary" @onclick="TestResilience" disabled="@isLoading">
+    @if (isLoading)
+    {
+        <span class="spinner-border spinner-border-sm me-2"></span>
+    }
+    Wyślij 10 żądań
+</button>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info mt-3">@message</div>
+}
+
+@if (results.Count > 0)
+{
+    <div class="mt-3">
+        <h5>Wyniki:</h5>
+        <ul>
+            @foreach (var result in results)
+            {
+                <li>Żądanie @result.Item1: @result.Item2</li>
+            }
+        </ul>
+        <p><strong>Sukcesy: @results.Count(r => r.Item2.StartsWith("✓")) / 10</strong></p>
+    </div>
+}
+
+@code {
+    private bool isLoading = false;
+    private string message = string.Empty;
+    private List<(int, string)> results = new();
+
+    private async Task TestResilience()
+    {
+        isLoading = true;
+        results.Clear();
+        message = "Wysyłanie żądań...";
+        
+        for (int i = 1; i <= 10; i++)
+        {
+            try
+            {
+                var response = await HttpClient.GetAsync("https://localhost:7100/weatherforecast");
+                if (response.IsSuccessStatusCode)
+                {
+                    results.Add((i, "✓ OK (200)"));
+                }
+                else
+                {
+                    results.Add((i, $"✗ Failed ({response.StatusCode})"));
+                }
+            }
+            catch (Exception ex)
+            {
+                results.Add((i, $"✗ Error: {ex.Message}"));
+            }
+        }
+
+        message = "Testy ukończone! Sprawdź Traces w Dashboard, aby zobaczyć retry pattern z Polly.";
+        isLoading = false;
+    }
+}

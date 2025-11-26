@@ -1,14 +1,23 @@
 using System.Diagnostics;
+using Shop.Api.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.AddServiceDefaults();
+builder.AddNpgsqlDbContext<ProductsContext>("productsdb");
 builder.Services.AddOpenApi();
 builder.Services.AddStackExchangeRedisOutputCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("cache");
 });
+
+// Extend health checks: add DB readiness (no "live" tag = affects /health only)
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ProductsContext>(name: "productsdb", failureStatus: HealthStatus.Unhealthy);
 
 var app = builder.Build();
 
@@ -29,6 +38,12 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
+    // Simulate random failures for testing resilience/retry
+    if (Random.Shared.Next(0, 4) == 0)
+    {
+        throw new InvalidOperationException("Simulated weather service failure");
+    }
+    
     var forecast =  Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
@@ -41,6 +56,12 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast")
 .CacheOutput(p => p.Expire(TimeSpan.FromSeconds(5)));
+
+app.MapGet("/products", async (ProductsContext db) =>
+    await db.Products.AsNoTracking().ToListAsync());
+
+// Map /health (readiness) and /alive (liveness)
+app.MapDefaultEndpoints();
 
 app.Run();
 

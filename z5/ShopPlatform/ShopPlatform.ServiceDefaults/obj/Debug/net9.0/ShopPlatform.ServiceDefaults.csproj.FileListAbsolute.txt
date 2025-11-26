@@ -1,0 +1,13 @@
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\bin\Debug\net9.0\ShopPlatform.ServiceDefaults.deps.json
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\bin\Debug\net9.0\ShopPlatform.ServiceDefaults.dll
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\bin\Debug\net9.0\ShopPlatform.ServiceDefaults.pdb
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\ShopPlatform.ServiceDefaults.csproj.AssemblyReference.cache
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\ShopPlatform.ServiceDefaults.GeneratedMSBuildEditorConfig.editorconfig
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\ShopPlatform.ServiceDefaults.AssemblyInfoInputs.cache
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\ShopPlatform.ServiceDefaults.AssemblyInfo.cs
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\ShopPlatform.ServiceDefaults.csproj.CoreCompileInputs.cache
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\ShopPlatform.ServiceDefaults.sourcelink.json
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\ShopPlatform.ServiceDefaults.dll
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\refint\ShopPlatform.ServiceDefaults.dll
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\ShopPlatform.ServiceDefaults.pdb
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.ServiceDefaults\obj\Debug\net9.0\ref\ShopPlatform.ServiceDefaults.dll

@@ -113,7 +113,6 @@ Plik \texttt{Extensions.cs} zawiera:
 
 \subsection{Rola}
 \begin{itemize}
-	\item \textbf{OpenTelemetry:} Obserwabilność (traces, metryki)
 	\item \textbf{Health Checks:} Sprawdzanie stanu usług
 	\item \textbf{Wspólna konfiguracja:} Do użytku przez wszystkie mikrousługi
 \end{itemize}
@@ -191,14 +190,9 @@ przez service discovery Aspire.
 Pliki \texttt{appsettings.json} w obu projektach zawierają tylko konfiguracje logowania 
 i nie zawierają hardcodowanych portów. Porty są przydzielane dynamicznie przez AppHost.
 
-\subsection{Wnioski}
 
-\begin{itemize}
-	\item Service discovery eliminuje potrzebę hardcodowania adresów IP/portów
-	\item Named clients ułatwiają zarządzanie połączeniami między usługami
-	\item Aspire automatycznie rezolwuje nazwy serwisów na adresy sieciowe
-	\item Aplikacja jest bardziej elastyczna i gotowa na deployment
-\end{itemize}
+
+Service discovery eliminuje hardcodowanie adresów IP/portów, named clients upraszczają zarządzanie połączeniami między usługami, a Aspire automatycznie rozwiązuje nazwy serwisów na adresy sieciowe, dzięki czemu aplikacja staje się elastyczna i gotowa na deployment.
 
 \section{Redis jako cache}
 
@@ -254,18 +248,297 @@ W \texttt{Shop.Api/appsettings.Development.json}:
 
 Po uruchomieniu aplikacji, Dashboard wyświetla traces z informacjami o:
 \begin{itemize}
-	\item \textbf{Cache Hit} -- odpowiedź z cache'u (ms < 5)
+	\item \textbf{Cache Hit} -- odpowiedź z cache'u (ms  5)
 	\item \textbf{Cache Miss} -- odpowiedź ze źródła (brak w cache'u)
 	\item \textbf{Latency} -- czas odpowiedzi (szybciej z cache'u)
 \end{itemize}
 
-\subsection{Wnioski}
+\section{Migracja SQLite → PostgreSQL}
+
+\subsection{AppHost – Postgres/Database}
+(Środowisko bez Docker – zastosowano fallback connection string.)
+\begin{lstlisting}[language=C#]
+	var builder = DistributedApplication.CreateBuilder(args);
+	
+	var productsdb = builder.AddConnectionString("productsdb");
+	
+	builder.AddProject("products", "../Shop.Api/Shop.Api.csproj")
+	.WithReference(productsdb);
+	
+	builder.AddProject("frontend", "../ShopPlatform.Frontend/ShopPlatform.Frontend.csproj");
+	
+	builder.Build().Run();
+\end{lstlisting}
+
+(Docelowo z Docker:)
+\begin{lstlisting}[language=C#]
+	var db = builder.AddPostgres("postgres");
+	var productsDb = db.AddDatabase("productsdb");
+	builder.AddProject("products", "../Shop.Api/Shop.Api.csproj")
+	.WithReference(productsDb);
+	// opcjonalnie: db.WithPgAdmin();
+\end{lstlisting}
+
+\subsection{API – rejestracja DbContext}
+\begin{lstlisting}[language=C#]
+	builder.AddNpgsqlDbContext<ProductsContext>("productsdb");
+\end{lstlisting}
+
+\noindent
+Model i kontekst:
+\begin{lstlisting}[language=C#]
+	// Models/Product.cs
+	public class Product { public int Id {get;set;} public string Name {get;set;} = ""; public decimal Price {get;set;} }
+	
+	// Data/ProductsContext.cs
+	public class ProductsContext : DbContext {
+		public ProductsContext(DbContextOptions<ProductsContext> options) : base(options) {}
+		public DbSet<Product> Products => Set<Product>();
+	}
+\end{lstlisting}
+
+\subsection{Migracje i aktualizacja bazy}
+\begin{verbatim}
+	cd Shop.Api
+	dotnet ef migrations add Init
+	dotnet ef database update
+\end{verbatim}
+
+
+Aspire rozprowadza connection string pod nazwą productsdb, migracje tworzą schemat bazy i wymagają działającego PostgreSQL, a w środowisku bez Dockera wykorzystano AddConnectionString jako zamiennik.
+
+\section{Health Checks / Alive}
+
+\subsection{Rejestracja health checks}
+
+W \texttt{Shop.Api/Program.cs}:
+
+\begin{lstlisting}[language=C#]
+	builder.AddServiceDefaults();
+	// Extend with DB readiness check
+	builder.Services.AddHealthChecks()
+	.AddDbContextCheck<ProductsContext>(
+	name: "productsdb", 
+	failureStatus: HealthStatus.Unhealthy);
+\end{lstlisting}
+
+ServiceDefaults automatycznie dodaje \texttt{"self"} check z tagiem \texttt{"live"}.
+
+\subsection{Mapowanie endpointów}
+
+\begin{lstlisting}[language=C#]
+	app.MapDefaultEndpoints();
+\end{lstlisting}
+
+Mapuje:
+\begin{itemize}
+	\item \texttt{/alive} -- Tylko check \texttt{"self"} (tag: live)
+	\begin{itemize}
+		\item Zwraca: \textbf{Healthy} 200 OK
+	\end{itemize}
+	\item \texttt{/health} -- Wszystkie checks (\texttt{self} + \texttt{productsdb})
+	\begin{itemize}
+		\item Zwraca: \textbf{Healthy} 200 OK (gdy DB dostępna)
+		\item Zwraca: \textbf{Unhealthy} 503 (gdy DB down)
+	\end{itemize}
+\end{itemize}
+
+\subsection{Testowanie w Dashboard}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{alive.png}
+	\caption{Endpointy \texttt{/health} i \texttt{/alive} zwracają Healthy}
+\end{figure}
+
+\subsection{Różnica między /alive a /health}
 
 \begin{itemize}
-	\item Output Cache Redis zmniejsza latency odpowiedzi
-	\item \texttt{CacheOutput()} automatycznie cache'uje wyniki HTTP
-	\item Traces w Dashboard pozwalają obserwować cache hit/miss
-	\item 5-sekundowy TTL pozwala na automatyczne odświeżenie danych
+	\item \textbf{Liveness (/alive)} -- czy proces żyje
+	\begin{itemize}
+		\item Zawsze Healthy (jeśli aplikacja uruchomiona)
+		\item Orchestrator restartuje gdy Unhealthy
+	\end{itemize}
+	\item \textbf{Readiness (/health)} -- czy gotowy do ruchu
+	\begin{itemize}
+		\item Unhealthy gdy DB niedostępna
+		\item Orchestrator usuwa z load balancera gdy Unhealthy
+	\end{itemize}
 \end{itemize}
+
+\section{Resilience (Retry) - Polly}
+
+\subsection{Losowa awaria w API}
+
+W \texttt{Shop.Api/Program.cs} dodano losowy throw do \texttt{/weatherforecast}:
+
+\begin{lstlisting}[language=C#]
+app.MapGet("/weatherforecast", () =>
+{
+    // Simulate random failures for testing resilience/retry
+    if (Random.Shared.Next(0, 4) == 0)
+    {
+        throw new InvalidOperationException("Simulated weather service failure");
+    }
+    // ... return forecast
+})
+\end{lstlisting}
+
+\textbf{25\% szansy na awarię.}
+
+\subsection{Polly Resilience Handler}
+
+W \texttt{ServiceDefaults/Extensions.cs} skonfigurowano:
+
+\begin{lstlisting}[language=C#]
+builder.Services.ConfigureHttpClientDefaults(http =>
+{
+    http.AddStandardResilienceHandler();
+    http.AddServiceDiscovery();
+});
+\end{lstlisting}
+
+\texttt{AddStandardResilienceHandler()} zawiera:
+\begin{itemize}
+	\item Retry z exponential backoff (1s, 2s, 4s...)
+	\item Circuit breaker pattern
+	\item Timeout policy
+\end{itemize}
+
+\subsection{Testowanie retry}
+
+Każdy request do API automatycznie będzie retry'owany gdy endpoint rzuci wyjątek.
+
+Obserwacja w \textbf{Dashboard → Traces}:
+\begin{itemize}
+	\item Pierwsze żądanie -- 500 Internal Server Error
+	\item Retry attempt 1 -- wait 1s, retry
+	\item Retry attempt 2 -- wait 2s, retry
+	\item Retry attempt 3 -- wait 4s, retry
+	\item Ostateczna próba -- 200 OK (jeśli backend się podniósł)
+\end{itemize}
+
+\section{Dostosowanie polityk Polly}
+
+\subsection{Zmiana liczby retry attempts}
+
+W \texttt{ServiceDefaults/Extensions.cs} zmieniono konfigurację:
+
+\begin{lstlisting}[language=C#]
+builder.Services.ConfigureHttpClientDefaults(http =>
+{
+    http.AddStandardResilienceHandler(options =>
+    {
+        // Customize: zmniejsz liczbę retry attempts z domyślnych 3 na 2
+        options.Retry.MaxRetryAttempts = 2;
+    });
+    
+    http.AddServiceDiscovery();
+});
+\end{lstlisting}
+
+\subsection{Obserwacja zachowania}
+
+\textbf{Przed zmianą (3 attempts):}
+\begin{itemize}
+	\item Attempt 0: Initial request
+	\item Attempt 1: wait 1s, retry
+	\item Attempt 2: wait 2s, retry
+	\item Attempt 3: wait 4s, retry
+	\item \textbf{Czas całkowity:} ~7 sekund
+\end{itemize}
+
+\textbf{Po zmianie (2 attempts):}
+\begin{itemize}
+	\item Attempt 0: Initial request
+	\item Attempt 1: wait 1s, retry
+	\item Attempt 2: wait 2s, retry
+	\item \textbf{Czas całkowity:} ~3 sekundy
+\end{itemize}
+
+\subsection{Pozostałe opcje konfiguracyjne}
+
+\begin{lstlisting}[language=C#]
+options.Retry.MaxRetryAttempts = 2;          // Liczba prób
+options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
+options.Timeout.TimeoutValue = TimeSpan.FromSeconds(10);
+\end{lstlisting}
+
+\subsection{Weryfikacja w aplikacji}
+
+Frontend testuje resilience wysyłając 10 żądań do /weatherforecast:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{resilience_results.png}
+	\caption{Resilience component z wynikami: 10/10 żądań zwróciło OK (200). 
+		MaxRetryAttempts = 2 pozwolił na szybkie próby i sukcesy.}
+\end{figure}
+
+\subsection{Weryfikacja w Dashboard}
+
+Strukturalne logi z OpenTelemetry pokazują Polly retry attempts:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\textwidth]{dashboard_retry_traces.png}
+	\caption{Dashboard Traces prezentuje Execution attempt events z Source: 'standard//Standard-Retry'. 
+		Widać Attempt: '0', '1', '2' - potwierdzając MaxRetryAttempts = 2.}
+\end{figure}
+
+\section{Wdrożenie z Azure Developer CLI}
+
+\subsection{Instalacja narzędzi}
+
+Zainstalowano Azure Developer CLI:
+
+\begin{verbatim}
+	winget install microsoft.azd
+	winget install -e --id Microsoft.Bicep
+	azd version
+\end{verbatim}
+
+Wynik: \texttt{azd version 1.21.3}
+
+\subsection{Inicjalizacja projektu Aspire}
+
+\begin{verbatim}
+	cd ShopPlatform
+	azd init
+\end{verbatim}
+
+Azd automatycznie skanuje projekt i wykrywa:
+\begin{itemize}
+	\item Typ aplikacji: .NET (Aspire)
+	\item AppHost: \texttt{ShopPlatform.AppHost.csproj}
+	\item Generuje pliki Bicep do folderu \texttt{infra/}
+\end{itemize}
+
+Ustawienia:
+\begin{itemize}
+	\item Environment name: \texttt{shopplatform-dev}
+	\item Location: Poland Central (\texttt{polandcentral})
+\end{itemize}
+
+\subsection{Błąd wdrażania}
+
+Próba wdrożenia:
+
+\begin{verbatim}
+	azd up
+\end{verbatim}
+
+\textbf{BŁĄD:}
+
+\begin{verbatim}
+	ERROR CODE: DisallowedProvider
+	The operation is not permitted for namespace 'Microsoft.App'.
+	List of permitted provider namespaces is 'Microsoft.Resources,
+	Microsoft.Authorization, Microsoft.Insights, Microsoft.Web, ...'
+\end{verbatim}
+
+\subsection{Przyczyna}
+
+Subskrypcja \textit{„Azure dla studentów — starter"} ma ograniczone dostępy i \textbf{nie obsługuje} Azure Container Apps (\texttt{Microsoft.App}), które są wymagane przez Aspire.
 
 \end{document}

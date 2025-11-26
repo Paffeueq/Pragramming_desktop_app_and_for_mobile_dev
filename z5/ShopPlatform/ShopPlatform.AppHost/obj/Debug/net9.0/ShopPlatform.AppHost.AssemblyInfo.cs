@@ -23,7 +23,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ShopPlatform.AppHost")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+44925bb283b99ebec50283352504263fc2648739")]
 [assembly: System.Reflection.AssemblyProductAttribute("ShopPlatform.AppHost")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ShopPlatform.AppHost")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -50,3 +50,4 @@ D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.AppHost\obj\Debug\net9.0\Shop
 D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.AppHost\obj\Debug\net9.0\ShopPlatform.AppHost.genruntimeconfig.cache
 D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.AppHost\obj\Debug\net9.0\ref\ShopPlatform.AppHost.dll
 D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.AppHost\bin\Debug\net9.0\Aspire.Hosting.Redis.dll
+D:\stud\sem 5\Desktop\z5\ShopPlatform\ShopPlatform.AppHost\obj\Debug\net9.0\ShopPlatform.AppHost.sourcelink.json

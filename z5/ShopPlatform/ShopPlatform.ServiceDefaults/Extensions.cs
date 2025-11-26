@@ -18,6 +18,7 @@ public static class Extensions
     {
         builder.ConfigureOpenTelemetry();
 
+
         builder.AddDefaultHealthChecks();
 
         builder.Services.AddServiceDiscovery();
@@ -25,7 +26,11 @@ public static class Extensions
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
             // Turn on resilience by default
-            http.AddStandardResilienceHandler();
+            http.AddStandardResilienceHandler(options =>
+            {
+                // Customize: zmniejsz liczbę retry attempts z domyślnych 3 na 2
+                options.Retry.MaxRetryAttempts = 2;
+            });
 
             // Turn on service discovery by default
             http.AddServiceDiscovery();

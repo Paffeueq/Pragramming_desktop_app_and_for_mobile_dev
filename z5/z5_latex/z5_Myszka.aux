@@ -12,7 +12,44 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Konfiguracja AppHost}{3}{subsection.2.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3}ServiceDefaults w obydwu projektach}{3}{subsection.2.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Dashboard}{3}{subsection.2.4}\protected@file@percent }
-\newlabel{LastPage}{{2.4}{3}{Dashboard}{page.3}{}}
-\gdef\lastpage@lastpage{3}
-\gdef\lastpage@lastpageHy{3}
-\gdef \@abspage@last{3}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Service Discovery}{3}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Zmiana nazwy projektu API}{3}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Konfiguracja HttpClient z Service Discovery}{4}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Usunięcie hardcodowanych portów}{4}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Redis jako cache}{4}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Dodanie Redis do AppHost}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Konfiguracja Output Cache w API}{5}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Cache na endpoint'u WeatherForecast}{5}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Konfiguracja connection string}{5}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Obserwacja w Dashboard}{5}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Migracja SQLite → PostgreSQL}{6}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}AppHost – Postgres/Database}{6}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}API – rejestracja DbContext}{6}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Migracje i aktualizacja bazy}{7}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Health Checks / Alive}{7}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Rejestracja health checks}{7}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Mapowanie endpointów}{7}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Testowanie w Dashboard}{8}{subsection.6.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Endpointy \texttt  {/health} i \texttt  {/alive} zwracają Healthy}}{8}{figure.caption.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Różnica między /alive a /health}{8}{subsection.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Resilience (Retry) - Polly}{8}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Losowa awaria w API}{8}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Polly Resilience Handler}{9}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Testowanie retry}{9}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Dostosowanie polityk Polly}{9}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Zmiana liczby retry attempts}{9}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Obserwacja zachowania}{10}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Pozostałe opcje konfiguracyjne}{10}{subsection.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}Weryfikacja w aplikacji}{10}{subsection.8.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Resilience component z wynikami: 10/10 żądań zwróciło OK (200). MaxRetryAttempts = 2 pozwolił na szybkie próby i sukcesy.}}{10}{figure.caption.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.5}Weryfikacja w Dashboard}{11}{subsection.8.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Dashboard Traces prezentuje Execution attempt events z Source: 'standard//Standard-Retry'. Widać Attempt: '0', '1', '2' - potwierdzając MaxRetryAttempts = 2.}}{11}{figure.caption.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Wdrożenie z Azure Developer CLI}{11}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Instalacja narzędzi}{11}{subsection.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Inicjalizacja projektu Aspire}{11}{subsection.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Błąd wdrażania}{11}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Przyczyna}{12}{subsection.9.4}\protected@file@percent }
+\newlabel{LastPage}{{9.4}{12}{Przyczyna}{page.12}{}}
+\gdef\lastpage@lastpage{12}
+\gdef\lastpage@lastpageHy{12}
+\gdef \@abspage@last{12}

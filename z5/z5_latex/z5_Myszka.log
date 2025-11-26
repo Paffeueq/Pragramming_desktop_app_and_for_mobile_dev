@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.26)  18 NOV 2025 13:27
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.26)  26 NOV 2025 22:15
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -552,13 +552,13 @@ LaTeX Font Warning: Font shape `OMS/cmtt/m/n' undefined
 
 
 [2{D:/latex/fonts/enc/dvips/pl/pltt.enc}]
-Overfull \hbox (101.24611pt too wide) in paragraph at lines 130--130
+Overfull \hbox (101.24611pt too wide) in paragraph at lines 129--129
 [] \OT4/cmtt/m/n/10 dotnet new blazor -n ShopPlatform.Frontend --interactivity 
 Server --framework net9.0[] 
  []
 
 
-Overfull \hbox (1.49698pt too wide) in paragraph at lines 130--130
+Overfull \hbox (1.49698pt too wide) in paragraph at lines 129--129
 [] \OT4/cmtt/m/n/10 dotnet sln add ShopPlatform.Frontend/ShopPlatform.Frontend.
 csproj[] 
  []
@@ -566,7 +566,7 @@ csproj[]
 ! Illegal parameter number in definition of \lst@temp.
 <to be read again> 
                    }
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -575,7 +575,7 @@ are all screwed up? I'm going to assume that you meant ##.
 ! Illegal parameter number in definition of \@tempa.
 <to be read again> 
                    }
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -584,7 +584,7 @@ are all screwed up? I'm going to assume that you meant ##.
 ! Illegal parameter number in definition of \lst@malias.
 <to be read again> 
                    }
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -593,7 +593,7 @@ are all screwed up? I'm going to assume that you meant ##.
 ! Illegal parameter number in definition of \lst@temp.
 <to be read again> 
                    $
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -602,7 +602,7 @@ are all screwed up? I'm going to assume that you meant ##.
 ! Illegal parameter number in definition of \lst@malias.
 <to be read again> 
                    }
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -611,7 +611,7 @@ are all screwed up? I'm going to assume that you meant ##.
 ! Illegal parameter number in definition of \lst@require.
 <to be read again> 
                    $
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -631,7 +631,7 @@ File: lstlang3.sty 2024/09/23 1.10c listings language file
                                     .
 <to be read again> 
                    $
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -643,7 +643,7 @@ See the Listings package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 The following languages weren't loadable:
     ,c##$
@@ -652,7 +652,7 @@ This may cause errors in the sequel.
 ! Illegal parameter number in definition of \lst@malias.
 <to be read again> 
                    }
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -661,7 +661,7 @@ are all screwed up? I'm going to assume that you meant ##.
 ! Illegal parameter number in definition of \lst@temp.
 <to be read again> 
                    $
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -670,7 +670,7 @@ are all screwed up? I'm going to assume that you meant ##.
 ! Illegal parameter number in definition of \lst@malias.
 <to be read again> 
                    }
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
                                      
 You meant to type ## instead of #, right?
 Or maybe a } was forgotten somewhere earlier, and things
@@ -683,14 +683,2006 @@ See the Listings package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.134 \begin{lstlisting}[language=C#]
+l.133 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+Overfull \hbox (3.24779pt too wide) in paragraph at lines 163--164
+\OT4/cmr/m/n/10 W \OT4/cmtt/m/n/10 ShopPlatform.AppHost/Program.cs \OT4/cmr/m/n
+/10 zmie-nio-no na-zw¦ z "api" na "pro-ducts": 
+ []
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.165 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.165 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.165 \begin{lstlisting}[language=C#]
                                      
 The language is not loadable. Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
 
 
-[3] 
+[3]
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.178 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.178 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.178 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+Overfull \hbox (0.72278pt too wide) in paragraph at lines 195--196
+[]\OT4/cmr/m/n/10 Service di-sco-ve-ry eli-mi-nu-je hard-co-do-wa-nie ad-re-sów
+ IP/por-tów, na-med clients
+ []
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.203 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.203 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.203 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+
+[4]
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.218 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.218 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.218 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.231 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.231 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.231 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.260 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.260 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.260 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+
+[5]
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.274 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.274 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.274 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.283 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.283 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.283 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.289 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.289 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.289 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+
+[6]
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.316 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.316 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.316 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.329 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.329 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.329 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+<alive.png, id=302, 174.6525pt x 69.861pt>
+File: alive.png Graphic file (type png)
+<use alive.png>
+Package pdftex.def Info: alive.png  used on input line 350.
+(pdftex.def)             Requested size: 293.2521pt x 117.31874pt.
+
+Underfull \vbox (badness 1259) has occurred while \output is active []
+
+
+
+[7]
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.375 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.375 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.375 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.393 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.393 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.393 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+
+[8 <./alive.png>]
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.427 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.427 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.427 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+! LaTeX Error: Invalid UTF-8 byte sequence (Ä\expandafter).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.432         // Customize: zmniejsz liczbÄ™ 
+                                             retry attempts z domyÅ›lnych 3 ...
+
+The document does not appear to be in UTF-8 encoding.
+Try adding \UseRawInputEncoding as the first line of the file
+or specify an encoding such as \usepackage [latin1]{inputenc}
+in the document preamble.
+Alternatively, save the file in UTF-8 using your editor or another tool
+
+
+! LaTeX Error: Invalid UTF-8 byte sequence (Å\expandafter).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.432 ...jsz liczbÄ™ retry attempts z domyÅ›lnych 
+                                                  3 na 2
+The document does not appear to be in UTF-8 encoding.
+Try adding \UseRawInputEncoding as the first line of the file
+or specify an encoding such as \usepackage [latin1]{inputenc}
+in the document preamble.
+Alternatively, save the file in UTF-8 using your editor or another tool
+
+
+
+[9]
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   }
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \@tempa.
+<to be read again> 
+                   }
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@require.
+<to be read again> 
+                   $
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+(D:\latex\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang2.sty
+File: lstlang2.sty 2024/09/23 1.10c listings language file
+)
+(D:\latex\tex/latex/listings\lstlang3.sty
+File: lstlang3.sty 2024/09/23 1.10c listings language file
+)
+
+! Illegal parameter number in definition of \@err@                             
+                                    .
+<to be read again> 
+                   $
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Package Listings Error: Couldn't load requested language.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.461 \begin{lstlisting}[language=C#]
+                                     
+The following languages weren't loadable:
+    ,c##$
+This may cause errors in the sequel.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@temp.
+<to be read again> 
+                   $
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+! Illegal parameter number in definition of \lst@malias.
+<to be read again> 
+                   }
+l.461 \begin{lstlisting}[language=C#]
+                                     
+You meant to type ## instead of #, right?
+Or maybe a } was forgotten somewhere earlier, and things
+are all screwed up? I'm going to assume that you meant ##.
+
+
+! Package Listings Error: language c## undefined.
+
+See the Listings package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.461 \begin{lstlisting}[language=C#]
+                                     
+The language is not loadable. Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+! LaTeX Error: Invalid UTF-8 byte sequence (Ã\expandafter).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.462 ...tryAttempts = 2;          // Liczba prÃ³b
+                                                  
+The document does not appear to be in UTF-8 encoding.
+Try adding \UseRawInputEncoding as the first line of the file
+or specify an encoding such as \usepackage [latin1]{inputenc}
+in the document preamble.
+Alternatively, save the file in UTF-8 using your editor or another tool
+
+
+! LaTeX Error: Invalid UTF-8 byte "B3.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.462 ...tryAttempts = 2;          // Liczba prÃ³b
+                                                  
+The document does not appear to be in UTF-8 encoding.
+Try adding \UseRawInputEncoding as the first line of the file
+or specify an encoding such as \usepackage [latin1]{inputenc}
+in the document preamble.
+Alternatively, save the file in UTF-8 using your editor or another tool
+
+<resilience_results.png, id=359, 758.835pt x 379.4175pt>
+File: resilience_results.png Graphic file (type png)
+<use resilience_results.png>
+Package pdftex.def Info: resilience_results.png  used on input line 473.
+(pdftex.def)             Requested size: 293.2521pt x 146.62907pt.
+<dashboard_retry_traces.png, id=360, 1756.5625pt x 214.8025pt>
+File: dashboard_retry_traces.png Graphic file (type png)
+<use dashboard_retry_traces.png>
+Package pdftex.def Info: dashboard_retry_traces.png  used on input line 484.
+(pdftex.def)             Requested size: 327.74895pt x 40.0787pt.
+
+
+[10 <./resilience_results.png>]
+
+[11 <./dashboard_retry_traces.png>]
+
+[12{D:/latex/fonts/enc/dvips/pl/plit.enc}]
+
 enddocument/afterlastpage (AED): lastpage setting LastPage.
 (z5_Myszka.aux)
  ***********
@@ -702,24 +2694,27 @@ L3 programming layer <2025-10-09>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `z5_Myszka.out' has not changed.
-(rerunfilecheck)             Checksum: BFE16309FC79095F28B31D932D83D908;1497.
+(rerunfilecheck)             Checksum: 268912C6BF1DD52B24C0F6237ED8C2EE;7861.
  ) 
 Here is how much of TeX's memory you used:
- 13465 strings out of 468080
- 209282 string characters out of 5443087
- 847453 words of memory out of 5000000
- 41937 multiletter control sequences out of 15000+600000
- 632960 words of font info for 52 fonts, out of 8000000 for 9000
+ 13778 strings out of 468080
+ 216254 string characters out of 5443087
+ 982560 words of memory out of 5000000
+ 42009 multiletter control sequences out of 15000+600000
+ 634673 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,79p,308b,1085s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm
-1000.pk><D:/latex/fonts/type1/public/amsfonts/cm/cmsy10.pfb><D:/latex/fonts/typ
-e1/public/pl/plbx10.pfb><D:/latex/fonts/type1/public/pl/plbx12.pfb><D:/latex/fo
-nts/type1/public/pl/plr10.pfb><D:/latex/fonts/type1/public/pl/plr12.pfb><D:/lat
-ex/fonts/type1/public/pl/pltt10.pfb><D:/latex/fonts/type1/public/pl/pltt9.pfb>
-Output written on z5_Myszka.pdf (3 pages, 95187 bytes).
+ 75i,11n,79p,336b,1972s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcbx
+1000.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi60
+0\tcbx1440.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec
+/dpi600\tcrm1000.pk><D:/latex/fonts/type1/public/amsfonts/cm/cmsy10.pfb><D:/lat
+ex/fonts/type1/public/pl/plbx10.pfb><D:/latex/fonts/type1/public/pl/plbx12.pfb>
+<D:/latex/fonts/type1/public/pl/plr10.pfb><D:/latex/fonts/type1/public/pl/plr12
+.pfb><D:/latex/fonts/type1/public/pl/plti10.pfb><D:/latex/fonts/type1/public/pl
+/pltt10.pfb><D:/latex/fonts/type1/public/pl/pltt9.pfb>
+Output written on z5_Myszka.pdf (12 pages, 211081 bytes).
 PDF statistics:
- 133 PDF objects out of 1000 (max. 8388607)
- 36 named destinations out of 1000 (max. 500000)
- 81 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 471 PDF objects out of 1000 (max. 8388607)
+ 182 named destinations out of 1000 (max. 500000)
+ 368 words of extra memory for PDF output out of 10000 (max. 10000000)
 
