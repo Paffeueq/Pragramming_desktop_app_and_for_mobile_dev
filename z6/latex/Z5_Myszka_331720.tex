@@ -1,0 +1,703 @@
+\documentclass[twoside]{article}
+\usepackage{graphicx}
+\usepackage{polski}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{epigraph}
+\usepackage{listings}
+\usepackage{soul}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+	basicstyle=\ttfamily\small,
+	breaklines=true,
+	frame=single,
+	backgroundcolor=\color{gray!10},
+	xleftmargin=0pt,           % <-- Usuwa lewe wcięcie
+	framexleftmargin=0pt       % <-- Usuwa wcięcie ramki
+}
+
+\title{Z6 331720}
+\author{Paweł Myszka}
+\date{\today}
+
+\makeatletter
+
+\begin{document}
+	
+	\pagestyle{fancy}
+	\fancyhead{}
+	\fancyhead[L]{\@title}
+	\fancyhead[R]{\@author}
+	\fancyhead[C]{\@date}
+	
+	\cfoot{\thepage\ / \pageref{LastPage}}
+	
+	\newpage
+	\begin{center}
+		{\Huge \textbf{Laboratorium nr 6}}\\[0.5cm]
+		{\Large Temat: Programowanie aplikacji w Azure}
+	\end{center}
+	
+	\newpage
+	
+\section{Zadanie 1 – Utworzenie API w Azure Functions (HTTP Trigger)}
+
+\subsection{Cel}
+Celem zadania było utworzenie prostego API w Azure Functions, które obsługuje żądania HTTP, przyjmuje parametr \texttt{name} i zwraca dynamiczną odpowiedź w formacie JSON. Funkcję przetestowano lokalnie w Postmanie.
+
+\subsection{Tworzenie projektu}
+\begin{enumerate}
+	\item Utworzono folder projektu w VS Code i wirtualne środowisko Pythona.
+	\item Zainstalowano pakiety: \texttt{azure-functions}.
+	\item Zainicjalizowano projekt Azure Functions:
+	\begin{verbatim}
+		func init MyFunctionProj --worker-runtime python
+		cd MyFunctionProj
+	\end{verbatim}
+\end{enumerate}
+
+\subsection{Dodanie HTTP Trigger}
+\begin{verbatim}
+	func new --name HelloFunction --template "HTTP trigger" --authlevel "anonymous"
+\end{verbatim}
+
+\subsection{Implementacja funkcji}
+\begin{lstlisting}[language=Python]
+	import azure.functions as func
+	import json
+	
+	def main(req: func.HttpRequest) -> func.HttpResponse:
+	name = req.params.get('name')
+	if not name:
+	try:
+	req_body = req.get_json()
+	except ValueError:
+	req_body = {}
+	name = req_body.get('name')
+	
+	response = {"message": f"Hello, {name or 'World'}!"}
+	return func.HttpResponse(
+	json.dumps(response),
+	mimetype="application/json",
+	status_code=200
+	)
+\end{lstlisting}
+
+\subsection{Uruchomienie i testowanie}
+Funkcję uruchomiono lokalnie:
+\begin{verbatim}
+	func start
+\end{verbatim}
+
+Endpoint dostępny był pod adresem: \texttt{http://localhost:7071/api/HelloFunction}  
+
+Testy wykonano w Postmanie – wysłano żądanie GET z parametrem \texttt{name}.  
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{postman_test.png}
+	\caption{Test API w Postmanie – odpowiedź JSON z dynamicznym imieniem}
+\end{figure}
+
+\section{Zadanie 2 – System przesyłania plików do Azure Storage}
+
+\subsection{Cel}
+Celem zadania było utworzenie systemu przesyłania plików do Azure Blob Storage. System obsługuje żądania HTTP POST z plikami zakodowanymi w base64, generuje unikalne nazwy blobów z timestamp, i zwraca szczegółowe informacje o przesłanym pliku w formacie JSON.
+
+\subsection{Tworzenie projektu}
+\begin{enumerate}
+	\item Rozszerzono istniejący projekt Azure Functions o nowe funkcje.
+	\item Zainstalowano dodatkowe pakiety:
+	\begin{verbatim}
+		pip install azure-storage-blob azure-data-tables
+	\end{verbatim}
+	\item Zaktualizowano \texttt{requirements.txt} z nowymi zależnościami.
+\end{enumerate}
+
+\subsection{Dodanie HTTP Trigger do przesyłania plików}
+\begin{verbatim}
+	func new --name UploadFile --template "HTTP trigger" --authlevel "anonymous"
+\end{verbatim}
+
+\subsection{Implementacja funkcji \texttt{upload\_file}}
+\begin{lstlisting}[language=Python, caption=Funkcja do przesyłania plików]
+	import azure.functions as func
+	import json
+	import base64
+	from datetime import datetime
+	import logging
+	
+	app = func.FunctionApp()
+	
+	@app.route(route="UploadFile", methods=["POST"])
+	def upload_file(req: func.HttpRequest) -> func.HttpResponse:
+	try:
+	logging.info('File upload function started.')
+	req_body = req.get_json()
+	
+	if 'filename' not in req_body or 'content' not in req_body:
+	return func.HttpResponse(
+	json.dumps({"error": "Missing filename or content"}),
+	mimetype="application/json",
+	status_code=400
+	)
+	
+	filename = req_body['filename']
+	file_content = base64.b64decode(req_body['content'])
+	logging.info(f'Received file: {filename}, size: {len(file_content)} bytes')
+	
+	blob_name = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{filename}"
+	
+	response = {
+		"success": True,
+		"message": "File received and processed",
+		"filename": filename,
+		"blob_name": blob_name,
+		"file_size": len(file_content),
+		"timestamp": datetime.utcnow().isoformat(),
+	}
+	
+	return func.HttpResponse(
+	json.dumps(response),
+	mimetype="application/json",
+	status_code=200
+	)
+	
+	except Exception as e:
+	logging.error(f'Error: {str(e)}')
+	return func.HttpResponse(
+	json.dumps({"error": str(e)}),
+	mimetype="application/json",
+	status_code=500
+	)
+\end{lstlisting}
+
+\subsection{Konfiguracja – \texttt{local.settings.json}}
+\begin{lstlisting}[language=json, caption=Plik konfiguracyjny]
+	{
+		"IsEncrypted": false,
+		"Values": {
+			"AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=...",
+			"FUNCTIONS_WORKER_RUNTIME": "python",
+			"AzureWebJobsSecretStorageType": "Files"
+		}
+	}
+\end{lstlisting}
+
+\subsection{Wymagane pakiety – \texttt{requirements.txt}}
+\begin{lstlisting}[caption=Zależności projektu]
+	azure-functions==1.24.0
+	azure-storage-blob==12.27.1
+	azure-data-tables==12.7.0
+\end{lstlisting}
+
+\subsection{Uruchomienie i testowanie}
+Funkcję uruchomiono lokalnie:
+\begin{verbatim}
+	func host start
+\end{verbatim}
+
+Endpoint był dostępny pod adresem: \texttt{http://localhost:7071/api/UploadFile}
+
+\subsection{Testowanie w Postmanie}
+
+\subsubsection{Request POST – Upload pliku}
+\textbf{Metoda:} POST \\
+\textbf{URL:} \texttt{http://localhost:7071/api/UploadFile} \\
+\textbf{Headers:} Content-Type: application/json
+
+\textbf{Body (raw JSON):}
+\begin{lstlisting}[language=json]
+	{
+		"filename": "test.txt",
+		"content": "SGVsbG8gZnJvbSBQb3N0bWFuIQ=="
+	}
+\end{lstlisting}
+
+\textbf{Odpowiedź (200 OK):}
+\begin{lstlisting}[language=json]
+	{
+		"success": true,
+		"message": "File received and processed",
+		"filename": "test.txt",
+		"blob_name": "20251204_182815_test.txt",
+		"file_size": 20,
+		"timestamp": "2025-12-04T18:28:15.888956"
+	}
+\end{lstlisting}
+
+\section{Zadanie 3 – Harmonogramowane zadania (Timer Trigger)}
+
+\subsection{Cel}
+Celem zadania było utworzenie funkcji uruchamianej periodycznie co minutę. Funkcja zapisuje timestamp do logów, które są dostępne przez dedykowany endpoint HTTP.
+
+\subsection{Implementacja Timer Trigger}
+
+Timer Trigger w Azure Functions jest obsługiwany poprzez dekorator \texttt{@app.timer\_trigger}. Funkcja uruchamia się automatycznie na podstawie harmonogramu w formacie CRON.
+
+\begin{lstlisting}[caption=Implementacja Timer Trigger]
+	from threading import Timer
+	from datetime import datetime
+	import logging
+	
+	# Zmienne globalne do trackowania
+	scheduled_logs = []
+	max_logs = 100
+	
+	def log_scheduled_execution():
+	"""
+	Funkcja do logowania wykonań - uruchamiana periodycznie co minutę.
+	"""
+	global scheduled_logs
+	
+	timestamp = datetime.utcnow().isoformat()
+	log_entry = {
+		"executed_at": timestamp,
+		"task_name": "scheduled_task",
+		"status": "success"
+	}
+	
+	logging.info(f'[TIMER TRIGGER] Executed at: {timestamp}')
+	
+	# Dodaj do listy (ogranicz do max_logs)
+	scheduled_logs.append(log_entry)
+	if len(scheduled_logs) > max_logs:
+	scheduled_logs.pop(0)
+	
+	# Zaplanuj następne wykonanie za 60 sekund
+	timer = Timer(60.0, log_scheduled_execution)
+	timer.daemon = True
+	timer.start()
+	
+	# Uruchom Timer na starcie aplikacji
+	log_scheduled_execution()
+\end{lstlisting}
+
+\subsection{Endpoint do przeglądu logów Timer Trigger}
+
+Stworzono dedykowany endpoint do wyświetlania logów wykonań Timer Trigger:
+
+\begin{lstlisting}[caption=Endpoint GetTimerLogs]
+	@app.route(route="TimerLogs", methods=["GET"])
+	def get_timer_logs(req: func.HttpRequest) -> func.HttpResponse:
+	"""
+	Endpoint do przeglądu logów z Timer Trigger.
+	"""
+	try:
+	response = {
+		"total_executions": len(scheduled_logs),
+		"logs": scheduled_logs[-20:] if scheduled_logs else [],
+		"message": "Timer Trigger uruchamia się co minutę"
+	}
+	return func.HttpResponse(
+	json.dumps(response),
+	mimetype="application/json",
+	status_code=200
+	)
+	except Exception as e:
+	return func.HttpResponse(
+	json.dumps({"error": str(e)}),
+	mimetype="application/json",
+	status_code=500
+	)
+\end{lstlisting}
+
+\subsection{Uruchomienie i testowanie}
+
+Endpoint dostępny jest pod adresem:
+\begin{verbatim}
+	GET http://localhost:7071/api/TimerLogs
+\end{verbatim}
+
+\subsubsection{Testowanie – zaraz po starcie}
+
+\textbf{Request:}
+\begin{verbatim}
+	GET http://localhost:7071/api/TimerLogs
+\end{verbatim}
+
+\textbf{Odpowiedź:}
+\begin{lstlisting}[language=json]
+	{
+		"total_executions": 1,
+		"logs": [
+		{
+			"executed_at": "2025-12-04T18:40:27.176746",
+			"task_name": "scheduled_task",
+			"status": "success"
+		}
+		],
+		"message": "Timer Trigger uruchamia się co minutę"
+	}
+\end{lstlisting}
+
+\subsubsection{Testowanie – po 60 sekundach}
+
+\textbf{Request:}
+\begin{verbatim}
+	GET http://localhost:7071/api/TimerLogs
+\end{verbatim}
+
+\textbf{Odpowiedź:}
+\begin{lstlisting}[language=json]
+	{
+		"total_executions": 2,
+		"logs": [
+		{
+			"executed_at": "2025-12-04T18:40:27.176746",
+			"task_name": "scheduled_task",
+			"status": "success"
+		},
+		{
+			"executed_at": "2025-12-04T18:41:27.188614",
+			"task_name": "scheduled_task",
+			"status": "success"
+		}
+		],
+		"message": "Timer Trigger uruchamia się co minutę"
+	}
+\end{lstlisting}
+
+Timer Trigger uruchamia się co minutę, logując każde wykonanie z timestamp. Endpoint \texttt{/api/TimerLogs} pozwala monitorować historię wykonań w czasie rzeczywistym.
+
+\section{Zadanie 4 – Praca z danymi (Zapis i odczyt w bazie danych)}
+
+\subsection{Cel}
+Celem zadania było stworzenie systemu CRUD (Create, Read, Update, Delete) dla produktów w bazie danych. System wykorzystuje SQLite do przechowywania danych lokalnie oraz udostępnia RESTful API do zarządzania produktami.
+
+\subsection{Konfiguracja bazy danych}
+
+\subsubsection{Inicjalizacja SQLite}
+
+Baza danych SQLite jest automatycznie inicjalizowana przy starcie aplikacji:
+
+\begin{lstlisting}[caption=Inicjalizacja bazy danych]
+	import sqlite3
+	import uuid
+	import logging
+	from datetime import datetime
+	
+	DB_PATH = "data.db"
+	
+	def init_database():
+	"""
+	Inicjalizacja bazy danych SQLite.
+	"""
+	try:
+	conn = sqlite3.connect(DB_PATH)
+	cursor = conn.cursor()
+	
+	cursor.execute('''
+	CREATE TABLE IF NOT EXISTS products (
+	id TEXT PRIMARY KEY,
+	name TEXT NOT NULL,
+	description TEXT,
+	price REAL NOT NULL,
+	quantity INTEGER,
+	created_at TEXT,
+	updated_at TEXT
+	)
+	''')
+	
+	conn.commit()
+	conn.close()
+	logging.info('[DATABASE] Initialized SQLite database')
+	except Exception as e:
+	logging.error(f'[DATABASE] Error initializing database: {str(e)}')
+	
+	# Inicjalizuj bazę na starcie
+	init_database()
+\end{lstlisting}
+
+\subsection{Endpoint SaveProduct – Zapis produktu}
+
+\textbf{Metoda:} POST \\
+\textbf{URL:} \texttt{http://localhost:7071/api/SaveProduct} \\
+\textbf{Status:} 201 Created
+
+\textbf{Request Body:}
+\begin{lstlisting}[language=json]
+	{
+		"name": "Laptop Dell",
+		"description": "High-performance laptop",
+		"price": 1299.99,
+		"quantity": 5
+	}
+\end{lstlisting}
+
+\textbf{Response:}
+\begin{lstlisting}[language=json]
+	{
+		"success": true,
+		"message": "Product saved successfully",
+		"product_id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
+		"name": "Laptop Dell",
+		"price": 1299.99,
+		"quantity": 5,
+		"created_at": "2025-12-04T18:48:46.009515"
+	}
+\end{lstlisting}
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[caption=Funkcja SaveProduct]
+	@app.route(route="SaveProduct", methods=["POST"])
+	def save_product(req: func.HttpRequest) -> func.HttpResponse:
+	"""
+	Endpoint do zapisywania produktu do bazy danych.
+	Body: {"name": "...", "description": "...", "price": 99.99, "quantity": 10}
+	"""
+	try:
+	req_body = req.get_json()
+	
+	if 'name' not in req_body or 'price' not in req_body:
+	return func.HttpResponse(
+	json.dumps({"error": "Missing required fields: name, price"}),
+	mimetype="application/json",
+	status_code=400
+	)
+	
+	product_id = str(uuid.uuid4())
+	name = req_body['name']
+	description = req_body.get('description', '')
+	price = float(req_body['price'])
+	quantity = int(req_body.get('quantity', 0))
+	now = datetime.utcnow().isoformat()
+	
+	conn = sqlite3.connect(DB_PATH)
+	cursor = conn.cursor()
+	
+	cursor.execute('''
+	INSERT INTO products (id, name, description, price, quantity, created_at, updated_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?)
+	''', (product_id, name, description, price, quantity, now, now))
+	
+	conn.commit()
+	conn.close()
+	
+	response = {
+		"success": True,
+		"message": "Product saved successfully",
+		"product_id": product_id,
+		"name": name,
+		"price": price,
+		"quantity": quantity,
+		"created_at": now
+	}
+	
+	return func.HttpResponse(
+	json.dumps(response),
+	mimetype="application/json",
+	status_code=201
+	)
+	
+	except Exception as e:
+	logging.error(f'[DATABASE] Error saving product: {str(e)}')
+	return func.HttpResponse(
+	json.dumps({"error": str(e)}),
+	mimetype="application/json",
+	status_code=500
+	)
+\end{lstlisting}
+
+\subsection{Endpoint GetProducts – Pobieranie wszystkich produktów}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{http://localhost:7071/api/GetProducts} \\
+\textbf{Status:} 200 OK
+
+\textbf{Response:}
+\begin{lstlisting}[language=json]
+	{
+		"success": true,
+		"total": 1,
+		"products": [
+		{
+			"id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
+			"name": "Laptop Dell",
+			"description": "High-performance laptop",
+			"price": 1299.99,
+			"quantity": 5,
+			"created_at": "2025-12-04T18:48:46.009515",
+			"updated_at": "2025-12-04T18:48:46.009515"
+		}
+		]
+	}
+\end{lstlisting}
+
+\subsection{Endpoint GetProduct – Pobieranie produktu po ID}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{http://localhost:7071/api/GetProduct?id=62a980b4-78b7-4fee-a967-eaffbfecea0b} \\
+\textbf{Status:} 200 OK lub 404 Not Found
+
+\textbf{Response (200):}
+\begin{lstlisting}[language=json]
+	{
+		"success": true,
+		"product": {
+			"id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
+			"name": "Laptop Dell",
+			"description": "High-performance laptop",
+			"price": 1299.99,
+			"quantity": 5,
+			"created_at": "2025-12-04T18:48:46.009515",
+			"updated_at": "2025-12-04T18:48:46.009515"
+		}
+	}
+\end{lstlisting}
+
+\subsection{Endpoint UpdateProduct – Aktualizacja produktu}
+
+\textbf{Metoda:} PUT \\
+\textbf{URL:} \texttt{http://localhost:7071/api/UpdateProduct} \\
+\textbf{Status:} 200 OK
+
+\textbf{Request Body:}
+\begin{lstlisting}[language=json]
+	{
+		"id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
+		"name": "Laptop Dell XPS",
+		"price": 1399.99,
+		"quantity": 3
+	}
+\end{lstlisting}
+
+\textbf{Response:}
+\begin{lstlisting}[language=json]
+	{
+		"success": true,
+		"message": "Product updated successfully",
+		"product_id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
+		"updated_at": "2025-12-04T18:50:00.123456"
+	}
+\end{lstlisting}
+
+\subsection{Endpoint DeleteProduct – Usuwanie produktu}
+
+\textbf{Metoda:} DELETE \\
+\textbf{URL:} \texttt{http://localhost:7071/api/DeleteProduct?id=62a980b4-78b7-4fee-a967-eaffbfecea0b} \\
+\textbf{Status:} 200 OK lub 404 Not Found
+
+\textbf{Response:}
+\begin{lstlisting}[language=json]
+	{
+		"success": true,
+		"message": "Product deleted successfully",
+		"product_id": "62a980b4-78b7-4fee-a967-eaffbfecea0b"
+	}
+\end{lstlisting}
+
+\subsection{Schemat bazy danych}
+
+Tabela \texttt{products}:
+
+\begin{center}
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\textbf{Kolumna} & \textbf{Typ} & \textbf{Opis} \\
+		\hline
+		id & TEXT (PRIMARY KEY) & Unikatowy identyfikator produktu (UUID) \\
+		\hline
+		name & TEXT & Nazwa produktu \\
+		\hline
+		description & TEXT & Opis produktu \\
+		\hline
+		price & REAL & Cena produktu \\
+		\hline
+		quantity & INTEGER & Ilość sztuk \\
+		\hline
+		created\_at & TEXT & Timestamp utworzenia (ISO format) \\
+		\hline
+		updated\_at & TEXT & Timestamp ostatniej aktualizacji (ISO format) \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsection{Testy – Przykładowe operacje}
+
+\subsubsection{Test 1: Zapis produktu}
+
+\begin{verbatim}
+	POST /api/SaveProduct
+	Content-Type: application/json
+	
+	{
+		"name": "Laptop Dell",
+		"description": "High-performance laptop",
+		"price": 1299.99,
+		"quantity": 5
+	}
+	
+	Status: 201 Created
+	Product ID: 62a980b4-78b7-4fee-a967-eaffbfecea0b
+\end{verbatim}
+
+\subsubsection{Test 2: Pobierz wszystkie produkty}
+
+\begin{verbatim}
+	GET /api/GetProducts
+	
+	Status: 200 OK
+	Total products: 1
+\end{verbatim}
+
+\subsubsection{Test 3: Pobierz konkretny produkt}
+
+\begin{verbatim}
+	GET /api/GetProduct?id=62a980b4-78b7-4fee-a967-eaffbfecea0b
+	
+	Status: 200 OK
+\end{verbatim}
+
+\section{Zadanie 5 – Key Vault – bezpieczne sekrety}
+
+\subsection{Cel}
+Celem zadania było skonfigurowanie usługi Azure Key Vault do przechowywania poufnych danych (sekretów) oraz przygotowanie Azure Functions do pobierania sekretów z wykorzystaniem Managed Identity. Elementem zadania było również ręczne dodanie sekretu w panelu Azure Portal.
+
+\subsection{Problem z dodaniem sekretu – błąd RBAC}
+
+Podczas próby dodania nowego sekretu do Key Vault pojawił się następujący komunikat:
+
+\begin{quote}
+	\textit{Operacja nie jest dozwolona przez kontrolę RBAC. Jeśli niedawno zmieniono przypisania ról, poczekaj kilka minut, aby te przypisania zaczęły obowiązywać.}
+\end{quote}
+
+Błąd ten oznacza, że użytkownik nie posiada wymaganych uprawnień RBAC do operacji na sekretach w Key Vault. Mimo to użytkownik miał przypisaną rolę \textbf{Owner} dla całej subskrypcji — czyli najwyższy poziom uprawnień administracyjnych.
+
+\subsection{Podjęte próby rozwiązania}
+
+Podjęto kilka działań w celu usunięcia błędu:
+
+\begin{itemize}
+	\item odczekano ponad kilkanaście minut na propagację uprawnień RBAC,
+	\item zweryfikowano, że Key Vault działa w trybie RBAC (nie Access Policies),
+	\item ponownie zalogowano się do portalu Azure,
+	\item sprawdzono uprawnienia na poziomie zasobu, grupy zasobów oraz subskrypcji.
+\end{itemize}
+
+\subsection{Rezultat}
+
+Pomimo wykonania wszystkich powyższych kroków próba dodania nowego wpisu tajnego kończyła się komunikatem błedu RBAC.
+
+\subsection{Zrzut ekranu błędu}
+
+Na rysunku \ref{fig:keyvault_rbac} przedstawiono zrzut ekranu potwierdzający wystąpienie błędu.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{eses.png}
+	\caption{Błąd RBAC podczas próby dodania sekretu do Azure Key Vault mimo pełnych uprawnień}
+	\label{fig:keyvault_rbac}
+\end{figure}
+
+
+\end{document}

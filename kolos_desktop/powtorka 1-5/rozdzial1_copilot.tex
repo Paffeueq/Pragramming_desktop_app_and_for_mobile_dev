@@ -1,0 +1,247 @@
+\chapter{Programowanie AI - Copilot, VS Code}
+
+\section{Wstęp}
+GitHub Copilot to asystent AI w Visual Studio Code, który wspomaga pracę programisty.  Zajęcia skupiają się na zaawansowanych funkcjach, od Agent Mode po personalizację poprzez instrukcje. 
+
+\section{Agent Mode i jego zastosowania}
+
+\subsection{Definicja}
+Agent Mode to tryb, w którym Copilot działa automatycznie bez konieczności potwierdzania każdego kroku. Różni się od klasycznego trybu interaktywnego. 
+
+\subsection{Praktyczne zastosowania}
+\begin{itemize}
+	\item \textbf{Build i test}: automatyczne budowanie i testowanie projektów
+	\item \textbf{Długotrwałe zadania}: delegowanie złożonych operacji
+	\item \textbf{Code review}: analiza kodu przez agenta
+	\item \textbf{Generowanie endpointów API}: szybkie tworzenie usług
+\end{itemize}
+
+\subsection{Tryby pracy}
+\begin{description}
+	\item[Interaktywny] Copilot prosi o potwierdzenie każdego kroku
+	\item[W pełni automatyczny] Agent wykonuje całe zadanie bez przerw
+\end{description}
+
+\section{Allow / Deny List – bezpieczeństwo}
+
+\subsection{Rola listy dozwolonych komend}
+Allow List zapewnia bezpieczeństwo przez limitowanie komend, które agent może wykonać automatycznie.
+
+\subsection{Praktyczne przykłady}
+\begin{lstlisting}
+	// Dozwolone komendy
+	- dotnet build
+	- dotnet test
+	- dotnet run
+	
+	// Zakazane komendy
+	- rm -rf . 
+	- del *.*
+\end{lstlisting}
+
+\subsection{Konfiguracja}
+\begin{enumerate}
+	\item Otwórz Settings → Copilot → Experimental
+	\item Dodaj komendy do Allow List:
+	\begin{itemize}
+		\item \texttt{dotnet build}
+		\item \texttt{dotnet test}
+	\end{itemize}
+	\item Po skonfigurowaniu projekt buduje się automatycznie bez pytania
+\end{enumerate}
+
+\section{Zarządzanie limitami - Max Requests}
+
+\subsection{Wpływ na wydajność}
+Domyślnie Max Requests wynosi 20.  Limit wpływa na:
+\begin{itemize}
+	\item Ilość automatycznych operacji
+	\item Płynność pracy z agentem
+	\item Czas wykonywania długotrwałych zadań
+\end{itemize}
+
+\subsection{Praktyczne ustawienia}
+\begin{table}[h]
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\textbf{Projekt} & \textbf{Max Requests} & \textbf{Uzasadnienie} \\
+		\hline
+		Mały projekt & 20 & Domyślnie wystarczy \\
+		Średni projekt & 50-100 & Lepszy flow pracy \\
+		Duży projekt & 100+ & Złożone zadania \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\section{Copilot Instructions - personalizacja}
+
+\subsection{Automatyczne generowanie}
+\begin{enumerate}
+	\item Otwórz chat Copilota
+	\item Kliknij "Customize chat" → "Generate Instructions"
+	\item Copilot skanuje projekt i tworzy \texttt{copilot-instructions.md}
+\end{enumerate}
+
+\subsection{Zawartość wygenerowanych instrukcji}
+\begin{itemize}
+	\item Struktura projektu
+	\item Komendy budowania i uruchamiania
+	\item Konwencje kodu (PascalCase, camelCase)
+	\item DTO z atrybutami JSON
+	\item Reguły CSS
+\end{itemize}
+
+\subsection{Przykład własnych reguł}
+\begin{lstlisting}
+	# Copilot Instructions
+	
+	## Konwencje kodu
+	- Klasy i metody: PascalCase
+	- Zmienne: camelCase
+	- Pola private: _camelCase
+	
+	## DTO
+	Wszystkie DTO mają atrybuty JSON:
+	[JsonPropertyName("fieldName")]
+	
+	## C# Best Practices
+	- Używaj using statements
+	- Dokumentuj publiczne metody XML comments
+\end{lstlisting}
+
+\subsection{Rozdzielanie zasad dla backendu i frontendu}
+Utwórz oddzielne pliki:
+\begin{itemize}
+	\item \texttt{. github/csharp-guidelines.md}
+	\item \texttt{.github/blazor-guidelines.md}
+\end{itemize}
+
+\section{Snooze Completions - balans AI/samodzielne kodowanie}
+
+\subsection{Kiedy wyciszyć Copilota}
+\begin{itemize}
+	\item Nauka nowych konceptów
+	\item Ćwiczenie świadomego programowania
+	\item Unikanie uzależnienia od AI
+\end{itemize}
+
+\subsection{Jak korzystać}
+\begin{enumerate}
+	\item Kliknij ikonę Copilota w pasku statusu
+	\item Wybierz "Snooze" (np. 5 minut)
+	\item Pracuj samodzielnie
+	\item Po upłynięciu czasu podpowiedzi wracają
+\end{enumerate}
+
+\section{Custom Chat Modes}
+
+\subsection{Beast Mode}
+Specjalny tryb, w którym AI rozbija zadanie na kroki i realizuje je sekwencyjnie.
+
+\subsection{Konfiguracja}
+\begin{enumerate}
+	\item Utwórz \texttt{. github/chat-modes/beast.json}
+	\item Uruchom Agent Mode
+	\item Wybierz Beast Mode z listy trybów
+	\item Poproś o dodanie endpointu API
+\end{enumerate}
+
+\section{Coding Agents - wirtualny współprogramista}
+
+\subsection{Przypisywanie zadań}
+\begin{itemize}
+	\item Utwórz issue na GitHub
+	\item Przypisz je do @copilot
+	\item Agent automatycznie tworzy branch i PR
+\end{itemize}
+
+\subsection{Delegowanie pracy}
+\begin{enumerate}
+	\item W VS Code otwórz panel agenta
+	\item Kliknij +, dodaj nowe zadanie
+	\item Agent tworzy nowy branch i sesję
+	\item Pracuje w tle, podczas gdy ty kodując lokalnie
+\end{enumerate}
+
+\subsection{Code review od agenta}
+\begin{itemize}
+	\item Dodaj Copilota jako reviewera PR
+	\item Agent sugeruje ulepszenia
+	\item Może proponować użycie ILogger zamiast Console. WriteLine
+\end{itemize}
+
+\section{Integracja z GitHub Actions}
+
+\subsection{Automatyzacja setupu środowiska}
+Plik \texttt{.github/workflows/copilot-setup-steps.yml}:
+\begin{lstlisting}
+	name: Setup Steps
+	on: [push]
+	jobs:
+	setup:
+	runs-on: ubuntu-latest
+	steps:
+	- uses: actions/checkout@v3
+	- name: Setup .NET 9
+	uses: actions/setup-dotnet@v3
+	with:
+	dotnet-version: '9.0'
+	- name: Restore packages
+	run: dotnet restore
+\end{lstlisting}
+
+\section{Zarządzanie modelami AI}
+
+\subsection{Dostępne modele}
+\begin{itemize}
+	\item \textbf{GPT-5}: Najnowszy, najlepsze rezultaty
+	\item \textbf{GPT-5 mini}: Szybszy, mniej zasobów
+	\item \textbf{Starsze modele}: Można usunąć
+\end{itemize}
+
+\subsection{Zmiana modelu}
+\begin{enumerate}
+	\item VS Code 1.103+
+	\item Otwórz model selector
+	\item Wybierz preferowany model
+	\item Usuń starsze modele z listy
+\end{enumerate}
+
+\section{MCP Auto Start i narzędzia developerskie}
+
+\subsection{Rola MCP}
+MCP (Model Context Protocol) udostępnia dodatkowe narzędzia dla Copilota. 
+
+\subsection{Konfiguracja}
+\begin{enumerate}
+	\item Settings → MCP Auto Start → ustaw "always"
+	\item Configure Tools → przejrzyj dostępne narzędzia
+	\item Wyłącz nieużywane, aby zmniejszyć szum
+\end{enumerate}
+
+\section{Statystyki użycia AI}
+
+\subsection{Analiza wydajności}
+\begin{itemize}
+	\item AI vs typing - co naprawdę daje Copilot?
+	\item Eksperymenty porównawcze
+	\item Eksport danych do analizy
+\end{itemize}
+
+\subsection{Interpretacja danych}
+\begin{enumerate}
+	\item Włącz AI Stats
+	\item Sprawdź wykres w dolnym rogu (24h)
+	\item Porównaj produktywność z/bez AI
+\end{enumerate}
+
+\section{Pytania kontrolne}
+
+\begin{enumerate}
+	\item Jaka jest różnica między trybem interaktywnym a w pełni automatycznym?
+	\item Dlaczego Allow List jest ważny dla bezpieczeństwa?
+	\item Jak wygenerować automatyczne instrukcje dla projektu?
+	\item Kiedy warto używać Snooze Completions?
+	\item Jak przypisać zadanie do Coding Agent?
+	\item Jakie są dostępne modele AI w Copilot?
+\end{enumerate}

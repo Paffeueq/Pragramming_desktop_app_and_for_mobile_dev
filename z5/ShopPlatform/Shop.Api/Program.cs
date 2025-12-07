@@ -10,10 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<ProductsContext>("productsdb");
 builder.Services.AddOpenApi();
-builder.Services.AddStackExchangeRedisOutputCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("cache");
-});
+
+// Lokalny in-memory cache (bez Redisa)
+builder.Services.AddOutputCache();
 
 // Extend health checks: add DB readiness (no "live" tag = affects /health only)
 builder.Services.AddHealthChecks()

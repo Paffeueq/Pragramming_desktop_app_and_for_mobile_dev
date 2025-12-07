@@ -1,0 +1,54 @@
+\documentclass[12pt, a4paper, utf8]{book}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+
+\geometry{margin=1in}
+
+% Konfiguracja listingów
+\lstset{
+	basicstyle=\ttfamily\small,
+	keywordstyle=\color{blue},
+	commentstyle=\color{gray},
+	stringstyle=\color{red},
+	breaklines=true,
+	showstringspaces=false,
+	tabsize=4,
+	frame=single,
+	backgroundcolor=\color{lightgray! 20}
+}
+
+\title{\textbf{Kompletny Materiał do Nauki} \\ Programowanie . NET}
+\author{Przygotowanie do egzaminu}
+\date{\today}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Materiały do nauki . NET}
+\fancyhead[R]{\thepage}
+\setlength{\headheight}{15pt}
+
+\begin{document}
+	
+	\maketitle
+	\tableofcontents
+	\newpage
+	
+	% Include poszczególne rozdziały
+	\input{rozdzial1_copilot.tex}
+	\newpage
+	\input{rozdzial2_api_rest.tex}
+	\newpage
+	\input{rozdzial3_mvc_mvvm.tex}
+	\newpage
+	\input{rozdzial4_blazor.tex}
+	\newpage
+	\input{rozdzial5_aspire.tex}
+	
+\end{document}

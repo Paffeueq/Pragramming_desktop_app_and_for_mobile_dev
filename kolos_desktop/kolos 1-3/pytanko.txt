@@ -1,0 +1,860 @@
+Programowanie AI - Copilot, VS Code
+Materiały wideo
+•	5 New VS Code AI Features & Settings You Need To Try Today
+•	How To Get Better AI Reponses from GitHub Copilot in Seconds!
+•	Turn ON these new VS Code AI features NOW! (v1.103)
+•	Grok Code Fast 1 in VS Code is Fast - Let’s take a look
+•	Hello Claude Sonnet 4.5! This things is a BEAST!
+•	Background Coding Agents change EVERYTHING - 5 ways to use them today!
+________________________________________
+Tematy do poruszenia
+1.	Agent Mode i jego zastosowania praktyczne
+o	Różnice między klasycznym Copilotem a trybem Agent Mode.
+o	Scenariusze, w których warto uruchamiać agenta (np. build/test, długotrwałe zadania).
+o	Porównanie trybu interaktywnego i w pełni automatycznego.
+2.	Allow / Deny List – bezpieczeństwo i kontrola
+o	Rola listy dozwolonych komend w zapewnieniu bezpieczeństwa.
+o	Jak unikać ryzyka przypadkowego wykonania niepożądanych poleceń.
+o	Przykłady praktyczne (dotnet build/test vs komendy niebezpieczne).
+3.	Zarządzanie limitami i wydajnością (Max Requests)
+o	Jak limit requestów wpływa na płynność pracy.
+o	Praktyczne ustawienia w projektach średnich i dużych.
+o	Kiedy warto zwiększyć, a kiedy ograniczyć limit.
+4.	Copilot Instructions i personalizacja stylu pracy
+o	Automatyczne generowanie instrukcji z projektu.
+o	Dodawanie własnych reguł i konwencji kodu.
+o	Rozdzielanie zasad dla backendu i frontendu.
+o	Użycie instrukcji jako dokumentacji zespołowej.
+5.	Snooze Completions – balans między AI a samodzielnym kodowaniem
+o	Kiedy warto wyciszyć podpowiedzi Copilota.
+o	Porównanie efektywności pracy z i bez asysty AI.
+o	Ćwiczenie świadomego programowania z przerwami od AI.
+6.	Custom Chat Modes (Beast Mode i inne)
+o	Czym są tryby czatu i jak je definiować w repozytorium.
+o	Jak różne tryby wpływają na sposób rozwiązywania problemów przez AI.
+o	Przykłady własnych trybów dopasowanych do zespołu/projektu.
+7.	Coding Agents – nowa rola agenta jako wirtualnego współprogramisty
+o	Przypisywanie zadań i issue do agenta.
+o	Delegowanie PR i kontynuacja pracy w tle.
+o	Code review od agenta – ograniczenia i zalety.
+o	Scenariusze współpracy: człowiek + agent.
+8.	Integracja z GitHub Actions i workflow zespołowym
+o	Automatyzacja setupu środowiska (copilot-setup-steps.yml).
+o	Dependabot i aktualizacje zależności.
+o	Agents.mmd – orkiestracja wielu agentów w projekcie.
+9.	Statystyki użycia AI i refleksja nad produktywnością
+o	Analiza AI vs typing – co naprawdę daje Copilot.
+o	Eksperymenty porównawcze (samodzielne kodowanie vs z AI).
+o	Jak wykorzystać dane statystyczne do poprawy efektywności zespołu.
+10.	Modele AI i ich zarządzanie
+o	Przegląd dostępnych modeli (GPT-5, GPT-5 mini).
+o	Kryteria wyboru modelu do danego zadania.
+o	Usuwanie starszych modeli i utrzymywanie spójnego środowiska.
+11.	MCP Auto Start i narzędzia developerskie
+o	Rola MCP w pracy Copilota.
+o	Konfiguracja serwerów MCP i rozszerzeń.
+o	Zarządzanie narzędziami, które są naprawdę potrzebne w projekcie.
+12.	Najlepsze praktyki w pracy z AI w projekcie .NET
+o	Konwencje kodu i ujednolicenie stylu w zespole.
+o	Integracja AI w pipeline CI/CD.
+o	Granice automatyzacji – co warto zostawić programistom.
+________________________________________
+Ćwiczenia
+1. Terminal – Allow / Deny List
+1.	Otwórz swój projekt .NET w VS Code.
+2.	Włącz agent mode i poproś AI o zbudowanie projektu. Zwróć uwagę, że prosi o potwierdzenie.
+3.	Wejdź w Settings → Copilot → Experimental i skonfiguruj allow list.
+o	dodaj dotnet build,
+o	dodaj dotnet test.
+4.	Spróbuj ponownie – projekt powinien budować się i testować automatycznie, bez pytania.
+________________________________________
+2. Max Requests
+1.	W ustawieniach znajdź opcję max requests.
+2.	Zmień domyślną wartość (20) np. na 100.
+3.	Uruchom agent mode i zleć AI dłuższe zadanie – np. wygenerowanie kilku endpointów API.
+4.	Zauważ, że teraz proces jest płynny i nie wymaga częstego potwierdzania.
+________________________________________
+3. Generate Instructions
+1.	W Agent Mode Settings znajdź opcję Generate Instructions.
+2.	Uruchom generowanie – Copilot przeskanuje cały projekt i utworzy plik copilot-instructions.md.
+3.	Sprawdź, czy zawiera:
+o	opis struktury projektu,
+o	komendy budowania i uruchamiania,
+o	konwencje kodu.
+4.	Dodaj nową klasę i ponownie wygeneruj instrukcje. Porównaj zmiany.
+________________________________________
+4. Snooze Completions
+1.	Napisz prostą klasę User w C#.
+2.	Zauważ podpowiedzi (ghost text) Copilota.
+3.	Kliknij ikonę Copilota w pasku statusu i wybierz Snooze na 5 minut.
+4.	Kontynuuj pisanie kodu – działają tylko podpowiedzi IntelliSense.
+5.	Anuluj Snooze i sprawdź, że podpowiedzi Copilota wracają.
+________________________________________
+5. Tryb Beast Mode
+1.	Otwórz repozytorium copilot repo na GitHub.
+2.	Skopiuj zawartość pliku z trybem Beast Mode (np. wersja od Burke Hollanda).
+3.	W projekcie utwórz katalog .github/chat-modes i plik beast.json.
+4.	Uruchom agent mode, wybierz tryb Beast Mode.
+5.	Poproś o dodanie endpointu API do zarządzania użytkownikami.
+6.	Obserwuj, jak AI rozbija zadanie na kroki i realizuje je sekwencyjnie.
+________________________________________
+6. Copilot Instructions i Customizacja
+a) Dodawanie własnych instrukcji
+1.	Utwórz folder .github i plik copilot-instructions.md.
+2.	Dodaj własne reguły, np.:
+o	klasy i metody w PascalCase,
+o	zmienne w camelCase,
+o	DTO z atrybutami JSON,
+o	proste komentarze w kodzie.
+b) Automatyczne generowanie instrukcji
+1.	Otwórz chat Copilota.
+2.	Kliknij Customize chat → Generate Instructions.
+3.	Obejrzyj wygenerowane zasady – sprawdź backend, frontend, komendy, konwencje.
+c) Testowanie instrukcji
+1.	W chat poproś o dodanie nowego endpointu API dla użytkowników.
+2.	Zobacz, czy Copilot stosuje się do ustalonych reguł (np. PascalCase, JSON DTO).
+d) Aktualizacja instrukcji
+1.	Dodaj klasę Order.
+2.	Ponownie wygeneruj instrukcje i sprawdź, jak zostały rozszerzone.
+3.	Dodaj własne reguły, np. walidacja zamówień.
+e) Wersje rozbite
+1.	W .github dodaj:
+o	csharp-guidelines.md (zasady dla C#),
+o	blazor-guidelines.md (zasady dla Blazora).
+2.	Sprawdź, czy Copilot stosuje inne reguły w backendzie i frontendzie.
+________________________________________
+7. Zarządzanie modelami AI
+1.	W VS Code 1.103 otwórz model selector.
+2.	Wybierz GPT-5 i sprawdź GPT-5 mini.
+3.	W Manage Models usuń starsze modele (np. GPT-4).
+4.	Sprawdź, że lista modeli zawiera tylko wybrane przez Ciebie.
+________________________________________
+8. MCP Auto Start i narzędzia
+1.	W ustawieniach znajdź MCP Auto Start i ustaw tryb (np. always).
+2.	Otwórz Configure Tools – przejrzyj wbudowane narzędzia, wyłącz nieużywane.
+3.	Dodaj MCP server i sprawdź jego widoczność w Extensions → MCP servers.
+________________________________________
+9. Statystyki użycia AI
+1.	Włącz opcję AI Stats.
+2.	W dolnym rogu sprawdź wykres AI vs typing z 24h.
+3.	Zrób eksperyment: koduj 5 minut samodzielnie, potem 5 minut z Copilotem.
+4.	Porównaj różnice w statystykach.
+________________________________________
+10. Task Lists (To-Do w czacie)
+1.	Wpisz w chat: „Dodaj stronę z formularzem kontaktowym”.
+2.	Copilot wygeneruje listę kroków (task list).
+3.	Obserwuj, jak lista aktualizuje się podczas pracy (UI, CSS, endpoint).
+4.	Po zakończeniu sprawdź, czy wszystkie kroki oznaczone są jako wykonane.
+________________________________________
+11. Background Agents i sesje w tle
+1.	Włącz w ustawieniach Agent Sessions (UI integration).
+2.	Otwórz panel Agent Sessions – sprawdź aktywne sesje.
+3.	Dodaj zadanie (np. raport) i oddeleguj je do coding agent.
+4.	Sprawdź na GitHub, że powstał automatyczny pull request.
+5.	Kontynuuj pracę lokalnie, podczas gdy agent działa w tle.
+________________________________________
+12. Coding Agents – praca praktyczna
+a) Przypisywanie issue do agenta
+1.	Utwórz issue w GitHub: „Dodać skeleton loading na stronie logowania”.
+2.	Przypisz je do Copilot.
+3.	Obserwuj, jak agent tworzy branch i PR.
+b) Delegowanie pracy z dowolnego brancha
+1.	W VS Code wybierz dowolny branch.
+2.	W panelu agenta kliknij +, dodaj zadanie.
+3.	Sprawdź, że Copilot tworzy nowy branch, sesję i PR.
+c) Kontynuowanie pracy agenta
+1.	Utwórz branch feature/tools-refactor i wprowadź zmiany.
+2.	W czacie wpisz: „Uzupełnij dokumentację i README”.
+3.	Kliknij Delegate to Coding Agent i uwzględnij lokalne zmiany.
+4.	Obserwuj, że agent kontynuuje pracę w tle.
+d) Współpraca z agentem przy PR
+1.	Utwórz pull request z dużą zmianą.
+2.	W komentarzu dodaj: „@copilot napraw null reference w API”.
+3.	Obserwuj, jak agent aktualizuje kod i PR.
+e) Code review od agenta
+1.	Utwórz PR z małą zmianą (np. Console.WriteLine).
+2.	Dodaj Copilota jako reviewera.
+3.	Sprawdź sugestie (np. użycie ILogger).
+________________________________________
+13. Dependabot i automatyczne aktualizacje
+1.	W repo włącz Dependabot security updates.
+2.	Skonfiguruj dependabot.yml (aktualizacje NuGet i SDK raz w tygodniu).
+3.	Poczekaj na automatyczne PR.
+4.	Przejrzyj zmiany i zaakceptuj.
+________________________________________
+14. Najlepsze praktyki i konfiguracja środowiska
+1.	W .github/workflows utwórz copilot-setup-steps.yml:
+o	instalacja .NET 9,
+o	restore paczek,
+o	Aspire CLI lub workload MAUI.
+2.	W .github dodaj copilot-instructions.md:
+o	architektura projektu,
+o	konwencje kodu,
+o	zasady CSS.
+3.	(Opcjonalnie) dodaj agents.mmd dla wielu agentów.
+
+•	Home
+•	Research
+•	Teaching
+•	Contact
+Tworzenie API REST
+Materiały wideo
+•	Explore, Test, & Debug API Endpoints in Visual Studio Faster Than Ever!
+•	Faster API Development in Visual Studio is Here! Say Hello to .http/.rest Files!
+•	.NET 9 Web API & Entity Framework 🚀 Full Course: CRUD, Code-First Migrations & SQL Server
+•	.NET 7 Minimal API for Beginners 🚀 Full CRUD in 10 Minutes!
+•	Connect from your Blazor app to your API
+•	Configure Blazor WebAssembly with Entra ID (.NET 8)
+________________________________________
+Tematy do poruszenia
+1.	Stworzenie nowego Web API w Visual Studio
+2.	Uruchomienie API – omijanie zabezpieczenia SSL w Chrome:
+o	w przeglądarce wpisać chrome://flags/#allow-insecure-localhost i ustawić na Enabled
+o	omówienie generowania certyfikatów SSL deweloperskich
+3.	Testowanie API:
+o	w Swaggerze
+o	w curlu – mini program do testowania API w konsoli
+o	w Postmanie – rozbudowany program do testowania API
+o	w przeglądarce
+o	w Visual Studio używając plików .http
+4.	Omówienie czasowników HTTP i zasady działania kontrolerów – np. na przykładzie WeatherForecastController
+5.	Połączenie się z API i użycie schematów (models, DTOs, contracts)
+6.	Autentykacja i autoryzacja (OAuth 2.0 / OpenID Connect): logowanie przez Google i Microsoft Entra ID (tenant, Application/Client ID, Secret, Redirect URI, wymiana kodu na token)
+________________________________________
+Ćwiczenia
+1. Stworzenie projektu Web API
+dotnet new webapi -n ShopAPI.Api
+cd ShopAPI.Api
+code .
+dotnet run
+Test startowy: https://localhost:7294/swagger/index.html
+________________________________________
+2. Certyfikat developerski i HTTPS
+•	HTTPS działa od początku, nawet w trybie lokalnym.
+•	Certyfikat developerski chroni transmisję w środowisku deweloperskim.
+dotnet dev-certs https --check
+dotnet dev-certs https --trust
+Chrome → chrome://flags/#allow-insecure-localhost → Enabled
+________________________________________
+3. Testowanie API
+1.	Swagger
+2.	curl
+3.	Postman
+4.	Pliki .http w VS Code
+5.	Przeglądarka (dla GET)
+________________________________________
+4. Czasowniki HTTP i dobre praktyki REST
+REST korzysta z kilku podstawowych metod, ale warto znać ich szerszy zestaw:
+•	GET – pobieranie danych
+•	POST – dodawanie nowych danych
+•	PUT – aktualizacja całego zasobu
+•	PATCH – częściowa aktualizacja (np. tylko jednego pola)
+•	DELETE – usunięcie zasobu
+•	HEAD – pobiera tylko nagłówki (np. do sprawdzenia, czy zasób istnieje)
+•	OPTIONS – zwraca, jakie metody są dostępne dla danego endpointu
+________________________________________
+Ćwiczenie 1 – proste przykłady
+W CitiesController utwórz endpointy:
+1.	GET /api/cities → pobiera wszystkie miasta
+2.	GET /api/cities/{id} → pobiera jedno miasto
+3.	POST /api/cities → dodaje nowe miasto
+4.	PUT /api/cities/{id} → aktualizuje całe miasto
+5.	PATCH /api/cities/{id} → zmienia tylko jedno pole (np. Country)
+6.	DELETE /api/cities/{id} → usuwa miasto
+7.	HEAD /api/cities/{id} → sprawdza, czy miasto istnieje (status 200/404)
+8.	OPTIONS /api/cities → zwraca listę dostępnych metod (Allow: GET, POST, PUT, PATCH, DELETE)
+________________________________________
+5. DTO i modele
+public class CityDto 
+{
+    public string Name { get; set; }
+    public string Country { get; set; }
+}
+Omów:
+•	DTO = obiekt wymiany danych
+•	oddziela API od logiki biznesowej
+________________________________________
+6. Statusy HTTP – praktyczne scenariusze
+Kod	Znaczenie	Przykład
+200 OK	poprawne pobranie	GET miast
+201 Created	nowy zasób utworzony	POST miasto
+204 No Content	usunięto, brak treści	DELETE
+400 Bad Request	zła składnia danych	POST bez pola Name
+401 Unauthorized	brak autoryzacji	brak JWT tokena
+403 Forbidden	użytkownik nie ma uprawnień	np. zwykły user próbuje usunąć admina
+404 Not Found	zasób nie istnieje	GET /cities/999
+409 Conflict	konflikt danych	próba dodania istniejącego miasta
+500 Internal Server Error	błąd serwera	wyjątek w kodzie
+👉 Ćwiczenie: w POST zwróć 201 Created z nagłówkiem Location. 👉 Ćwiczenie: w PUT zwróć 404, jeśli miasto nie istnieje. 👉 Ćwiczenie: w PATCH zwróć 409, jeśli próba zmiany koliduje z innymi danymi.
+________________________________________
+7. Schematy i generowanie klienta
+•	Swagger → swagger.json zawiera definicje endpointów i modeli.
+•	Można generować klienta automatycznie (NSwag, OpenAPI Generator).
+👉 Ćwiczenie:
+1.	Otwórz https://localhost:7294/swagger/v1/swagger.json.
+2.	Znajdź definicję CityDto.
+3.	Pokaż, że na tej podstawie można wygenerować klasę klienta w C#.
+________________________________________
+8. Wysyłanie zapytań do API z aplikacji klienckiej
+Ćwiczenie – prosta aplikacja konsolowa
+1.	Utwórz nowy projekt:
+2.	dotnet new console -n ShopAPI.Client
+3.	cd ShopAPI.Client
+4.	Dodaj pakiet:
+5.	dotnet add package System.Net.Http.Json
+6.	W Program.cs:
+7.	using System.Net.Http.Json;
+8.	
+9.	var client = new HttpClient();
+10.	client.BaseAddress = new Uri("https://localhost:7294");
+11.	
+12.	// GET
+13.	var cities = await client.GetFromJsonAsync<List<CityDto>>("/api/cities");
+14.	Console.WriteLine($"Miasta: {string.Join(", ", cities.Select(c => c.Name))}");
+15.	
+16.	// POST
+17.	var newCity = new CityDto { Name = "Warsaw", Country = "Poland" };
+18.	var response = await client.PostAsJsonAsync("/api/cities", newCity);
+19.	Console.WriteLine($"Dodano miasto, status: {response.StatusCode}");
+________________________________________
+9. Ćwiczenia dodatkowe – „REST w realnym świecie”
+1. Paginacja i filtrowanie
+•	GET /api/cities?page=1&pageSize=10
+•	GET /api/cities?country=Poland
+•	omów, dlaczego nie zwracamy od razu całej bazy.
+2. Walidacja danych
+•	Dodaj [Required] do CityDto.Name.
+•	Omów walidację automatyczną i status 400.
+3. Idempotencja metod
+•	GET, PUT, DELETE są idempotentne (wielokrotne wywołanie daje ten sam efekt).
+•	POST nie jest (dodaje za każdym razem nowy obiekt).
+4. HATEOAS – linki w odpowiedzi
+•	W GET /cities/{id} oprócz danych zwróć linki do:
+o	PUT (edycja),
+o	DELETE (usunięcie).
+•	Dzięki temu klient „wie”, jakie akcje są możliwe.
+________________________________________
+10. Autentykacja i autoryzacja (OAuth 2.0 / OpenID Connect)
+Podstawy:
+•	Flow: Authorization Code + PKCE (dla SPA/native) lub Authorization Code (dla aplikacji serwerowych).
+•	Kluczowe elementy: Tenant, Client/Application ID, Client Secret (dla „confidential clients”), Redirect URI, Scopes (openid, profile, email), Token endpoints.
+•	Logowanie w przeglądarce → kod autoryzacyjny → wymiana na tokeny (access_token, id_token, refresh_token).
+Google (Google Cloud Console):
+1.	Utwórz OAuth consent screen (External/Internal), dodaj zakresy: openid, email, profile.
+2.	Utwórz OAuth Client ID: typ (Web/SPA/Android/iOS), ustaw Redirect URI (np. https://localhost:7294/signin-oidc albo dla SPA: http://localhost:5173/callback).
+3.	Zanotuj: Client ID, Client Secret (jeśli wymagane), Redirect URIs.
+4.	Autoryzacja:
+o	Authorize endpoint: https://accounts.google.com/o/oauth2/v2/auth
+o	Token endpoint: https://oauth2.googleapis.com/token
+o	Przykład żądania (PKCE, skrótowo):
+	GET authorize z parametrami: client_id, redirect_uri, response_type=code, scope=openid email profile, code_challenge, code_challenge_method=S256, state.
+	Wymiana kodu: POST do token endpoint z code, client_id, redirect_uri, code_verifier (+ client_secret dla confidential).
+5.	Weryfikacja id_token (JWT) podpisu i aud, iss.
+Microsoft Entra ID (Azure Portal):
+1.	Tenant: zapis Directory (tenant) ID.
+2.	App registrations: zarejestruj aplikację, dodaj Redirect URIs, włącz „ID tokens”.
+3.	Zanotuj: Application (client) ID, Directory (tenant) ID, Client Secret (jeśli potrzebny).
+4.	Endpoints (v2.0):
+o	Authorize: https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize
+o	Token: https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token
+5.	Scope: openid profile email (+ offline_access dla refresh), dla API: api://<app-id>/.<scope> lub Microsoft Graph: https://graph.microsoft.com/.default.
+6.	Użyj PKCE dla public clients; dla confidential dołącz client_secret.
+Integracja w .NET API (skrót):
+•	API zwykle weryfikuje JWT (Bearer) zamiast wykonywać interaktywny login.
+•	Konfiguracja (Minimal API):
+o	AddAuthentication(JwtBearer).AddJwtBearer z Authority (np. Entra: https://login.microsoftonline.com/{tenant}/v2.0 lub Google: https://accounts.google.com) i Audience (Client ID / API App ID URI).
+•	Klient (SPA/Native) wykonuje login przez przeglądarkę i przekazuje access_token w Authorization: Bearer <token>.
+Ćwiczenia:
+•	Skonfiguruj aplikację w Entra ID i zaloguj użytkownika przez Authorization Code + PKCE, wyświetl id_token claims (sub, name, email).
+•	Skonfiguruj login przez Google, odbierz code, wymień na access_token, zweryfikuj id_token.
+•	Dodaj do API middleware JWT Bearer i zabezpiecz endpointy [Authorize].
+________________________________________
+← Powrót do planu zajęć
+💻💼📧
+© 2025 Tomasz Leś | Warsaw University of Technology
+
+•	Home
+•	Research
+•	Teaching
+•	Contact
+Tworzenie aplikacji typu MVC i MVVM
+Materiały
+•	(MVVM) What is the MVVM pattern, What benefits does MVVM have? – https://www.youtube.com/watch?v=AXpTeiWtbC8
+•	
+(MAUI) Learn .NET MAUI - Full Course for Beginners	Build cross-platform apps in C# – https://www.youtube.com/watch?v=DuNLR_NJv8U
+•	Dokumentacja:
+o	ASP.NET Core MVC – https://learn.microsoft.com/aspnet/core/mvc
+o	.NET MAUI – https://learn.microsoft.com/dotnet/maui
+o	WPF – https://learn.microsoft.com/dotnet/desktop/wpf
+o	CommunityToolkit.Mvvm – https://learn.microsoft.com/dotnet/communitytoolkit/mvvm/
+•	Repo przykładowe (oficjalne): https://github.com/dotnet/maui / https://github.com/CommunityToolkit/dotnet
+________________________________________
+Tematy do poruszenia
+1.	Dlaczego architektura w aplikacjach .NET MAUI?
+o	Oddzielenie warstw (UI, logika prezentacji, logika biznesowa).
+o	Ułatwione testowanie (ViewModel bez zależności od UI).
+o	Łatwiejsze utrzymanie i rozwój projektu (czystszy kod, mniejsza ilość duplikacji).
+o	Eliminacja problemów z podejściem code-behind – zdarzenia i logika w widoku powodują tight coupling i trudność w testach.
+2.	Przegląd wzorców: MVC vs MVVM
+o	MVC (ASP.NET Core) – Controller pośredniczy między Modelem a Widokiem (HTML / Razor).
+o	MVVM (WPF / MAUI) – ViewModel = stan + logika prezentacji + INotifyPropertyChanged.
+3.	Data Binding
+o	Tryby: OneWay, TwoWay, OneTime.
+o	x:DataType → compiled bindings (lepsza wydajność, IntelliSense).
+o	Własności i INotifyPropertyChanged.
+4.	CommunityToolkit.Mvvm
+o	ObservableObject, [ObservableProperty], [RelayCommand].
+o	Source Generators – eliminacja boilerplate.
+5.	Commands vs event handlers
+o	ICommand, [RelayCommand], CanExecute (np. IsBusy).
+o	Zalety używania Command zamiast eventów w UI.
+6.	Model vs DTO vs Entity
+o	Rozdzielenie obiektów domenowych, transferowych i mapowanych z bazy.
+o	Unikanie mieszania warstw danych z UI.
+7.	Walidacja i konwersje
+o	ValueConverter, MultiBinding.
+o	ValidationAttributes lub FluentValidation.
+8.	Stylizacja i zasoby
+o	ResourceDictionary, globalne i lokalne style.
+o	Obsługa jasnego/ciemnego motywu (AppThemeBinding).
+o	Ikony, fonty, obrazy (SVG, PNG, TTF/OTF).
+9.	Nawigacja
+o	MAUI Shell: Routing, Flyout, TabBar, GoToAsync.
+o	WPF: NavigationService / Frame.
+o	Rejestrowanie tras i przekazywanie parametrów.
+10.	Integracja z API systemów
+o	MAUI Essentials: Connectivity, Geolocation, czujniki, kamera, powiadomienia.
+o	Natywne API Android/iOS/macOS/Windows w C#.
+o	Kompilacja warunkowa #if ANDROID / #if IOS.
+11.	Różnice .NET MAUI vs WPF
+o	Platformy: MAUI (Android, iOS, Windows, macOS) vs WPF (Windows).
+o	Single Project (MAUI) vs klasyczny desktop (WPF).
+o	Handlers (MAUI) vs Dependency Properties (WPF).
+o	Lifecycle:
+	W MAUI (mobile) aplikacja działa w cyklu życia urządzenia: uruchomienie (OnStart), przejście w tło (OnSleep / suspend), wznowienie (OnResume).
+	Na Android/iOS wymagane są też obsługi uprawnień (kamera, lokalizacja).
+	W WPF aplikacja desktopowa działa inaczej – brak stanów „uśpienia” typowych dla urządzeń mobilnych.
+o	Dialekty XAML – podobne, ale różne kontrolki i przestrzenie nazw.
+o	Hot Reload wieloplatformowy vs desktopowy.
+12.	Kiedy wybrać WPF, a kiedy MAUI
+o	MAUI – gdy aplikacja ma działać na wielu platformach (Android, iOS, Windows, macOS).
+o	WPF – gdy aplikacja jest typowo desktopowa (Windows), istnieje duża baza kodu legacy lub potrzeba specyficznych integracji z Windows.
+13.	Testowalność
+o	Testy jednostkowe ViewModeli (brak UI).
+o	Mockowanie serwisów (HttpClient, repozytoria).
+o	Dependency Injection: MauiProgram.Services w MAUI / zewnętrzny kontener w WPF.
+14.	Mechanizmy produktywności
+o	XAML Hot Reload, C# Hot Reload.
+o	Live Preview, Live Visual Tree.
+o	Debugowanie i breakpoints na wielu platformach.
+________________________________________
+Ćwiczenia
+1. Szybki start – projekt MVC (backend)
+dotnet new mvc -n DemoMvc
+cd DemoMvc
+dotnet run
+•	Uruchom aplikację i wejdź na wskazany adres w przeglądarce.
+•	Obejrzyj strukturę katalogów: /Controllers, /Views, /Models.
+•	Dodaj prosty kontroler HelloController i akcję Index, która zwróci np. View("Hello").
+•	Zrozum przepływ: żądanie HTTP → routing → Controller → View.
+________________________________________
+2. Aplikacja UI bez MVVM (MAUI lub WPF)
+1.	Utwórz projekt:
+o	MAUI: dotnet new maui -n DemoMaui
+o	WPF: dotnet new wpf -n DemoWpf
+2.	W głównym oknie / stronie dodaj elementy:
+o	Pole tekstowe Imię, pole tekstowe Nazwisko, etykietę (Label/TextBlock), przycisk Połącz.
+3.	W code-behind obsłuż zdarzenia:
+o	TextChanged dla pól tekstowych → zapisz dane do zmiennych.
+o	Click dla przycisku → ustaw w etykiecie wartość Imię + Nazwisko.
+4.	Zanotuj problemy: logika umieszczona w UI, brak testów, trudna rozbudowa (np. walidacja, komunikacja z API).
+________________________________________
+3. Refaktoryzacja do MVVM (Toolkit)
+•	Dodaj pakiet:
+dotnet add package CommunityToolkit.Mvvm
+•	Utwórz klasę MainViewModel dziedziczącą po ObservableObject.
+•	Dodaj pola [ObservableProperty] string FirstName, [ObservableProperty] string LastName.
+•	Dodaj właściwość FullName => $"{FirstName} {LastName}".
+•	Zaimplementuj [RelayCommand] SaveAsync() (symulacja np. zapisu, await Task.Delay).
+•	Powiąż ViewModel z UI:
+o	MAUI – w konstruktorze strony: BindingContext = new MainViewModel();
+o	WPF – DataContext = new MainViewModel(); w MainWindow.xaml.cs.
+•	Zamień kontrolki w XAML na bindingi:
+o	Entry/TextBox → {Binding FirstName, Mode=TwoWay}
+o	Button → {Binding SaveCommand}
+o	Label → {Binding FullName}
+________________________________________
+4. Dodanie IsNotBusy / CanExecute
+1.	W ViewModel dodaj:
+2.	public bool IsNotBusy => !IsBusy;
+3.	W atrybucie RelayCommand ustaw:
+4.	[RelayCommand(CanExecute = nameof(IsNotBusy))]
+5.	Uruchom aplikację i sprawdź: przycisk powinien być nieaktywny, kiedy IsBusy == true.
+________________________________________
+5. Walidacja
+1.	Dodaj do ViewModelu logikę:
+o	Jeśli string.IsNullOrWhiteSpace(FirstName) → ustaw właściwość ValidationMessage = "Imię jest wymagane".
+2.	W XAML dodaj Label powiązany z ValidationMessage.
+3.	Przetestuj: pozostaw pole puste i kliknij „Zapisz” → powinien pojawić się komunikat.
+________________________________________
+6. ValueConverter
+•	Utwórz konwerter, np. BoolInverseConverter.
+•	Zarejestruj go w ResourceDictionary.
+•	Użyj w XAML, np. do włączania/wyłączania przycisku:
+•	<Button Text="Zapisz" 
+•	        Command="{Binding SaveCommand}" 
+•	        IsEnabled="{Binding IsBusy, Converter={StaticResource BoolInverseConverter}}"/>
+•	Sprawdź – przycisk staje się nieaktywny podczas wykonywania operacji.
+________________________________________
+7. Dependency Injection
+1.	W MAUI – w MauiProgram.cs:
+2.	builder.Services.AddSingleton<MainViewModel>();
+3.	builder.Services.AddTransient<MainPage>();
+4.	W MainPage.xaml.cs:
+5.	public MainPage(MainViewModel vm)
+6.	{
+7.	    InitializeComponent();
+8.	    BindingContext = vm;
+9.	}
+10.	W WPF skonfiguruj kontener (np. Microsoft.Extensions.DependencyInjection) w App.xaml.cs i rejestruj ViewModel/okna.
+________________________________________
+8. Testy jednostkowe ViewModelu
+1.	Utwórz projekt testowy:
+2.	dotnet new nunit -n DemoTests
+3.	dotnet add DemoTests/DemoTests.csproj reference DemoMaui/DemoMaui.csproj
+4.	Napisz test:
+5.	[Test]
+6.	public void FullName_Updates_OnFirstOrLastChange()
+7.	{
+8.	    var vm = new MainViewModel();
+9.	    vm.FirstName = "Anna";
+10.	    vm.LastName = "Nowak";
+11.	    Assert.That(vm.FullName, Is.EqualTo("Anna Nowak"));
+12.	}
+13.	Uruchom testy i upewnij się, że logika działa niezależnie od UI.
+________________________________________
+9. Nawigacja
+•	Dodaj nową stronę / okno DetailsPage.
+•	MAUI Shell:
+•	  
+•	await Shell.Current.GoToAsync("details", 
+•	    new Dictionary<string,object>{{"Item", SelectedContact}});
+•	  
+•	WPF:
+•	NavigationService.Navigate(new DetailsPage(contact));
+•	Przekaż obiekt do drugiej strony i wyświetl dane (np. pełne imię i nazwisko).
+________________________________________
+10. Stylizacja i zasoby
+1.	W Resources/Styles.xaml zdefiniuj własne style:
+o	Kolor główny aplikacji.
+o	Styl globalny dla przycisków (marginesy, font-size).
+2.	Użyj AppThemeBinding, aby zmienić kolor tła w trybie jasnym/ciemnym.
+3.	Dodaj własny font (TTF/OTF) i użyj w etykiecie.
+4.	Dodaj ikonę (SVG) i ustaw jako Image.
+________________________________________
+11. Lifecycle (MAUI vs WPF)
+1.	W MAUI:
+o	Obsłuż OnStart, OnSleep (lub OnAppStateChanged), OnResume.
+o	Dodaj log do konsoli (np. „aplikacja w tle”, „aplikacja wznowiona”).
+o	Zrozum – aplikacja może zostać uśpiona przez system.
+2.	W WPF:
+o	Sprawdź zdarzenia Startup, Exit.
+o	Zrozum różnicę – aplikacja desktopowa działa dopóki użytkownik jej nie zamknie.
+________________________________________
+← Powrót do planu zajęć
+💻💼📧
+© 2025 Tomasz Leś | Warsaw University of Technology
+
+•	Home
+•	Research
+•	Teaching
+•	Contact
+Tworzenie aplikacji Blazor (.NET 8)
+Materiały
+Filmy (omawiane w zajęciach):
+•	Blazor SSR vs Server vs WebAssembly vs Auto – https://www.youtube.com/watch?v=LHHBFh1rsGE
+•	CRUD z wszystkimi trybami renderowania (.NET 8) – https://www.youtube.com/watch?v=w8imy7LT9zY
+•	CRUD z trybem WebAssembly (.NET 8) – https://www.youtube.com/watch?v=AKiGGtBj1go
+Dokumentacja:
+•	Blazor (ASP.NET Core) – https://learn.microsoft.com/aspnet/core/blazor
+•	Render modes (.NET 8) – https://learn.microsoft.com/aspnet/core/blazor/components/render-modes
+•	Komponenty / routing – https://learn.microsoft.com/aspnet/core/blazor/fundamentals/routing
+•	Forms & EditForm – https://learn.microsoft.com/aspnet/core/blazor/forms
+•	Stream rendering / enhanced navigation – https://learn.microsoft.com/aspnet/core/blazor/components/rendering
+•	SignalR (Blazor Server) – https://learn.microsoft.com/aspnet/core/signalr
+•	EF Core – https://learn.microsoft.com/ef/core
+•	Hosting / publikacja – https://learn.microsoft.com/aspnet/core/blazor/host-and-deploy
+•	PWA (Blazor WebAssembly) – https://learn.microsoft.com/aspnet/core/blazor/progressive-web-app
+Repozytoria:
+•	Przykłady oficjalne – https://github.com/dotnet/aspnetcore/tree/main/src/Components
+•	Dotnet runtime & issues – https://github.com/dotnet/aspnetcore/issues
+________________________________________
+Tematy do poruszenia
+1.	Dlaczego Blazor (.NET 8 „Blazor Web App”)
+o	Jeden szablon = wiele trybów renderowania (progressive enhancement).
+o	SEO + szybkość pierwszego ładowania (SSR).
+o	Możliwość przejścia do interaktywności bez przepisywania całości.
+o	Wspólny kod .NET (Model, walidacja, logika) – brak duplikacji w JS/TS.
+2.	Tryby renderowania (@rendermode)
+o	Static SSR (brak interaktywności) – none.
+o	Interactive Server – logika po stronie serwera (SignalR/WebSocket), niski transfer, ograniczona skalowalność (liczba połączeń).
+o	Interactive WebAssembly – logika w przeglądarce, offline, większy initial payload.
+o	Interactive Auto – pierwszy raz Server (szybki TTFB) potem przełącza się na WebAssembly (cache).
+o	Wybór per komponent / per strona / globalnie.
+3.	Koszt / trade-off
+o	Server: + mały rozmiar startowy, - połączenia stałe, latency roundtrip.
+o	WebAssembly: + skalowalność, offline, PWA, - większy początkowy download, cold start.
+o	Auto: + UX, - większa złożoność i debug.
+o	SSR static: + minimalny koszt, idealne dla content / blog / landing.
+4.	Stream Rendering & Enhanced Navigation
+o	Szkielet strony natychmiast + późniejszy dopływ danych.
+o	Eliminacja „białej strony” przy wolniejszych zapytaniach.
+o	Porównanie z klasycznym pełnym odświeżeniem.
+5.	Struktura projektu „Blazor Web App”
+o	Server (host + API + SSR).
+o	Client (WebAssembly – komponenty interaktywne).
+o	Shared (modele / kontrakty / DTO / serwisy interfejsowe).
+o	Rejestracja assembly klienta w Program.cs (dodanie interaktywnych komponentów).
+o	Różnice względem dawnych szablonów „Hosted WASM”.
+6.	Formularze
+o	EditForm (interaktywny) vs klasyczny POST w SSR static.
+o	formname + [SupplyParameterFromForm] aby zadziałało bez WebSocket / WASM.
+o	Walidacja (DataAnnotations, komunikaty błędów).
+7.	Architektura
+o	Warstwy: Controller / Service / Repository / DbContext / Shared models.
+o	Interfejsy + implementacje (np. IGameService – ServerGameService + ClientApiGameService).
+o	Minimalizacja duplikacji kodu przy obu trybach.
+8.	EF Core w Blazor
+o	AddDbContext, migracje: dotnet ef migrations add, dotnet ef database update.
+o	Seeding w OnModelCreating.
+o	Konfiguracja connection string.
+9.	PWA / Offline * Tylko WebAssembly (Service Worker, cache zasobów).
+o	Zachowanie formularza w offline + LocalStorage / IndexedDB.
+10.	Kiedy który tryb? (skrót)
+o	Tylko SSR static: content / marketing / SEO / minimalny koszt.
+o	Server: mały zespół backoffice (<50 aktywnych), szybka iteracja.
+o	WebAssembly: duża liczba interaktywnych użytkowników, offline, PWA.
+o	Auto: first paint krytyczny + później intensywna interakcja.
+________________________________________
+Ćwiczenia
+1. Szablon SSR static
+1.	dotnet new blazor -n BlogSsr --interactivity None
+2.	Uruchom, dodaj stronę Blog.razor z listą statycznych postów.
+3.	Zmierz czas pierwszego ładowania (DevTools).
+2. Stream rendering
+1.	W Blog.razor dodaj sztuczny delay (Task.Delay 1500ms).
+2.	Włącz stream rendering – pokaż placeholder „Ładowanie…”.
+3.	Porównaj UX vs bez stream.
+3. Dodanie interaktywności (Server)
+1.	Utwórz stronę Counter.razor (Server): @rendermode InteractiveServer.
+2.	Obserwuj WebSocket w DevTools (Network → WS).
+3.	Usuń @rendermode → brak inkrementacji.
+4. Formularz bez interaktywności
+1.	Strona Contact.razor w SSR static z <form method="post">.
+2.	Dodaj [SupplyParameterFromForm] + formname.
+3.	Wyświetl dane po POST (redirect / ten sam komponent).
+5. Migracja do interaktywnego formularza
+1.	Zamień na EditForm.
+2.	Dodaj DataAnnotations i walidację.
+6. Dodanie Client (WebAssembly)
+1.	Utwórz nowy projekt Blazor Web App z WebAssembly.
+2.	Przenieś komponent Counter do Client/Pages.
+3.	Dodaj @rendermode InteractiveWebAssembly.
+4.	Porównaj payload (zakładka Network > Wasm).
+7. Model domenowy + EF Core
+1.	Dodaj projekt Shared.
+2.	Klasa VideoGame { Id, Title, Publisher, ReleaseYear }.
+3.	DbContext + migracja + seeding 3 rekordy.
+8. Warstwa usług
+1.	IGameService + GameService (Server – bezpośrednio DbContext).
+2.	Rejestracja AddScoped.
+3.	Utwórz API GameController (CRUD).
+9. Druga implementacja (HTTP)
+1.	ClientGameService używa HttpClient.
+2.	Wstrzyknij przez DI (warunkowo dla WASM).
+3.	Ten sam interfejs – brak zmian w komponencie listy.
+10. Komponenty CRUD
+1.	Games.razor (lista) – SSR + stream.
+2.	Przyciski: Dodaj (interaktywny przycisk), Edytuj, Usuń.
+3.	EditGame.razor (create/update) z podwójną trasą:
+o	@page "/games/edit"
+o	@page "/games/edit/{id:int}"
+11. Pre-rendering
+1.	Włącz @rendermode bez parametrów – zaobserwuj podwójne logi init.
+2.	Wyłącz: @rendermode new InteractiveServerRenderMode(prerender:false).
+3.	Zanotuj różnicę.
+12. Tryb Auto
+1.	Zmień EditGame.razor → @rendermode InteractiveAuto.
+2.	Wyczyść cache, załaduj ×2 i obserwuj: pierwszy WebSocket, drugi – brak.
+13. Offline & PWA (WASM)
+1.	Włącz PWA (Service Worker) – aktualizacja projektu.
+2.	Odłącz sieć → test odczytu listy z cache / LocalStorage fallback.
+3.	Zainstaluj aplikację na puplicie.
+________________________________________
+← Powrót do planu zajęć
+💻💼📧
+© 2025 Tomasz Leś | Warsaw University of Technology
+
+•	Home
+•	Research
+•	Teaching
+•	Contact
+Tworzenie aplikacji rozproszonych
+Materiały
+Wideo:
+•	Build Better Apps with .NET Aspire – https://www.youtube.com/watch?v=e36NEWqO7GQ
+•	What is .NET Aspire? – https://www.youtube.com/watch?v=fN3ufsIF7vs
+•	Redis, PostgreSQL, Messaging & More with .NET Aspire – https://www.youtube.com/watch?v=4t_-g4fwEG0
+Dokumentacja:
+•	.NET Aspire – https://learn.microsoft.com/dotnet/aspire
+•	Service discovery – https://learn.microsoft.com/dotnet/aspire/fundamentals/service-discovery
+•	Health checks (ASP.NET Core) – https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks
+•	OpenTelemetry (.NET) – https://learn.microsoft.com/dotnet/core/diagnostics/observability
+•	EF Core – https://learn.microsoft.com/ef/core
+•	Azure Developer CLI (azd) – https://learn.microsoft.com/azure/developer/azure-developer-cli/
+•	Aspire Dashboard (standalone) – https://aspiredashboard.com
+•	Projekt aspirate (Kubernetes) – https://github.com/batect/aspirate
+Repozytoria przykładowe:
+•	Aspire samples – https://github.com/dotnet/aspire-samples
+•	eShop + Aspire (przykład złożony) – https://github.com/dotnet/eShop
+•	Community components (NuGet search tag: Aspire)
+________________________________________
+Dlaczego .NET Aspire?
+Problemy typowe przy wielu usługach:
+•	Wielokrotne uruchamianie projektów ręcznie / konfiguracje debug.
+•	Różne porty / zmienne środowiskowe (spójność u developerów).
+•	Brak spójnej obserwowalności (logi, metryki, ślady).
+•	Składanie connection stringów ręcznie.
+•	Ręczne odpalanie baz / cache / brokerów wiadomości (Docker).
+•	Rozjazd config: DEV ≠ PROD.
+Aspire zapewnia:
+•	Orchestrator (AppHost) – deklaratywny opis zasobów.
+•	Service Discovery – identyfikatory zamiast twardych URL.
+•	Smart defaults: OpenTelemetry (logs/traces/metrics), health checks, resiliency (Polly).
+•	Dashboard deweloperski (podgląd w czasie rzeczywistym).
+•	Integracje (Redis, PostgreSQL, Service Bus, Storage, Messaging, AI).
+•	Manifest → narzędzia (azd, aspirate) → wdrożenie (Azure Container Apps / Kubernetes).
+•	Elastyczność – możesz użyć tylko części (np. sam dashboard + OTel).
+________________________________________
+Kluczowe pojęcia
+Pojęcie	Opis
+AppHost (Distributed App)	Projekt „sklejający” – definiuje zasoby i relacje.
+Service Defaults	Wspólne rozszerzenia: telemetry, health, resilience, discovery.
+Component / Hosting package	NuGet „Aspire.*” dla integracji (baza, cache, messaging).
+Service Discovery	Wzorzec: https+http://products zamiast https://localhost:5003.
+Resilience	Domyślnie retry / timeout / circuit breaker (konfigurowalne).
+Dashboard	UI (Blazor + Fluent) – logi, traces, metrics, health.
+Manifest	JSON generowany przez AppHost – wejście do narzędzi wdrożeniowych.
+Standalone Dashboard	Kontener do lokalnej obserwowalności istniejących aplikacji.
+________________________________________
+Tematy do poruszenia
+1.	Czym jest architektura rozproszona (usługi, granice, kontrakty).
+2.	Evolucja: monolit → modularny → usługi / „wyspy” funkcjonalne.
+3.	.NET Aspire – zakres vs pełny orchestrator (nie zastępuje K8s).
+4.	AppHost i deklaratywne zasoby (projekty, kontenery, connection strings).
+5.	Service Discovery (schematy https, fallback do http, identyfikatory).
+6.	Telemetria:
+o	Logs (ustrukturyzowane),
+o	Distributed Traces,
+o	Metrics (HTTP, GC, własne).
+7.	Health & Liveness:
+o	/health (zależności),
+o	/alive (samo-życie procesu).
+8.	Resilience (Polly) – retry z jitterem, timeouts, circuit breaker.
+9.	Komponenty:
+o	Redis (cache / output cache / distributed cache),
+o	PostgreSQL (EF Core),
+o	Messaging (Service Bus / RabbitMQ),
+o	Storage / AI / Key Vault (wzorzec rozszerzania).
+10.	Dashboard – analiza „hot path”, wykrywanie błędów.
+11.	Wersjonowanie schematu i manifestu.
+12.	Deployment opcje:
+o	„Klasycznie” (publish pojedynczych projektów),
+o	Manifest + azd (Azure Container Apps),
+o	Manifest + aspirate (Kubernetes),
+o	CI/CD (GitHub Actions / Azure DevOps).
+13.	Bezpieczeństwo:
+o	Zarządzane tożsamości / sekrety poza repo,
+o	Ograniczanie endpointów (external vs internal).
+14.	Zamiana lokalnych endpointów → discovery (migration path).
+15.	Standalone Dashboard dla istniejących mikroserwisów.
+16.	Optymalizacja kosztów (skalowanie do zera, granularne usługi).
+17.	Scenariusze architektoniczne (mały zespół / wzrost / enterprise).
+________________________________________
+Przykładowe komponenty i rola
+Komponent	Zastosowanie	Wartość w Aspire
+Redis	Cache / Output cache	Automatyczna konfiguracja + health + telemetry
+PostgreSQL	Trwała baza danych	Connection string przez discovery
+Service Bus / RabbitMQ	Asynchroniczne komunikaty	Traces korelacyjne
+Key Vault / Secrets	Sekrety produkcyjne	Oddzielenie config od kodu
+OpenAI / AI klient	Enrichment / rekomendacje	Obserwowalność wywołań
+Dashboard	Diagnoza lokalna	Szybsze debugowanie
+________________________________________
+Ćwiczenia
+1. Inicjalizacja projektu Aspire
+1.	dotnet new aspire -n ShopPlatform (lub dotnet new aspire-starter).
+2.	Uruchom AppHost – sprawdź Dashboard.
+3.	Przeanalizuj wygenerowane ServiceDefaults.
+2. Dodanie istniejącego API i frontendu
+1.	Do AppHost dodaj: builder.AddProject("Api","../Shop.Api/Shop.Api.csproj").
+2.	Dodaj Blazor (lub MVC) frontend.
+3.	Otwórz Dashboard → Resources (powinny być 2 projekty).
+3. Service discovery
+1.	W API nazwij projekt w AppHost: "products".
+2.	W kliencie zamień https://localhost:xxxxx na: https+http://products.
+3.	Usuń twarde porty z appsettings.json.
+4. Redis jako cache
+1.	var cache = builder.AddRedis("cache");
+2.	Frontend: builder.AddRedisOutputCache("cache");
+3.	Oznacz endpoint lub komponent: [OutputCache(Duration = 5)].
+4.	Obserwuj w Dashboard: traces (cache hit / miss).
+5. Migracja SQLite → PostgreSQL
+1.	AppHost: var db = builder.AddPostgres("postgres");
+2.	var productsDb = db.AddDatabase("productsdb"); + reference do API.
+3.	API: builder.AddNpgsqlDbContext<ProductsContext>("productsdb");
+4.	dotnet ef migrations add Init && dotnet ef database update.
+5.	Sprawdź PGAdmin (opcjonalnie WithPgAdmin()).
+6. Health / Alive
+1.	Odpal /health i /alive.
+2.	Zatrzymaj kontener Redis (docker stop ...).
+3.	/alive = Healthy, /health = Unhealthy (dependency fail).
+7. Resilience (retry)
+1.	W API dodaj losowy if(Random.Shared.Next(0,4)==0) throw ....
+2.	W kliencie wywołaj serię zapytań.
+3.	W traces zobacz retry (Polly) – czasy odstępów.
+8. Dostosowanie polityk
+1.	ServiceDefaults: builder.Services.AddStandardResilienceHandler().Configure(o => o.Retry.MaxRetryAttempts = 2);
+2.	Porównaj zachowanie (mniej prób).
+9. Wdrożenie z Azure Developer CLI
+1.	azd init (wewnątrz AppHost).
+2.	azd up → wybierz subskrypcję + region.
+3.	Otwórz zdalny Dashboard (Managed Identity).
+4.	Zweryfikuj environment variables (sekcja details).
+10. Wariant Kubernetes (opcjonalnie)
+1.	Zainstaluj aspirate.
+2.	aspirate generate --manifest manifest.json --output k8s.
+3.	Przejrzyj wygenerowane YAML.
+________________________________________
+Strategia migracji istniejącej aplikacji
+Etap	Cel	Działania
+1	Obserwowalność	Dodaj ServiceDefaults + OpenTelemetry
+2	Discovery	Zamień twarde URL na identyfikatory
+3	Komponenty	Redis / Postgres / Message Bus
+4	Resilience	Dostosuj polityki retry / timeout
+5	Deployment	Manifest + azd / aspirate
+6	Optymalizacja	Profiling traces + redukcja cold paths
+________________________________________
+Pytania kontrolne
+1.	Różnica /health vs /alive?
+2.	Co daje service discovery vs twarde URL?
+3.	Jak dodać nową bazę w AppHost i użyć w EF Core?
+4.	Gdzie zmienić retry attempts?
+5.	Jak wystawić tylko frontend publicznie?
+6.	Jak uruchomić Dashboard standalone?
+7.	Co zawiera manifest i kto go konsumuje?
+8.	Kiedy NIE używać mikroserwisów?
+________________________________________
+← Powrót do planu zajęć
+💻💼📧
+© 2025 Tomasz Leś | Warsaw University of Technology
+

@@ -1,0 +1,460 @@
+\chapter{Tworzenie aplikacji MVC i MVVM}
+
+\section{Wstęp}
+MVC (Model-View-Controller) i MVVM (Model-View-ViewModel) to wzorce architektoniczne zapewniające separację warstw i ułatwiające testowanie oraz utrzymanie kodu.
+
+\section{Dlaczego architektura w . NET MAUI?}
+
+\subsection{Problemy bez architektury}
+\begin{itemize}
+	\item Logika biznesowa mieszana z UI (code-behind)
+	\item Brak możliwości testów jednostkowych
+	\item Trudna rozbudowa i utrzymanie
+	\item Duplikacja kodu
+\end{itemize}
+
+\subsection{Korzyści}
+\begin{enumerate}
+	\item Oddzielenie warstw (UI, logika prezentacji, logika biznesowa)
+	\item ViewModel bez zależności od UI - łatwe testowanie
+	\item Czystszy kod, mniejsza duplikacja
+	\item Łatwiejsze utrzymanie i rozwój
+\end{enumerate}
+
+\section{MVC vs MVVM}
+
+\subsection{MVC (ASP.NET Core)}
+\begin{description}
+	\item[Model] Dane aplikacji, baza danych
+	\item[View] HTML/Razor, interfejs użytkownika
+	\item[Controller] Pośrednik, obsługuje żądania HTTP
+\end{description}
+
+\subsubsection{Flow MVC}
+\begin{enumerate}
+	\item Użytkownik wysyła żądanie HTTP
+	\item Controller odbiera żądanie
+	\item Controller pobrania dane z Model
+	\item Controller zwraca View (HTML)
+\end{enumerate}
+
+\subsection{MVVM (WPF / MAUI)}
+\begin{description}
+	\item[Model] Dane aplikacji
+	\item[View] XAML, interfejs użytkownika
+	\item[ViewModel] Stan + logika prezentacji + INotifyPropertyChanged
+\end{description}
+
+\subsubsection{Flow MVVM}
+\begin{enumerate}
+	\item Użytkownik klika przycisk w View
+	\item Command w ViewModel obsługuje zdarzenie
+	\item ViewModel zmienia stan (właściwości)
+	\item Binding automatycznie aktualizuje View
+\end{enumerate}
+
+\section{Data Binding}
+
+\subsection{Tryby bindingu}
+\begin{table}[h]
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\textbf{Tryb} & \textbf{Kierunek} & \textbf{Opis} \\
+		\hline
+		OneWay & View ← ViewModel & Tylko zmiana danych w VM \\
+		TwoWay & View ↔ ViewModel & Bidirektjonalny przepływ \\
+		OneTime & View ← ViewModel & Binding tylko raz przy załadowaniu \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsection{Compiled Bindings}
+\begin{lstlisting}
+	<!-- XAML -->
+	<ContentPage
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	x:DataType="local:MainViewModel">
+	
+	<Entry Text="{Binding FirstName, Mode=TwoWay}" />
+	<Label Text="{Binding FullName}" />
+	<Button Command="{Binding SaveCommand}" Text="Zapisz" />
+	</ContentPage>
+\end{lstlisting}
+
+\subsection{Benefit x:DataType}
+\begin{itemize}
+	\item Lepsze IntelliSense
+	\item Lepsza wydajność (compiled bindings)
+	\item Walidacja w compile time
+\end{itemize}
+
+\section{CommunityToolkit.Mvvm}
+
+\subsection{Instalacja}
+\begin{lstlisting}
+	dotnet add package CommunityToolkit.Mvvm
+\end{lstlisting}
+
+\subsection{ObservableObject}
+Klasa bazowa dla ViewModel z wbudowanym INotifyPropertyChanged. 
+
+\subsection{ObservableProperty}
+\begin{lstlisting}
+	public partial class MainViewModel : ObservableObject
+	{
+		[ObservableProperty]
+		private string firstName;
+		
+		[ObservableProperty]
+		private string lastName;
+		
+		public string FullName => $"{FirstName} {LastName}";
+	}
+\end{lstlisting}
+
+\subsection{Source Generators}
+Toolkit automatycznie generuje:
+\begin{itemize}
+	\item PropertyChanged event
+	\item Pełne implementacje właściwości
+	\item RelayCommand handlers
+\end{itemize}
+
+\section{Commands vs Event Handlers}
+
+\subsection{RelayCommand}
+\begin{lstlisting}
+	public partial class MainViewModel : ObservableObject
+	{
+		[RelayCommand]
+		private async Task Save()
+		{
+			IsBusy = true;
+			try
+			{
+				await Task.Delay(1000); // Symulacja
+			}
+			finally
+			{
+				IsBusy = false;
+			}
+		}
+	}
+	
+	// W XAML
+	<Button Command="{Binding SaveCommand}" Text="Zapisz" />
+\end{lstlisting}
+
+\subsection{CanExecute}
+\begin{lstlisting}
+	public partial class MainViewModel : ObservableObject
+	{
+		[ObservableProperty]
+		private bool isBusy;
+		
+		[RelayCommand(CanExecute = nameof(IsNotBusy))]
+		private async Task Save()
+		{
+			// ... 
+		}
+		
+		private bool IsNotBusy => !IsBusy;
+	}
+\end{lstlisting}
+
+\subsection{ICommand vs Event Handlers}
+\begin{table}[h]
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{ICommand} & \textbf{Event Handlers} \\
+		\hline
+		Testowalne & Trudne do testowania \\
+		CanExecute (enable/disable) & Brak warunkowego disablowania \\
+		Data binding & Require code-behind \\
+		MVVM friendly & Tight coupling \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\section{Model vs DTO vs Entity}
+
+\subsection{Entity}
+Klasa reprezentująca wiersz w bazie danych, zawiera ID. 
+
+\subsection{DTO}
+Obiekt transferu danych między warstwami, odseparowany od bazy.
+
+\subsection{Model}
+Obiekt używany w aplikacji, może być kombinacją Entity i DTO.
+
+\subsection{Przykład}
+\begin{lstlisting}
+	// Entity
+	public class User
+	{
+		public int Id { get; set; }
+		public string Email { get; set; }
+		public string PasswordHash { get; set; }
+	}
+	
+	// DTO
+	public class UserDto
+	{
+		public int Id { get; set; }
+		public string Email { get; set; }
+	}
+	
+	// ViewModel
+	public class UserViewModel : ObservableObject
+	{
+		[ObservableProperty]
+		private string email;
+		
+		public void LoadFrom(UserDto dto)
+		{
+			Email = dto.Email;
+		}
+	}
+\end{lstlisting}
+
+\section{Walidacja}
+
+\subsection{ValidationAttributes}
+\begin{lstlisting}
+	public class ContactViewModel : ObservableObject
+	{
+		[ObservableProperty]
+		[Required(ErrorMessage = "Imię jest wymagane")]
+		[MinLength(2, ErrorMessage = "Min 2 znaki")]
+		private string firstName;
+		
+		[ObservableProperty]
+		private string validationMessage;
+		
+		[RelayCommand]
+		private void Save()
+		{
+			var context = new ValidationContext(this);
+			var results = new List<ValidationResult>();
+			
+			if (! Validator.TryValidateObject(this, context, 
+			results, true))
+			{
+				ValidationMessage = string.Join("\n", 
+				results.Select(r => r.ErrorMessage));
+			}
+		}
+	}
+\end{lstlisting}
+
+\section{ValueConverter}
+
+\subsection{Przykład - BoolInverseConverter}
+\begin{lstlisting}
+	public class BoolInverseConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, 
+		object parameter, CultureInfo culture)
+		{
+			return !(bool)value;
+		}
+		
+		public object ConvertBack(object value, Type targetType, 
+		object parameter, CultureInfo culture)
+		{
+			return !(bool)value;
+		}
+	}
+	
+	// ResourceDictionary
+	<ResourceDictionary 
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:local="clr-namespace:MyApp">
+	<local:BoolInverseConverter x:Key="BoolInverse" />
+	</ResourceDictionary>
+	
+	// XAML
+	<Button Text="Zapisz" 
+	IsEnabled="{Binding IsBusy, 
+		Converter={StaticResource BoolInverse}}" />
+\end{lstlisting}
+
+\section{Dependency Injection}
+
+\subsection{MAUI}
+\begin{lstlisting}
+	// MauiProgram.cs
+	var builder = MauiApp.CreateBuilder();
+	builder
+	.UseMauiApp<App>()
+	.ConfigureFonts(fonts =>
+	{
+		fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+	})
+	.ConfigureServices(services =>
+	{
+		services.AddSingleton<MainViewModel>();
+		services.AddTransient<MainPage>();
+	});
+	
+	// MainPage.xaml. cs
+	public MainPage(MainViewModel vm)
+	{
+		InitializeComponent();
+		BindingContext = vm;
+	}
+\end{lstlisting}
+
+\section{Testy jednostkowe}
+
+\subsection{Projekt testowy}
+\begin{lstlisting}
+	dotnet new nunit -n DemoTests
+	dotnet add DemoTests/DemoTests.csproj reference \
+	DemoMaui/DemoMaui. csproj
+\end{lstlisting}
+
+\subsection{Przykładowy test}
+\begin{lstlisting}
+	[TestFixture]
+	public class MainViewModelTests
+	{
+		[Test]
+		public void FullName_Updates_OnFirstOrLastChange()
+		{
+			var vm = new MainViewModel();
+			vm.FirstName = "Anna";
+			vm.LastName = "Nowak";
+			
+			Assert. That(vm.FullName, Is.EqualTo("Anna Nowak"));
+		}
+		
+		[Test]
+		public async Task Save_SetsBusyTrue()
+		{
+			var vm = new MainViewModel();
+			
+			Assert.That(vm.IsBusy, Is.False);
+			
+			var task = vm.SaveCommand.ExecuteAsync(null);
+			
+			Assert.That(vm.IsBusy, Is.True);
+			
+			await task;
+			
+			Assert.That(vm.IsBusy, Is.False);
+		}
+	}
+\end{lstlisting}
+
+\section{Nawigacja}
+
+\subsection{MAUI Shell}
+\begin{lstlisting}
+	// AppShell.xaml. cs
+	public partial class AppShell : Shell
+	{
+		public AppShell()
+		{
+			InitializeComponent();
+			Routing.RegisterRoute("details", typeof(DetailsPage));
+		}
+	}
+	
+	// MainViewModel.cs
+	[RelayCommand]
+	private async Task SelectContact(Contact contact)
+	{
+		await Shell.Current.GoToAsync(
+		$"details?id={contact.Id}");
+	}
+	
+	// DetailsPage.xaml. cs
+	[QueryProperty(nameof(ContactId), "id")]
+	public partial class DetailsPage : ContentPage
+	{
+		private int contactId;
+		public int ContactId
+		{
+			get => contactId;
+			set => contactId = value;
+		}
+	}
+\end{lstlisting}
+
+\section{Stylizacja}
+
+\subsection{ResourceDictionary}
+\begin{lstlisting}
+	<!-- Resources/Styles. xaml -->
+	<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	
+	<Color x:Key="PrimaryColor">#512BD4</Color>
+	<Color x:Key="SecondaryColor">#DFD8F7</Color>
+	
+	<Style TargetType="Button" ApplyToDerivedTypes="True">
+	<Setter Property="BackgroundColor" 
+	Value="{StaticResource PrimaryColor}" />
+	<Setter Property="Padding" Value="10,5" />
+	<Setter Property="FontSize" Value="14" />
+	</Style>
+	</ResourceDictionary>
+\end{lstlisting}
+
+\subsection{Light/Dark Mode}
+\begin{lstlisting}
+	<Label Text="Hello" 
+	TextColor="{AppThemeBinding Light=Black, 
+		Dark=White}" />
+\end{lstlisting}
+
+\section{MAUI vs WPF}
+
+\subsection{Porównanie}
+\begin{table}[h]
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\textbf{Aspekt} & \textbf{MAUI} & \textbf{WPF} \\
+		\hline
+		Platformy & Android, iOS, Windows, macOS & Windows \\
+		Projekt & Single Project & Classic Desktop \\
+		Handlers & Handler architecture & Dependency Properties \\
+		Hot Reload & Wieloplatformowy & Desktopowy \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsection{Lifecycle MAUI}
+\begin{itemize}
+	\item \textbf{OnStart}: Aplikacja uruchomiona
+	\item \textbf{OnSleep}: Aplikacja przechodzi w tło
+	\item \textbf{OnResume}: Aplikacja wznowiona z tła
+\end{itemize}
+
+\subsection{Uprawnienia na mobilnych}
+\begin{lstlisting}
+	// AndroidManifest.xml
+	<uses-permission android:name="android.permission. CAMERA" />
+	
+	// Kod
+	var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+	if (status != PermissionStatus.Granted)
+	{
+		status = await Permissions.RequestAsync<Permissions.Camera>();
+	}
+\end{lstlisting}
+
+\section{Pytania kontrolne}
+
+\begin{enumerate}
+	\item Jaka jest różnica między MVC a MVVM?
+	\item Co to jest Data Binding i jakie są jego tryby?
+	\item Jak działa ObservableProperty w MVVM Toolkit?
+	\item Dlaczego RelayCommand jest lepszy niż event handler?
+	\item Co to jest DTO i dlaczego oddzielamy go od Entity?
+	\item Jak zaimplementować walidację w MVVM?
+	\item Jakie są korzyści z Dependency Injection?
+	\item Jakie są główne różnice między MAUI a WPF?
+	\item Jak obsługiwać uprawnienia na urządzeniach mobilnych?
+\end{enumerate}

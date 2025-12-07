@@ -1,0 +1,193 @@
+{
+  "info": {
+    "name": "Azure Functions File Upload API",
+    "description": "Kolekcja testów dla systemu przesyłania plików do Azure Storage",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Upload File - Multipart",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Response contains blob_url\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.blob_url).to.exist;",
+              "});",
+              "pm.test(\"Response contains filename\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.filename).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "C:/temp/test.txt"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:7071/api/UploadFile",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "7071",
+          "path": [
+            "api",
+            "UploadFile"
+          ]
+        },
+        "description": "Przesyła plik jako multipart/form-data do Azure Blob Storage"
+      },
+      "response": []
+    },
+    {
+      "name": "Upload File - Base64 JSON",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Response contains success flag\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"filename\": \"test-base64.txt\",\n  \"content\": \"SGVsbG8gZnJvbSBBenVyZSBGdW5jdGlvbnMh\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:7071/api/UploadFile",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "7071",
+          "path": [
+            "api",
+            "UploadFile"
+          ]
+        },
+        "description": "Przesyła plik zakodowany w base64 jako JSON"
+      },
+      "response": []
+    },
+    {
+      "name": "List Files",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Response contains files array\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.files).to.be.an('array');",
+              "});",
+              "pm.test(\"Response contains count\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.count).to.be.a('number');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:7071/api/ListFiles",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "7071",
+          "path": [
+            "api",
+            "ListFiles"
+          ]
+        },
+        "description": "Wylistowuje wszystkie przesłane pliki z Blob Storage"
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Error Test - No File",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test(\"Response contains error\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "http://localhost:7071/api/UploadFile",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "7071",
+          "path": [
+            "api",
+            "UploadFile"
+          ]
+        },
+        "description": "Test błędu - brak pliku"
+      },
+      "response": []
+    }
+  ]
+}

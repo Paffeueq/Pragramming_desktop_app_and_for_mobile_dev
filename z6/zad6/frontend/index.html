@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zadanie 6 - Upload plików</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .upload-section {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+        
+        .upload-section.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        label {
+            display: block;
+            cursor: pointer;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .upload-text strong {
+            color: #667eea;
+            display: block;
+            margin-top: 10px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-upload {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-upload:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-refresh {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .btn-refresh:hover {
+            background: #dee2e6;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .files-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 0;
+            list-style: none;
+        }
+        
+        .files-list li {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e9ecef;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .files-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .files-list li:before {
+            content: "📄";
+            font-size: 18px;
+        }
+        
+        .status {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+        
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
+        
+        .file-count {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📤 Upload Plików</h1>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="upload-section" id="dropZone">
+            <label for="fileInput">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">
+                    Przeciągnij plik tutaj lub
+                    <strong>kliknij aby wybrać</strong>
+                </div>
+            </label>
+            <input type="file" id="fileInput">
+        </div>
+        
+        <div class="button-group">
+            <button class="btn-upload" id="uploadBtn" disabled>📤 Wyślij plik</button>
+            <button class="btn-refresh" onclick="loadFiles()">🔄 Odśwież listę</button>
+        </div>
+        
+        <h2>📋 Przesłane pliki</h2>
+        <ul class="files-list" id="fileList"></ul>
+        <div class="file-count">
+            Razem: <strong id="fileCount">0</strong> plików
+        </div>
+    </div>
+
+    <script>
+        const API = "http://localhost:7072/api";
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("fileInput");
+        const uploadBtn = document.getElementById("uploadBtn");
+        const statusDiv = document.getElementById("status");
+
+        // Drag & Drop
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("dragover");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("dragover");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("dragover");
+            fileInput.files = e.dataTransfer.files;
+            uploadBtn.disabled = false;
+        });
+
+        fileInput.addEventListener("change", () => {
+            uploadBtn.disabled = fileInput.files.length === 0;
+        });
+
+        uploadBtn.addEventListener("click", uploadFile);
+
+        async function uploadFile() {
+            const file = fileInput.files[0];
+            if (!file) {
+                showStatus("Wybierz plik!", "error");
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            showStatus(`Wysyłam plik: ${file.name}...`, "info");
+
+            try {
+                // Czytaj plik jako base64
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Content = e.target.result.split(',')[1];
+                    
+                    const response = await fetch(`${API}/UploadFile`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            filename: file.name,
+                            content: base64Content
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showStatus(`✅ Plik ${file.name} przesłany!`, "success");
+                        fileInput.value = "";
+                        uploadBtn.disabled = true;
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        loadFiles();
+                    } else {
+                        showStatus(`❌ Błąd: ${data.error || "Nieznany błąd"}`, "error");
+                    }
+
+                    uploadBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+
+            } catch (error) {
+                showStatus(`❌ Błąd połączenia: ${error.message}`, "error");
+                uploadBtn.disabled = false;
+            }
+        }
+
+        async function loadFiles() {
+            try {
+                const response = await fetch(`${API}/GetFiles`);
+                const data = await response.json();
+
+                const fileList = document.getElementById("fileList");
+                const fileCount = document.getElementById("fileCount");
+
+                fileList.innerHTML = "";
+                fileCount.textContent = data.total || 0;
+
+                if (data.files && data.files.length > 0) {
+                    data.files.forEach(file => {
+                        const li = document.createElement("li");
+                        li.textContent = `${file.filename} (${formatBytes(file.size)})`;
+                        fileList.appendChild(li);
+                    });
+                } else {
+                    const emptyMsg = document.createElement("li");
+                    emptyMsg.className = "empty-message";
+                    emptyMsg.textContent = "Brak przesłanych plików";
+                    fileList.appendChild(emptyMsg);
+                }
+            } catch (error) {
+                showStatus(`❌ Nie mogę załadować listy plików: ${error.message}`, "error");
+            }
+        }
+
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            if (type === "success") {
+                setTimeout(() => {
+                    statusDiv.className = "status";
+                }, 4000);
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return "0 Bytes";
+            const k = 1024;
+            const sizes = ["Bytes", "KB", "MB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+        }
+
+        // Załaduj listę przy starcie
+        loadFiles();
+    </script>
+</body>
+</html>
