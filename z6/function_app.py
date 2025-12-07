@@ -582,7 +582,7 @@ def delete_product(req: func.HttpRequest) -> func.HttpResponse:
 # STORAGE QUEUE - ZADANIE 7
 # ============================================
 
-QUEUE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=z6storage;AccountKey=66WYyu8jdvy89w1KsZjkbjGD+GpoUGpVwd38+4fVjShPoLoo1D+k2vInhkaefxYrq7DvCBnEJpyl+AStsWpL3A==;EndpointSuffix=core.windows.net"
+QUEUE_CONNECTION_STRING = os.getenv("QueueStorageConnection", "")
 QUEUE_NAME = "z7-tasks"
 
 @app.route(route="SendToQueue", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
