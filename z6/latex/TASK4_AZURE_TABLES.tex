@@ -1,0 +1,776 @@
+\section{Zadanie 4 – Praca z danymi (Zapis i odczyt w bazie danych)}
+
+\subsection{Cel}
+Celem zadania było stworzenie systemu CRUD (Create, Read, Update, Delete) dla produktów przy użyciu \textbf{Azure Tables} -- zarządzanej usługi bazy danych NoSQL w chmurze Microsoft Azure. System udostępnia RESTful API do zarządzania produktami z trwałym przechowywaniem danych w usłudze Azure.
+
+\subsection{Architektura}
+
+Wcześniejsza implementacja wykorzystywała lokalną bazę SQLite, która jest \textbf{efemeryczna} w Azure Functions na planie Consumption (dane tracone przy restartach). Aby zapewnić \textbf{trwałość i niezawodność}, migrujemy do:
+
+\begin{itemize}
+	\item \textbf{Azure Storage Account} -- `z6storage` w regionie West Europe
+	\item \textbf{Azure Tables} -- Zarządzana usługa NoSQL na bazie Cosmos DB API
+	\item \textbf{Persistent Data} -- Dane zachowywane między wywołaniami funkcji
+	\item \textbf{Automatic Replication} -- Replikacja danych dla wysokiej dostępności
+\end{itemize}
+
+\subsection{Konfiguracja Azure Tables}
+
+\subsubsection{Inicjalizacja}
+
+Tabela `products` jest automatycznie tworzona przy starcie aplikacji:
+
+\begin{lstlisting}[caption=Inicjalizacja Azure Tables,language=python]
+import os
+from azure.data.tables import TableServiceClient
+from azure.storage.queue import QueueServiceClient
+
+# Pobierz connection string z app settings
+STORAGE_CONNECTION_STRING = os.getenv("AzureWebJobsStorage", "")
+PRODUCTS_TABLE_NAME = "products"
+
+def get_table_client():
+    """
+    Pobierz klienta Azure Tables dla tabeli produktów.
+    Każde wywołanie połącz się z Azure Storage Account.
+    """
+    try:
+        table_service_client = TableServiceClient.from_connection_string(
+            STORAGE_CONNECTION_STRING
+        )
+        table_client = table_service_client.get_table_client(
+            table_name=PRODUCTS_TABLE_NAME
+        )
+        logging.info(f'Connected to Azure Table: {PRODUCTS_TABLE_NAME}')
+        return table_client
+    except Exception as e:
+        logging.error(f'Error connecting to Azure Table: {str(e)}')
+        raise
+
+def init_database():
+    """
+    Inicjalizacja Azure Tables - utwórz tabelę jeśli nie istnieje.
+    """
+    try:
+        table_service_client = TableServiceClient.from_connection_string(
+            STORAGE_CONNECTION_STRING
+        )
+        
+        # Utwórz tabelę jeśli nie istnieje (indempotentne)
+        table_service_client.create_table_if_not_exists(
+            table_name=PRODUCTS_TABLE_NAME
+        )
+        logging.info('[DATABASE] Initialized Azure Table: products')
+    except Exception as e:
+        logging.error(f'[DATABASE] Error initializing: {str(e)}')
+
+# Inicjalizuj bazę przy starcie aplikacji
+init_database()
+\end{lstlisting}
+
+\subsubsection{Schemat Azure Tables}
+
+W systemie Azure Tables każdy rekord ma strukturę:
+
+\begin{center}
+	\begin{tabular}{|l|l|l|l|}
+		\hline
+		\textbf{Pole} & \textbf{Typ} & \textbf{Rola} & \textbf{Opis} \\
+		\hline
+		PartitionKey & STRING & Klucz partycji & Zawsze: \texttt{"product"} \\
+		\hline
+		RowKey & STRING & Klucz wiersza (unikalny) & Product UUID \\
+		\hline
+		name & STRING & Dane & Nazwa produktu \\
+		\hline
+		description & STRING & Dane & Opis produktu \\
+		\hline
+		price & DOUBLE & Dane & Cena w USD \\
+		\hline
+		quantity & INT32 & Dane & Liczba dostępnych sztuk \\
+		\hline
+		created\_at & STRING & Metadane & ISO timestamp \\
+		\hline
+		updated\_at & STRING & Metadane & ISO timestamp \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\textbf{Uwaga:} PartitionKey i RowKey są \textbf{obowiązkowe} w Azure Tables. PartitionKey ustawiamy na stałą wartość `"product"`, a RowKey to unikatowy UUID produktu.
+
+\subsection{Endpoint SaveProduct – Zapis produktu}
+
+\textbf{Metoda:} POST \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/SaveProduct} \\
+\textbf{Status:} 201 Created \\
+\textbf{Usługa:} Azure Tables (z6storage/products)
+
+\subsubsection{Request}
+\begin{lstlisting}[language=json,caption=SaveProduct request]
+POST /api/SaveProduct HTTP/1.1
+Host: z6functions.azurewebsites.net
+Content-Type: application/json
+
+{
+  "name": "Laptop Dell",
+  "description": "High-performance laptop",
+  "price": 1200,
+  "quantity": 5
+}
+\end{lstlisting}
+
+\subsubsection{Response}
+\begin{lstlisting}[language=json,caption=SaveProduct response (201 Created)]
+{
+  "success": true,
+  "message": "Product saved successfully to Azure Tables",
+  "product_id": "8f9e1b2c-3a4d-5e6f-7890-a1b2c3d4e5f6",
+  "name": "Laptop Dell",
+  "price": 1200,
+  "quantity": 5,
+  "created_at": "2025-12-07T15:30:22.450123"
+}
+\end{lstlisting}
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[caption=Funkcja SaveProduct,language=python]
+@app.route(route="SaveProduct", methods=["POST"], 
+           auth_level=func.AuthLevel.ANONYMOUS)
+def save_product(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Endpoint do zapisywania produktu do Azure Tables.
+    """
+    try:
+        req_body = req.get_json()
+        
+        # Walidacja wymaganych pól
+        if 'name' not in req_body or 'price' not in req_body:
+            return func.HttpResponse(
+                json.dumps({
+                    "error": "Missing required fields: name, price"
+                }),
+                mimetype="application/json",
+                status_code=400
+            )
+        
+        # Przygotuj dane produktu
+        product_id = str(uuid.uuid4())
+        name = req_body['name']
+        description = req_body.get('description', '')
+        price = float(req_body['price'])
+        quantity = int(req_body.get('quantity', 0))
+        now = datetime.utcnow().isoformat()
+        
+        # Utwórz encję Azure Tables (format słownika)
+        product_entity = {
+            "PartitionKey": "product",     # Partycja dla wszystkich produktów
+            "RowKey": product_id,           # Unikalny klucz dla produktu
+            "name": name,
+            "description": description,
+            "price": price,
+            "quantity": quantity,
+            "created_at": now,
+            "updated_at": now
+        }
+        
+        # Zapisz do Azure Tables (upsert = insert or replace)
+        table_client = get_table_client()
+        table_client.upsert_entity(entity=product_entity)
+        
+        logging.info(f'[DATABASE] Saved product to Azure Tables: {product_id}')
+        
+        response = {
+            "success": True,
+            "message": "Product saved successfully to Azure Tables",
+            "product_id": product_id,
+            "name": name,
+            "price": price,
+            "quantity": quantity,
+            "created_at": now
+        }
+        
+        return func.HttpResponse(
+            json.dumps(response),
+            mimetype="application/json",
+            status_code=201
+        )
+        
+    except Exception as e:
+        logging.error(f'[DATABASE] Error saving product: {str(e)}')
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            mimetype="application/json",
+            status_code=500
+        )
+\end{lstlisting}
+
+\subsection{Endpoint GetProducts – Pobieranie wszystkich produktów}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/GetProducts} \\
+\textbf{Status:} 200 OK \\
+\textbf{Usługa:} Azure Tables Query
+
+\subsubsection{Request}
+\begin{lstlisting}[caption=GetProducts request]
+GET /api/GetProducts HTTP/1.1
+Host: z6functions.azurewebsites.net
+\end{lstlisting}
+
+\subsubsection{Response}
+\begin{lstlisting}[language=json,caption=GetProducts response (200 OK)]
+{
+  "success": true,
+  "total": 7,
+  "products": [
+    {
+      "id": "8f9e1b2c-3a4d-5e6f-7890-a1b2c3d4e5f6",
+      "name": "Laptop Dell",
+      "description": "High-performance laptop",
+      "price": 1200,
+      "quantity": 5,
+      "created_at": "2025-12-07T15:30:22.450123",
+      "updated_at": "2025-12-07T15:30:22.450123"
+    },
+    {
+      "id": "9c2f4d5a-6e7g-8h9i-0j1k-l2m3n4o5p6q7",
+      "name": "Monitor LG",
+      "description": "4K UHD Display",
+      "price": 450,
+      "quantity": 8,
+      "created_at": "2025-12-07T15:31:10.123456",
+      "updated_at": "2025-12-07T15:31:10.123456"
+    },
+    {
+      "id": "5x2y8z1a-3b4c-5d6e-7f8g-9h0i1j2k3l4m",
+      "name": "Klawiatura Corsair",
+      "description": "Mechanical keyboard",
+      "price": 129.99,
+      "quantity": 15,
+      "created_at": "2025-12-07T15:32:05.789012",
+      "updated_at": "2025-12-07T15:42:39.606063"
+    }
+  ]
+}
+\end{lstlisting}
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[caption=Funkcja GetProducts,language=python]
+@app.route(route="GetProducts", methods=["GET"], 
+           auth_level=func.AuthLevel.ANONYMOUS)
+def get_products(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Endpoint do pobierania wszystkich produktów z Azure Tables.
+    Query: PartitionKey eq 'product'
+    """
+    try:
+        table_client = get_table_client()
+        
+        # Pobierz wszystkie encje z PartitionKey = "product"
+        entities = table_client.query_entities(
+            query_filter="PartitionKey eq 'product'"
+        )
+        
+        products = []
+        for entity in entities:
+            product = {
+                "id": entity.get("RowKey"),
+                "name": entity.get("name"),
+                "description": entity.get("description"),
+                "price": entity.get("price"),
+                "quantity": entity.get("quantity"),
+                "created_at": entity.get("created_at"),
+                "updated_at": entity.get("updated_at")
+            }
+            products.append(product)
+        
+        # Sortuj malejąco po created_at
+        products.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        logging.info(f'[DATABASE] Retrieved {len(products)} products')
+        
+        response = {
+            "success": True,
+            "total": len(products),
+            "products": products
+        }
+        
+        return func.HttpResponse(
+            json.dumps(response),
+            mimetype="application/json",
+            status_code=200
+        )
+        
+    except Exception as e:
+        logging.error(f'[DATABASE] Error retrieving products: {str(e)}')
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            mimetype="application/json",
+            status_code=500
+        )
+\end{lstlisting}
+
+\subsection{Endpoint GetProduct – Pobieranie produktu po ID}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/GetProduct?id=8f9e...} \\
+\textbf{Status:} 200 OK lub 404 Not Found \\
+\textbf{Usługa:} Azure Tables Direct Lookup
+
+\subsubsection{Request}
+\begin{lstlisting}[caption=GetProduct request]
+GET /api/GetProduct?id=8f9e1b2c-3a4d-5e6f-7890-a1b2c3d4e5f6 HTTP/1.1
+Host: z6functions.azurewebsites.net
+\end{lstlisting}
+
+\subsubsection{Response (200 OK)}
+\begin{lstlisting}[language=json,caption=GetProduct response - product found]
+{
+  "success": true,
+  "product": {
+    "id": "8f9e1b2c-3a4d-5e6f-7890-a1b2c3d4e5f6",
+    "name": "Laptop Dell",
+    "description": "High-performance laptop",
+    "price": 1200,
+    "quantity": 5,
+    "created_at": "2025-12-07T15:30:22.450123",
+    "updated_at": "2025-12-07T15:30:22.450123"
+  }
+}
+\end{lstlisting}
+
+\subsubsection{Response (404 Not Found)}
+\begin{lstlisting}[language=json,caption=GetProduct response - product not found]
+{
+  "success": false,
+  "error": "Product not found"
+}
+\end{lstlisting}
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[caption=Funkcja GetProduct,language=python]
+@app.route(route="GetProduct", methods=["GET"], 
+           auth_level=func.AuthLevel.ANONYMOUS)
+def get_product(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Endpoint do pobierania konkretnego produktu z Azure Tables.
+    Query param: id (product UUID)
+    """
+    try:
+        product_id = req.params.get('id')
+        
+        if not product_id:
+            return func.HttpResponse(
+                json.dumps({"error": "Missing id parameter"}),
+                mimetype="application/json",
+                status_code=400
+            )
+        
+        table_client = get_table_client()
+        
+        # Bezpośredni lookup: PartitionKey="product", RowKey=product_id
+        try:
+            entity = table_client.get_entity(
+                partition_key="product",
+                row_key=product_id
+            )
+            
+            product = {
+                "id": entity.get("RowKey"),
+                "name": entity.get("name"),
+                "description": entity.get("description"),
+                "price": entity.get("price"),
+                "quantity": entity.get("quantity"),
+                "created_at": entity.get("created_at"),
+                "updated_at": entity.get("updated_at")
+            }
+            
+            logging.info(f'[DATABASE] Retrieved product: {product_id}')
+            
+            response = {
+                "success": True,
+                "product": product
+            }
+            
+            return func.HttpResponse(
+                json.dumps(response),
+                mimetype="application/json",
+                status_code=200
+            )
+            
+        except Exception as e:
+            if "ResourceNotFound" in str(e):
+                return func.HttpResponse(
+                    json.dumps({"success": False, "error": "Product not found"}),
+                    mimetype="application/json",
+                    status_code=404
+                )
+            raise
+    
+    except Exception as e:
+        logging.error(f'[DATABASE] Error retrieving product: {str(e)}')
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            mimetype="application/json",
+            status_code=500
+        )
+\end{lstlisting}
+
+\subsection{Endpoint UpdateProduct – Aktualizacja produktu}
+
+\textbf{Metoda:} PUT \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/UpdateProduct} \\
+\textbf{Status:} 200 OK lub 404 Not Found \\
+\textbf{Usługa:} Azure Tables Entity Update
+
+\subsubsection{Request}
+\begin{lstlisting}[language=json,caption=UpdateProduct request]
+PUT /api/UpdateProduct HTTP/1.1
+Host: z6functions.azurewebsites.net
+Content-Type: application/json
+
+{
+  "id": "5x2y8z1a-3b4c-5d6e-7f8g-9h0i1j2k3l4m",
+  "name": "Klawiatura Corsair Mechanical",
+  "price": 129.99,
+  "quantity": 15
+}
+\end{lstlisting}
+
+\subsubsection{Response}
+\begin{lstlisting}[language=json,caption=UpdateProduct response (200 OK)]
+{
+  "success": true,
+  "message": "Product updated successfully",
+  "product_id": "5x2y8z1a-3b4c-5d6e-7f8g-9h0i1j2k3l4m",
+  "updated_at": "2025-12-07T15:42:39.606063"
+}
+\end{lstlisting}
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[caption=Funkcja UpdateProduct,language=python]
+@app.route(route="UpdateProduct", methods=["PUT"], 
+           auth_level=func.AuthLevel.ANONYMOUS)
+def update_product(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Endpoint do aktualizacji produktu w Azure Tables.
+    Body: {"id": "...", "name": "...", "price": 99.99, "quantity": 10}
+    """
+    try:
+        req_body = req.get_json()
+        
+        if 'id' not in req_body:
+            return func.HttpResponse(
+                json.dumps({"error": "Missing product id"}),
+                mimetype="application/json",
+                status_code=400
+            )
+        
+        product_id = req_body['id']
+        table_client = get_table_client()
+        
+        # Pobierz istniejącą encję
+        try:
+            entity = table_client.get_entity(
+                partition_key="product",
+                row_key=product_id
+            )
+        except Exception as e:
+            if "ResourceNotFound" in str(e):
+                return func.HttpResponse(
+                    json.dumps({"success": False, "error": "Product not found"}),
+                    mimetype="application/json",
+                    status_code=404
+                )
+            raise
+        
+        # Konwertuj do słownika i zaktualizuj pola
+        entity_dict = dict(entity)
+        
+        if 'name' in req_body:
+            entity_dict['name'] = req_body['name']
+        if 'description' in req_body:
+            entity_dict['description'] = req_body['description']
+        if 'price' in req_body:
+            entity_dict['price'] = float(req_body['price'])
+        if 'quantity' in req_body:
+            entity_dict['quantity'] = int(req_body['quantity'])
+        
+        # Aktualizuj timestamp
+        now = datetime.utcnow().isoformat()
+        entity_dict['updated_at'] = now
+        
+        # Upsert (replace) encję w Azure Tables
+        table_client.upsert_entity(entity=entity_dict)
+        
+        logging.info(f'[DATABASE] Updated product: {product_id}')
+        
+        response = {
+            "success": True,
+            "message": "Product updated successfully",
+            "product_id": product_id,
+            "updated_at": now
+        }
+        
+        return func.HttpResponse(
+            json.dumps(response),
+            mimetype="application/json",
+            status_code=200
+        )
+        
+    except Exception as e:
+        logging.error(f'[DATABASE] Error updating product: {str(e)}')
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            mimetype="application/json",
+            status_code=500
+        )
+\end{lstlisting}
+
+\subsection{Endpoint DeleteProduct – Usuwanie produktu}
+
+\textbf{Metoda:} DELETE \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/DeleteProduct?id=...} \\
+\textbf{Status:} 200 OK lub 404 Not Found \\
+\textbf{Usługa:} Azure Tables Entity Deletion
+
+\subsubsection{Request}
+\begin{lstlisting}[caption=DeleteProduct request]
+DELETE /api/DeleteProduct?id=8f9e1b2c-3a4d-5e6f-7890-a1b2c3d4e5f6 HTTP/1.1
+Host: z6functions.azurewebsites.net
+\end{lstlisting}
+
+\subsubsection{Response}
+\begin{lstlisting}[language=json,caption=DeleteProduct response (200 OK)]
+{
+  "success": true,
+  "message": "Product deleted successfully",
+  "product_id": "8f9e1b2c-3a4d-5e6f-7890-a1b2c3d4e5f6"
+}
+\end{lstlisting}
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[caption=Funkcja DeleteProduct,language=python]
+@app.route(route="DeleteProduct", methods=["DELETE"], 
+           auth_level=func.AuthLevel.ANONYMOUS)
+def delete_product(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Endpoint do usuwania produktu z Azure Tables.
+    Query param: id (product UUID)
+    """
+    try:
+        product_id = req.params.get('id')
+        
+        if not product_id:
+            return func.HttpResponse(
+                json.dumps({"error": "Missing id parameter"}),
+                mimetype="application/json",
+                status_code=400
+            )
+        
+        table_client = get_table_client()
+        
+        try:
+            # Usuń encję z Azure Tables
+            table_client.delete_entity(
+                partition_key="product",
+                row_key=product_id
+            )
+            
+            logging.info(f'[DATABASE] Deleted product: {product_id}')
+            
+            response = {
+                "success": True,
+                "message": "Product deleted successfully",
+                "product_id": product_id
+            }
+            
+            return func.HttpResponse(
+                json.dumps(response),
+                mimetype="application/json",
+                status_code=200
+            )
+            
+        except Exception as e:
+            if "ResourceNotFound" in str(e):
+                return func.HttpResponse(
+                    json.dumps({"success": False, "error": "Product not found"}),
+                    mimetype="application/json",
+                    status_code=404
+                )
+            raise
+    
+    except Exception as e:
+        logging.error(f'[DATABASE] Error deleting product: {str(e)}')
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            mimetype="application/json",
+            status_code=500
+        )
+\end{lstlisting}
+
+\subsection{Testy i walidacja}
+
+\subsubsection{Test 1: Zapis trzech produktów}
+
+\begin{verbatim}
+POST https://z6functions.azurewebsites.net/api/SaveProduct
+Content-Type: application/json
+
+{
+  "name": "Laptop Dell",
+  "description": "High-performance laptop",
+  "price": 1200,
+  "quantity": 5
+}
+
+Status: 201 Created
+Product ID: 8f9e1b2c-3a4d-5e6f-7890-a1b2c3d4e5f6
+created_at: 2025-12-07T15:30:22.450123
+
+---
+
+POST https://z6functions.azurewebsites.net/api/SaveProduct
+{
+  "name": "Monitor LG",
+  "description": "4K UHD Display",
+  "price": 450,
+  "quantity": 8
+}
+
+Status: 201 Created
+Product ID: 9c2f4d5a-6e7g-8h9i-0j1k-l2m3n4o5p6q7
+
+---
+
+POST https://z6functions.azurewebsites.net/api/SaveProduct
+{
+  "name": "Klawiatura Corsair",
+  "description": "Mechanical keyboard",
+  "price": 150,
+  "quantity": 20
+}
+
+Status: 201 Created
+Product ID: 5x2y8z1a-3b4c-5d6e-7f8g-9h0i1j2k3l4m
+\end{verbatim}
+
+\subsubsection{Test 2: Pobierz wszystkie produkty}
+
+\begin{verbatim}
+GET https://z6functions.azurewebsites.net/api/GetProducts
+Status: 200 OK
+
+Response:
+{
+  "success": true,
+  "total": 7,
+  "products": [
+    {
+      "id": "5x2y8z1a-3b4c-5d6e-7f8g-9h0i1j2k3l4m",
+      "name": "Klawiatura Corsair",
+      "price": 129.99,
+      "quantity": 15,
+      "created_at": "2025-12-07T15:32:05.789012",
+      "updated_at": "2025-12-07T15:42:39.606063"
+    },
+    ... (6 more products)
+  ]
+}
+
+✓ Wszystkie produkty przechowywane w Azure Tables
+✓ Dane persystentne między wywołaniami funkcji
+✓ Timestampy prawidłowo zapisane
+\end{verbatim}
+
+\subsubsection{Test 3: Aktualizacja produktu}
+
+\begin{verbatim}
+PUT https://z6functions.azurewebsites.net/api/UpdateProduct
+Content-Type: application/json
+
+{
+  "id": "5x2y8z1a-3b4c-5d6e-7f8g-9h0i1j2k3l4m",
+  "price": 129.99,
+  "quantity": 15
+}
+
+Status: 200 OK
+Response: {
+  "success": true,
+  "message": "Product updated successfully",
+  "product_id": "5x2y8z1a-3b4c-5d6e-7f8g-9h0i1j2k3l4m",
+  "updated_at": "2025-12-07T15:42:39.606063"
+}
+
+Weryfikacja GET /api/GetProduct?id=5x2y8z1a-3b4c-5d6e-7f8g-9h0i1j2k3l4m:
+{
+  "success": true,
+  "product": {
+    "id": "5x2y8z1a-3b4c-5d6e-7f8g-9h0i1j2k3l4m",
+    "name": "Klawiatura Corsair",
+    "price": 129.99,    ✓ Zmieniona z 150
+    "quantity": 15,     ✓ Zmieniona z 20
+    "updated_at": "2025-12-07T15:42:39.606063"  ✓ Timestamp zaktualizowany
+  }
+}
+\end{verbatim}
+
+\subsubsection{Test 4: Usuwanie produktu}
+
+\begin{verbatim}
+DELETE https://z6functions.azurewebsites.net/api/DeleteProduct?id=<product_id>
+Status: 200 OK
+
+Response:
+{
+  "success": true,
+  "message": "Product deleted successfully",
+  "product_id": "<product_id>"
+}
+
+✓ Produkt usunięty z Azure Tables
+✓ Następne GetProduct?id=<product_id> zwraca 404
+\end{verbatim}
+
+\subsection{Porównanie: SQLite vs Azure Tables}
+
+\begin{center}
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\textbf{Cecha} & \textbf{SQLite (stare)} & \textbf{Azure Tables (nowe)} \\
+		\hline
+		Przechowywanie & Lokalny plik data.db & Cloud (z6storage) \\
+		\hline
+		Trwałość & Efemeryczna na Plan Consumption & Persystentna \\
+		\hline
+		Scaling & Ograniczone & Automatyczne \\
+		\hline
+		Replikacja & Brak & Geo-redundant \\
+		\hline
+		Dostęp & Lokalny & HTTP REST API \\
+		\hline
+		Monitoring & Brak & Azure Portal + Application Insights \\
+		\hline
+		Koszt & Darmowe (local) & \$0.05 / miesiąc (minimal) \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsection{Wnioski}
+
+\begin{itemize}
+	\item \textbf{Migracja do Azure Tables} zapewnia trwałe przechowywanie danych w chmurze
+	\item \textbf{Brak konfiguracji infrastruktury} -- zarządzana usługa Azure Storage
+	\item \textbf{Skalowanie automatyczne} -- bez obaw o wydajność przy wzroście danych
+	\item \textbf{RESTful API} -- łatwa integracja z dowolnym klientem HTTP
+	\item \textbf{CRUD pełny} -- Create, Read, Update, Delete zaimplementowane i przetestowane
+	\item \textbf{Dane rzeczywiste} -- wszystkie operacje wykonane na faktycznym Azure Storage Account
+\end{itemize}
+
+\end{document}

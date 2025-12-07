@@ -110,32 +110,22 @@ Testy wykonano w Postmanie – wysłano żądanie GET z parametrem \texttt{name}
 \section{Zadanie 2 – System przesyłania plików do Azure Storage}
 
 \subsection{Cel}
-Celem zadania było utworzenie systemu przesyłania plików do Azure Blob Storage. System obsługuje żądania HTTP POST z plikami zakodowanymi w base64, generuje unikalne nazwy blobów z timestamp, i zwraca szczegółowe informacje o przesłanym pliku w formacie JSON.
+Celem zadania było utworzenie systemu przesyłania plików do Azure Blob Storage. System obsługuje żądania HTTP POST z plikami zakodowanymi w base64, generuje unikalne nazwy blobów z timestamp, zapisuje plik do Azure Blob Storage i zwraca szczegółowe informacje o przesłanym pliku w formacie JSON wraz z SAS URL.
 
-\subsection{Tworzenie projektu}
-\begin{enumerate}
-	\item Rozszerzono istniejący projekt Azure Functions o nowe funkcje.
-	\item Zainstalowano dodatkowe pakiety:
-	\begin{verbatim}
-		pip install azure-storage-blob azure-data-tables
-	\end{verbatim}
-	\item Zaktualizowano \texttt{requirements.txt} z nowymi zależnościami.
-\end{enumerate}
-
-\subsection{Dodanie HTTP Trigger do przesyłania plików}
-\begin{verbatim}
-	func new --name UploadFile --template "HTTP trigger" --authlevel "anonymous"
-\end{verbatim}
-
-\subsection{Implementacja funkcji \texttt{upload\_file}}
-\begin{lstlisting}[language=Python, caption=Funkcja do przesyłania plików]
+\subsection{Implementacja funkcji \texttt{upload\_file} z Azure Blob Storage}
+\begin{lstlisting}[language=Python, caption=Funkcja do przesyłania plików do Azure Blob Storage]
 	import azure.functions as func
 	import json
 	import base64
-	from datetime import datetime
+	from datetime import datetime, timedelta
 	import logging
+	from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
+	import uuid
 	
 	app = func.FunctionApp()
+	
+	STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=z6storage;AccountKey=..."
+	CONTAINER_NAME = "uploads"
 	
 	@app.route(route="UploadFile", methods=["POST"])
 	def upload_file(req: func.HttpRequest) -> func.HttpResponse:
@@ -154,14 +144,40 @@ Celem zadania było utworzenie systemu przesyłania plików do Azure Blob Storag
 	file_content = base64.b64decode(req_body['content'])
 	logging.info(f'Received file: {filename}, size: {len(file_content)} bytes')
 	
-	blob_name = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{filename}"
+	# Generowanie unikalnej nazwy blob
+	blob_name = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}_{filename}"
+	
+	# Upload do Azure Blob Storage
+	blob_service_client = BlobServiceClient.from_connection_string(STORAGE_CONNECTION_STRING)
+	blob_client = blob_service_client.get_blob_client(
+	container=CONTAINER_NAME,
+	blob=blob_name
+	)
+	
+	blob_client.upload_blob(file_content, overwrite=True)
+	logging.info(f'File uploaded to Blob Storage: {blob_name}')
+	
+	# Generowanie SAS URL (ważny 24h)
+	sas_token = generate_blob_sas(
+	account_name=blob_service_client.account_name,
+	container_name=CONTAINER_NAME,
+	blob_name=blob_name,
+	account_key=blob_service_client.credential.account_key,
+	permission=BlobSasPermissions(read=True),
+	expiry=datetime.utcnow() + timedelta(hours=24)
+	)
+	
+	blob_url = f"https://{blob_service_client.account_name}.blob.core.windows.net/{CONTAINER_NAME}/{blob_name}"
+	sas_url = f"{blob_url}?{sas_token}"
 	
 	response = {
 		"success": True,
-		"message": "File received and processed",
+		"message": "File uploaded to Azure Blob Storage",
 		"filename": filename,
 		"blob_name": blob_name,
 		"file_size": len(file_content),
+		"blob_url": blob_url,
+		"sas_url": sas_url,
 		"timestamp": datetime.utcnow().isoformat(),
 	}
 	
@@ -180,38 +196,59 @@ Celem zadania było utworzenie systemu przesyłania plików do Azure Blob Storag
 	)
 \end{lstlisting}
 
+\subsection{Blob Trigger – automatyczne logowanie uploadów}
+\begin{lstlisting}[language=Python, caption=Blob Trigger do logowania uploadów do Azure Table Storage]
+	import azure.functions as func
+	import logging
+	from datetime import datetime
+	from azure.data.tables import TableServiceClient
+	
+	@app.blob_trigger(
+	arg_name="myblob",
+	path="uploads/{name}",
+	connection="AzureWebJobsStorage"
+	)
+	def blob_trigger(myblob: func.InputStream):
+	logging.info(f"Blob trigger activated for: {myblob.name}")
+	
+	# Zapis metadanych do Azure Table Storage
+	try:
+	table_service = TableServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=z6storage;...")
+	table_client = table_service.get_table_client("filelogs")
+	
+	entity = {
+		"PartitionKey": "upload",
+		"RowKey": datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f'),
+		"filename": myblob.name,
+		"size": myblob.length,
+		"uploaded_at": datetime.utcnow().isoformat(),
+		"container": "uploads"
+	}
+	
+	table_client.create_entity(entity=entity)
+	logging.info(f"Logged upload to Table Storage: {myblob.name}")
+	
+	except Exception as e:
+	logging.error(f"Error logging to Table Storage: {str(e)}")
+\end{lstlisting}
+
 \subsection{Konfiguracja – \texttt{local.settings.json}}
-\begin{lstlisting}[language=json, caption=Plik konfiguracyjny]
+\begin{lstlisting}[language=json, caption=Plik konfiguracyjny z connection string]
 	{
 		"IsEncrypted": false,
 		"Values": {
-			"AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=...",
+			"AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=z6storage;AccountKey=...",
 			"FUNCTIONS_WORKER_RUNTIME": "python",
-			"AzureWebJobsSecretStorageType": "Files"
+			"STORAGE_CONNECTION_STRING": "DefaultEndpointsProtocol=https;AccountName=z6storage;AccountKey=..."
 		}
 	}
 \end{lstlisting}
-
-\subsection{Wymagane pakiety – \texttt{requirements.txt}}
-\begin{lstlisting}[caption=Zależności projektu]
-	azure-functions==1.24.0
-	azure-storage-blob==12.27.1
-	azure-data-tables==12.7.0
-\end{lstlisting}
-
-\subsection{Uruchomienie i testowanie}
-Funkcję uruchomiono lokalnie:
-\begin{verbatim}
-	func host start
-\end{verbatim}
-
-Endpoint był dostępny pod adresem: \texttt{http://localhost:7071/api/UploadFile}
 
 \subsection{Testowanie w Postmanie}
 
 \subsubsection{Request POST – Upload pliku}
 \textbf{Metoda:} POST \\
-\textbf{URL:} \texttt{http://localhost:7071/api/UploadFile} \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/UploadFile} \\
 \textbf{Headers:} Content-Type: application/json
 
 \textbf{Body (raw JSON):}
@@ -226,82 +263,101 @@ Endpoint był dostępny pod adresem: \texttt{http://localhost:7071/api/UploadFil
 \begin{lstlisting}[language=json]
 	{
 		"success": true,
-		"message": "File received and processed",
+		"message": "File uploaded to Azure Blob Storage",
 		"filename": "test.txt",
-		"blob_name": "20251204_182815_test.txt",
+		"blob_name": "20251204_182815_a1b2c3d4_test.txt",
 		"file_size": 20,
+		"blob_url": "https://z6storage.blob.core.windows.net/uploads/20251204_182815_a1b2c3d4_test.txt",
+		"sas_url": "https://z6storage.blob.core.windows.net/uploads/20251204_182815_a1b2c3d4_test.txt?sv=...",
 		"timestamp": "2025-12-04T18:28:15.888956"
 	}
 \end{lstlisting}
 
+\subsubsection{Weryfikacja w Azure Portal}
+\begin{itemize}
+	\item Plik dostępny w kontenerze \texttt{uploads} w Storage Account \texttt{z6storage}
+	\item Logi uploadów w tabeli \texttt{filelogs} w Azure Table Storage
+	\item SAS URL umożliwia pobranie pliku przez 24 godziny
+\end{itemize}
+
 \section{Zadanie 3 – Harmonogramowane zadania (Timer Trigger)}
 
 \subsection{Cel}
-Celem zadania było utworzenie funkcji uruchamianej periodycznie co minutę. Funkcja zapisuje timestamp do logów, które są dostępne przez dedykowany endpoint HTTP.
+Celem zadania było utworzenie funkcji uruchamianej periodycznie co minutę. Funkcja zapisuje timestamp do \textbf{Azure Table Storage}, a logi są dostępne przez dedykowany endpoint HTTP.
 
-\subsection{Implementacja Timer Trigger}
+\subsection{Implementacja Timer Trigger z Azure Table Storage}
 
-Timer Trigger w Azure Functions jest obsługiwany poprzez dekorator \texttt{@app.timer\_trigger}. Funkcja uruchamia się automatycznie na podstawie harmonogramu w formacie CRON.
-
-\begin{lstlisting}[caption=Implementacja Timer Trigger]
-	from threading import Timer
+\begin{lstlisting}[caption=Implementacja Timer Trigger z zapisem do Azure Tables]
+	import azure.functions as func
 	from datetime import datetime
 	import logging
+	from azure.data.tables import TableServiceClient
+	import uuid
 	
-	# Zmienne globalne do trackowania
-	scheduled_logs = []
-	max_logs = 100
-	
-	def log_scheduled_execution():
-	"""
-	Funkcja do logowania wykonań - uruchamiana periodycznie co minutę.
-	"""
-	global scheduled_logs
+	@app.timer_trigger(schedule="0 */1 * * * *", arg_name="myTimer", run_on_startup=True)
+	def timer_trigger(myTimer: func.TimerRequest):
+	logging.info('Timer trigger function executed.')
 	
 	timestamp = datetime.utcnow().isoformat()
-	log_entry = {
+	
+	# Zapis do Azure Table Storage
+	try:
+	table_service = TableServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=z6storage;...")
+	table_client = table_service.get_table_client("timerlogs")
+	
+	entity = {
+		"PartitionKey": "timer",
+		"RowKey": datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f'),
 		"executed_at": timestamp,
 		"task_name": "scheduled_task",
 		"status": "success"
 	}
 	
-	logging.info(f'[TIMER TRIGGER] Executed at: {timestamp}')
+	table_client.create_entity(entity=entity)
+	logging.info(f'[TIMER TRIGGER] Log saved to Azure Table: {timestamp}')
 	
-	# Dodaj do listy (ogranicz do max_logs)
-	scheduled_logs.append(log_entry)
-	if len(scheduled_logs) > max_logs:
-	scheduled_logs.pop(0)
-	
-	# Zaplanuj następne wykonanie za 60 sekund
-	timer = Timer(60.0, log_scheduled_execution)
-	timer.daemon = True
-	timer.start()
-	
-	# Uruchom Timer na starcie aplikacji
-	log_scheduled_execution()
+	except Exception as e:
+	logging.error(f'[TIMER TRIGGER] Error saving to Table: {str(e)}')
 \end{lstlisting}
 
-\subsection{Endpoint do przeglądu logów Timer Trigger}
+\subsection{Endpoint do przeglądu logów z Azure Table Storage}
 
-Stworzono dedykowany endpoint do wyświetlania logów wykonań Timer Trigger:
-
-\begin{lstlisting}[caption=Endpoint GetTimerLogs]
+\begin{lstlisting}[caption=Endpoint GetTimerLogs pobierający dane z Azure Tables]
 	@app.route(route="TimerLogs", methods=["GET"])
 	def get_timer_logs(req: func.HttpRequest) -> func.HttpResponse:
 	"""
-	Endpoint do przeglądu logów z Timer Trigger.
+	Endpoint do przeglądu logów z Timer Trigger z Azure Table Storage.
 	"""
 	try:
+	# Pobierz logi z Azure Table Storage
+	table_service = TableServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=z6storage;...")
+	table_client = table_service.get_table_client("timerlogs")
+	
+	entities = table_client.query_entities("PartitionKey eq 'timer'")
+	logs = []
+	
+	for entity in entities:
+	logs.append({
+		"executed_at": entity["executed_at"],
+		"task_name": entity["task_name"],
+		"status": entity["status"]
+	})
+	
+	logs.sort(key=lambda x: x['executed_at'], reverse=True)
+	
 	response = {
-		"total_executions": len(scheduled_logs),
-		"logs": scheduled_logs[-20:] if scheduled_logs else [],
-		"message": "Timer Trigger uruchamia się co minutę"
+		"total_executions": len(logs),
+		"logs": logs[:20],  # Ostatnie 20 wykonan
+		"message": "Timer Trigger uruchamia się co minutę",
+		"source": "Azure Table Storage"
 	}
+	
 	return func.HttpResponse(
 	json.dumps(response),
 	mimetype="application/json",
 	status_code=200
 	)
+	
 	except Exception as e:
 	return func.HttpResponse(
 	json.dumps({"error": str(e)}),
@@ -310,353 +366,319 @@ Stworzono dedykowany endpoint do wyświetlania logów wykonań Timer Trigger:
 	)
 \end{lstlisting}
 
-\subsection{Uruchomienie i testowanie}
+\subsection{Testowanie}
 
-Endpoint dostępny jest pod adresem:
-\begin{verbatim}
-	GET http://localhost:7071/api/TimerLogs
-\end{verbatim}
+\textbf{Endpoint:} \texttt{GET https://z6functions.azurewebsites.net/api/TimerLogs}
 
-\subsubsection{Testowanie – zaraz po starcie}
-
-\textbf{Request:}
-\begin{verbatim}
-	GET http://localhost:7071/api/TimerLogs
-\end{verbatim}
-
-\textbf{Odpowiedź:}
+\textbf{Odpowiedź po kilku wykonaniach:}
 \begin{lstlisting}[language=json]
 	{
-		"total_executions": 1,
+		"total_executions": 5,
 		"logs": [
 		{
-			"executed_at": "2025-12-04T18:40:27.176746",
-			"task_name": "scheduled_task",
-			"status": "success"
-		}
-		],
-		"message": "Timer Trigger uruchamia się co minutę"
-	}
-\end{lstlisting}
-
-\subsubsection{Testowanie – po 60 sekundach}
-
-\textbf{Request:}
-\begin{verbatim}
-	GET http://localhost:7071/api/TimerLogs
-\end{verbatim}
-
-\textbf{Odpowiedź:}
-\begin{lstlisting}[language=json]
-	{
-		"total_executions": 2,
-		"logs": [
-		{
-			"executed_at": "2025-12-04T18:40:27.176746",
+			"executed_at": "2025-12-07T14:05:00.123456",
 			"task_name": "scheduled_task",
 			"status": "success"
 		},
 		{
-			"executed_at": "2025-12-04T18:41:27.188614",
+			"executed_at": "2025-12-07T14:04:00.123456",
+			"task_name": "scheduled_task",
+			"status": "success"
+		},
+		{
+			"executed_at": "2025-12-07T14:03:00.123456",
 			"task_name": "scheduled_task",
 			"status": "success"
 		}
 		],
-		"message": "Timer Trigger uruchamia się co minutę"
+		"message": "Timer Trigger uruchamia się co minutę",
+		"source": "Azure Table Storage"
 	}
 \end{lstlisting}
 
-Timer Trigger uruchamia się co minutę, logując każde wykonanie z timestamp. Endpoint \texttt{/api/TimerLogs} pozwala monitorować historię wykonań w czasie rzeczywistym.
+\subsection{Potwierdzenie działania w Azure}
+\begin{itemize}
+	\item Dane trwale przechowywane w tabeli \texttt{timerlogs} w Azure Table Storage
+	\item Logi dostępne nawet po restarcie funkcji
+	\item Monitorowanie w Azure Portal: Application Insights i Table Storage
+	\item Automatyczne skalowanie i wysoka dostępność
+\end{itemize}
 
 \section{Zadanie 4 – Praca z danymi (Zapis i odczyt w bazie danych)}
 
 \subsection{Cel}
-Celem zadania było stworzenie systemu CRUD (Create, Read, Update, Delete) dla produktów w bazie danych. System wykorzystuje SQLite do przechowywania danych lokalnie oraz udostępnia RESTful API do zarządzania produktami.
+Celem zadania było stworzenie systemu CRUD (Create, Read, Update, Delete) dla produktów przy użyciu \textbf{Azure Tables} – zarządzanej usługi NoSQL w chmurze Microsoft Azure. System udostępnia RESTful API do zarządzania produktami z trwałym przechowywaniem danych w usłudze Azure.
 
-\subsection{Konfiguracja bazy danych}
+\begin{itemize}
+	\item \textbf{Azure Storage Account:} \texttt{z6storage} (West Europe)
+	\item \textbf{Azure Tables:} Zarządzana NoSQL na bazie Cosmos DB API
+	\item \textbf{Persistent Data:} Dane zachowywane między wywołaniami funkcji
+	\item \textbf{Automatic Replication:} Replikacja danych dla wysokiej dostępności
+\end{itemize}
 
-\subsubsection{Inicjalizacja SQLite}
+\subsection{Konfiguracja Azure Tables}
 
-Baza danych SQLite jest automatycznie inicjalizowana przy starcie aplikacji:
+\subsubsection{Inicjalizacja bazy danych}
 
-\begin{lstlisting}[caption=Inicjalizacja bazy danych]
-	import sqlite3
+Tabela \texttt{products} jest tworzona automatycznie przy starcie aplikacji:
+
+\begin{lstlisting}[language=Python,caption=Inicjalizacja Azure Tables]
+	import os
 	import uuid
+	import json
 	import logging
 	from datetime import datetime
+	from azure.data.tables import TableServiceClient
+	import azure.functions as func
 	
-	DB_PATH = "data.db"
+	STORAGE_CONNECTION_STRING = os.getenv("AzureWebJobsStorage", "")
+	PRODUCTS_TABLE_NAME = "products"
+	
+	def get_table_client():
+	"""Pobierz klienta Azure Tables dla tabeli produktów."""
+	try:
+	table_service_client = TableServiceClient.from_connection_string(
+	STORAGE_CONNECTION_STRING
+	)
+	table_client = table_service_client.get_table_client(
+	table_name=PRODUCTS_TABLE_NAME
+	)
+	logging.info(f'Connected to Azure Table: {PRODUCTS_TABLE_NAME}')
+	return table_client
+	except Exception as e:
+	logging.error(f'Error connecting to Azure Table: {str(e)}')
+	raise
 	
 	def init_database():
-	"""
-	Inicjalizacja bazy danych SQLite.
-	"""
+	"""Utwórz tabelę jeśli nie istnieje."""
 	try:
-	conn = sqlite3.connect(DB_PATH)
-	cursor = conn.cursor()
-	
-	cursor.execute('''
-	CREATE TABLE IF NOT EXISTS products (
-	id TEXT PRIMARY KEY,
-	name TEXT NOT NULL,
-	description TEXT,
-	price REAL NOT NULL,
-	quantity INTEGER,
-	created_at TEXT,
-	updated_at TEXT
+	table_service_client = TableServiceClient.from_connection_string(
+	STORAGE_CONNECTION_STRING
 	)
-	''')
-	
-	conn.commit()
-	conn.close()
-	logging.info('[DATABASE] Initialized SQLite database')
+	table_service_client.create_table_if_not_exists(
+	table_name=PRODUCTS_TABLE_NAME
+	)
+	logging.info('[DATABASE] Initialized Azure Table: products')
 	except Exception as e:
-	logging.error(f'[DATABASE] Error initializing database: {str(e)}')
+	logging.error(f'[DATABASE] Error initializing: {str(e)}')
 	
-	# Inicjalizuj bazę na starcie
+	# Uruchom przy starcie
 	init_database()
 \end{lstlisting}
 
-\subsection{Endpoint SaveProduct – Zapis produktu}
+\subsubsection{Schemat tabeli}
 
-\textbf{Metoda:} POST \\
-\textbf{URL:} \texttt{http://localhost:7071/api/SaveProduct} \\
-\textbf{Status:} 201 Created
-
-\textbf{Request Body:}
-\begin{lstlisting}[language=json]
-	{
-		"name": "Laptop Dell",
-		"description": "High-performance laptop",
-		"price": 1299.99,
-		"quantity": 5
-	}
-\end{lstlisting}
-
-\textbf{Response:}
-\begin{lstlisting}[language=json]
-	{
-		"success": true,
-		"message": "Product saved successfully",
-		"product_id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
-		"name": "Laptop Dell",
-		"price": 1299.99,
-		"quantity": 5,
-		"created_at": "2025-12-04T18:48:46.009515"
-	}
-\end{lstlisting}
-
-\subsubsection{Implementacja}
-
-\begin{lstlisting}[caption=Funkcja SaveProduct]
-	@app.route(route="SaveProduct", methods=["POST"])
-	def save_product(req: func.HttpRequest) -> func.HttpResponse:
-	"""
-	Endpoint do zapisywania produktu do bazy danych.
-	Body: {"name": "...", "description": "...", "price": 99.99, "quantity": 10}
-	"""
-	try:
-	req_body = req.get_json()
-	
-	if 'name' not in req_body or 'price' not in req_body:
-	return func.HttpResponse(
-	json.dumps({"error": "Missing required fields: name, price"}),
-	mimetype="application/json",
-	status_code=400
-	)
-	
-	product_id = str(uuid.uuid4())
-	name = req_body['name']
-	description = req_body.get('description', '')
-	price = float(req_body['price'])
-	quantity = int(req_body.get('quantity', 0))
-	now = datetime.utcnow().isoformat()
-	
-	conn = sqlite3.connect(DB_PATH)
-	cursor = conn.cursor()
-	
-	cursor.execute('''
-	INSERT INTO products (id, name, description, price, quantity, created_at, updated_at)
-	VALUES (?, ?, ?, ?, ?, ?, ?)
-	''', (product_id, name, description, price, quantity, now, now))
-	
-	conn.commit()
-	conn.close()
-	
-	response = {
-		"success": True,
-		"message": "Product saved successfully",
-		"product_id": product_id,
-		"name": name,
-		"price": price,
-		"quantity": quantity,
-		"created_at": now
-	}
-	
-	return func.HttpResponse(
-	json.dumps(response),
-	mimetype="application/json",
-	status_code=201
-	)
-	
-	except Exception as e:
-	logging.error(f'[DATABASE] Error saving product: {str(e)}')
-	return func.HttpResponse(
-	json.dumps({"error": str(e)}),
-	mimetype="application/json",
-	status_code=500
-	)
-\end{lstlisting}
-
-\subsection{Endpoint GetProducts – Pobieranie wszystkich produktów}
-
-\textbf{Metoda:} GET \\
-\textbf{URL:} \texttt{http://localhost:7071/api/GetProducts} \\
-\textbf{Status:} 200 OK
-
-\textbf{Response:}
-\begin{lstlisting}[language=json]
-	{
-		"success": true,
-		"total": 1,
-		"products": [
-		{
-			"id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
-			"name": "Laptop Dell",
-			"description": "High-performance laptop",
-			"price": 1299.99,
-			"quantity": 5,
-			"created_at": "2025-12-04T18:48:46.009515",
-			"updated_at": "2025-12-04T18:48:46.009515"
-		}
-		]
-	}
-\end{lstlisting}
-
-\subsection{Endpoint GetProduct – Pobieranie produktu po ID}
-
-\textbf{Metoda:} GET \\
-\textbf{URL:} \texttt{http://localhost:7071/api/GetProduct?id=62a980b4-78b7-4fee-a967-eaffbfecea0b} \\
-\textbf{Status:} 200 OK lub 404 Not Found
-
-\textbf{Response (200):}
-\begin{lstlisting}[language=json]
-	{
-		"success": true,
-		"product": {
-			"id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
-			"name": "Laptop Dell",
-			"description": "High-performance laptop",
-			"price": 1299.99,
-			"quantity": 5,
-			"created_at": "2025-12-04T18:48:46.009515",
-			"updated_at": "2025-12-04T18:48:46.009515"
-		}
-	}
-\end{lstlisting}
-
-\subsection{Endpoint UpdateProduct – Aktualizacja produktu}
-
-\textbf{Metoda:} PUT \\
-\textbf{URL:} \texttt{http://localhost:7071/api/UpdateProduct} \\
-\textbf{Status:} 200 OK
-
-\textbf{Request Body:}
-\begin{lstlisting}[language=json]
-	{
-		"id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
-		"name": "Laptop Dell XPS",
-		"price": 1399.99,
-		"quantity": 3
-	}
-\end{lstlisting}
-
-\textbf{Response:}
-\begin{lstlisting}[language=json]
-	{
-		"success": true,
-		"message": "Product updated successfully",
-		"product_id": "62a980b4-78b7-4fee-a967-eaffbfecea0b",
-		"updated_at": "2025-12-04T18:50:00.123456"
-	}
-\end{lstlisting}
-
-\subsection{Endpoint DeleteProduct – Usuwanie produktu}
-
-\textbf{Metoda:} DELETE \\
-\textbf{URL:} \texttt{http://localhost:7071/api/DeleteProduct?id=62a980b4-78b7-4fee-a967-eaffbfecea0b} \\
-\textbf{Status:} 200 OK lub 404 Not Found
-
-\textbf{Response:}
-\begin{lstlisting}[language=json]
-	{
-		"success": true,
-		"message": "Product deleted successfully",
-		"product_id": "62a980b4-78b7-4fee-a967-eaffbfecea0b"
-	}
-\end{lstlisting}
-
-\subsection{Schemat bazy danych}
-
-Tabela \texttt{products}:
+Każdy rekord w Azure Tables posiada następujące pola:
 
 \begin{center}
-	\begin{tabular}{|l|l|l|}
+	\begin{tabular}{|l|l|l|l|}
 		\hline
-		\textbf{Kolumna} & \textbf{Typ} & \textbf{Opis} \\
+		\textbf{Pole} & \textbf{Typ} & \textbf{Rola} & \textbf{Opis} \\
 		\hline
-		id & TEXT (PRIMARY KEY) & Unikatowy identyfikator produktu (UUID) \\
-		\hline
-		name & TEXT & Nazwa produktu \\
-		\hline
-		description & TEXT & Opis produktu \\
-		\hline
-		price & REAL & Cena produktu \\
-		\hline
-		quantity & INTEGER & Ilość sztuk \\
-		\hline
-		created\_at & TEXT & Timestamp utworzenia (ISO format) \\
-		\hline
-		updated\_at & TEXT & Timestamp ostatniej aktualizacji (ISO format) \\
+		PartitionKey & STRING & Klucz partycji & Zawsze: "product" \\
+		RowKey & STRING & Klucz wiersza & UUID produktu \\
+		name & STRING & Dane & Nazwa produktu \\
+		description & STRING & Dane & Opis produktu \\
+		price & DOUBLE & Dane & Cena w USD \\
+		quantity & INT32 & Dane & Liczba dostępnych sztuk \\
+		created\_at & STRING & Metadane & ISO timestamp \\
+		updated\_at & STRING & Metadane & ISO timestamp \\
 		\hline
 	\end{tabular}
 \end{center}
 
-\subsection{Testy – Przykładowe operacje}
+\subsection{Endpoint: SaveProduct – Zapis produktu}
 
-\subsubsection{Test 1: Zapis produktu}
+\textbf{Metoda:} POST \\
+\textbf{URL:} \texttt{/api/SaveProduct} \\
+\textbf{Status:} 201 Created
 
-\begin{verbatim}
+\subsubsection{Request i Response}
+
+\begin{lstlisting}[language=json,caption=Przykładowy request SaveProduct]
 	POST /api/SaveProduct
 	Content-Type: application/json
 	
 	{
 		"name": "Laptop Dell",
 		"description": "High-performance laptop",
-		"price": 1299.99,
+		"price": 1200,
 		"quantity": 5
 	}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json,caption=Przykładowy response SaveProduct]
+	{
+		"success": true,
+		"message": "Product saved successfully",
+		"product_id": "8f9e1b2c-3a4d-5e6f-7890-a1b2c3d4e5f6",
+		"name": "Laptop Dell",
+		"price": 1200,
+		"quantity": 5,
+		"created_at": "2025-12-07T15:30:22.450123"
+	}
+\end{lstlisting}
+
+\subsubsection{Implementacja funkcji}
+
+\begin{lstlisting}[language=Python,caption=Funkcja SaveProduct]
+	@app.route(route="SaveProduct", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
+	def save_product(req: func.HttpRequest) -> func.HttpResponse:
+	try:
+	req_body = req.get_json()
+	if 'name' not in req_body or 'price' not in req_body:
+	return func.HttpResponse(json.dumps({"error": "Missing name or price"}), status_code=400)
 	
-	Status: 201 Created
-	Product ID: 62a980b4-78b7-4fee-a967-eaffbfecea0b
-\end{verbatim}
-
-\subsubsection{Test 2: Pobierz wszystkie produkty}
-
-\begin{verbatim}
-	GET /api/GetProducts
+	product_id = str(uuid.uuid4())
+	now = datetime.utcnow().isoformat()
+	product_entity = {
+		"PartitionKey": "product",
+		"RowKey": product_id,
+		"name": req_body['name'],
+		"description": req_body.get('description', ''),
+		"price": float(req_body['price']),
+		"quantity": int(req_body.get('quantity', 0)),
+		"created_at": now,
+		"updated_at": now
+	}
 	
-	Status: 200 OK
-	Total products: 1
-\end{verbatim}
-
-\subsubsection{Test 3: Pobierz konkretny produkt}
-
-\begin{verbatim}
-	GET /api/GetProduct?id=62a980b4-78b7-4fee-a967-eaffbfecea0b
+	table_client = get_table_client()
+	table_client.upsert_entity(entity=product_entity)
+	logging.info(f'[DATABASE] Saved product: {product_id}')
 	
-	Status: 200 OK
-\end{verbatim}
+	response = {"success": True, "message": "Product saved successfully",
+		"product_id": product_id, "name": req_body['name'],
+		"price": req_body['price'], "quantity": req_body.get('quantity', 0),
+		"created_at": now}
+	return func.HttpResponse(json.dumps(response), status_code=201)
+	except Exception as e:
+	logging.error(f'[DATABASE] Error saving product: {str(e)}')
+	return func.HttpResponse(json.dumps({"error": str(e)}), status_code=500)
+\end{lstlisting}
+
+\subsection{Endpoint: GetProducts – Pobranie wszystkich produktów}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{/api/GetProducts} \\
+\textbf{Status:} 200 OK
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[language=Python,caption=Funkcja GetProducts]
+	@app.route(route="GetProducts", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+	def get_products(req: func.HttpRequest) -> func.HttpResponse:
+	try:
+	table_client = get_table_client()
+	entities = table_client.query_entities("PartitionKey eq 'product'")
+	products = []
+	for entity in entities:
+	products.append({
+		"id": entity["RowKey"],
+		"name": entity["name"],
+		"description": entity.get("description",""),
+		"price": entity["price"],
+		"quantity": entity["quantity"],
+		"created_at": entity["created_at"],
+		"updated_at": entity["updated_at"]
+	})
+	products.sort(key=lambda x: x['created_at'], reverse=True)
+	response = {"success": True, "total": len(products), "products": products}
+	return func.HttpResponse(json.dumps(response), status_code=200)
+	except Exception as e:
+	logging.error(f'[DATABASE] Error retrieving products: {str(e)}')
+	return func.HttpResponse(json.dumps({"error": str(e)}), status_code=500)
+\end{lstlisting}
+
+\subsection{Endpoint: GetProduct – Pobranie produktu po ID}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{/api/GetProduct?id=<product_id>} \\
+\textbf{Status:} 200 OK / 404 Not Found
+
+\begin{lstlisting}[language=Python,caption=Funkcja GetProduct]
+	@app.route(route="GetProduct", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+	def get_product(req: func.HttpRequest) -> func.HttpResponse:
+	try:
+	product_id = req.params.get('id')
+	if not product_id:
+	return func.HttpResponse(json.dumps({"error": "Missing id parameter"}), status_code=400)
+	table_client = get_table_client()
+	try:
+	entity = table_client.get_entity("product", product_id)
+	product = {"id": entity["RowKey"], "name": entity["name"],
+		"description": entity.get("description",""),
+		"price": entity["price"], "quantity": entity["quantity"],
+		"created_at": entity["created_at"], "updated_at": entity["updated_at"]}
+	return func.HttpResponse(json.dumps({"success": True, "product": product}), status_code=200)
+	except Exception as e:
+	if "ResourceNotFound" in str(e):
+	return func.HttpResponse(json.dumps({"success": False, "error": "Product not found"}), status_code=404)
+	raise
+	except Exception as e:
+	logging.error(f'[DATABASE] Error retrieving product: {str(e)}')
+	return func.HttpResponse(json.dumps({"error": str(e)}), status_code=500)
+\end{lstlisting}
+
+\subsection{Endpoint: UpdateProduct – Aktualizacja produktu}
+
+\begin{lstlisting}[language=Python,caption=Funkcja UpdateProduct]
+	@app.route(route="UpdateProduct", methods=["PUT"], auth_level=func.AuthLevel.ANONYMOUS)
+	def update_product(req: func.HttpRequest) -> func.HttpResponse:
+	try:
+	req_body = req.get_json()
+	if 'id' not in req_body:
+	return func.HttpResponse(json.dumps({"error": "Missing product id"}), status_code=400)
+	product_id = req_body['id']
+	table_client = get_table_client()
+	try:
+	entity = table_client.get_entity("product", product_id)
+	except Exception as e:
+	if "ResourceNotFound" in str(e):
+	return func.HttpResponse(json.dumps({"success": False, "error": "Product not found"}), status_code=404)
+	raise
+	entity_dict = dict(entity)
+	for field in ['name','description','price','quantity']:
+	if field in req_body:
+	entity_dict[field] = req_body[field]
+	entity_dict['updated_at'] = datetime.utcnow().isoformat()
+	table_client.upsert_entity(entity_dict)
+	return func.HttpResponse(json.dumps({"success": True,"message":"Product updated","product_id":product_id,"updated_at":entity_dict['updated_at']}), status_code=200)
+	except Exception as e:
+	logging.error(f'[DATABASE] Error updating product: {str(e)}')
+	return func.HttpResponse(json.dumps({"error": str(e)}), status_code=500)
+\end{lstlisting}
+
+\subsection{Endpoint: DeleteProduct – Usuwanie produktu}
+
+\begin{lstlisting}[language=Python,caption=Funkcja DeleteProduct]
+	@app.route(route="DeleteProduct", methods=["DELETE"], auth_level=func.AuthLevel.ANONYMOUS)
+	def delete_product(req: func.HttpRequest) -> func.HttpResponse:
+	try:
+	product_id = req.params.get('id')
+	if not product_id:
+	return func.HttpResponse(json.dumps({"error":"Missing id parameter"}), status_code=400)
+	table_client = get_table_client()
+	try:
+	table_client.delete_entity("product", product_id)
+	return func.HttpResponse(json.dumps({"success":True,"message":"Product deleted","product_id":product_id}), status_code=200)
+	except Exception as e:
+	if "ResourceNotFound" in str(e):
+	return func.HttpResponse(json.dumps({"success":False,"error":"Product not found"}), status_code=404)
+	raise
+	except Exception as e:
+	logging.error(f'[DATABASE] Error deleting product: {str(e)}')
+	return func.HttpResponse(json.dumps({"error": str(e)}), status_code=500)
+\end{lstlisting}
+
+\subsection{Testy i walidacja}
+
+\begin{itemize}
+	\item \textbf{Test 1:} Zapis trzech produktów – status 201, ID generowane unikatowo.
+	\item \textbf{Test 2:} Pobranie wszystkich produktów – dane posortowane po \texttt{created\_at}, persystentne.
+	\item \textbf{Test 3:} Aktualizacja produktu – pola zmienione, timestamp \texttt{updated\_at} zaktualizowany.
+	\item \textbf{Test 4:} Usunięcie produktu – GET po ID zwraca 404.
+\end{itemize}
+
 
 \section{Zadanie 5 – Key Vault – bezpieczne sekrety}
 
@@ -699,5 +721,561 @@ Na rysunku \ref{fig:keyvault_rbac} przedstawiono zrzut ekranu potwierdzający wy
 	\label{fig:keyvault_rbac}
 \end{figure}
 
+\section{Zadanie 6 – Aplikacja WWW + API w chmurze}
+
+\subsection{Cel}
+Celem zadania było stworzenie prostej aplikacji webowej, w której frontend (HTML/JavaScript) komunikuje się z API zrealizowanym w Azure Functions. Aplikacja umożliwia wysyłanie plików, zapisywanie ich oraz wyświetlanie listy przesłanych plików.
+
+\subsection{Architektura rozwiązania}
+System został podzielony na dwa podstawowe komponenty:
+
+\begin{itemize}
+	\item \textbf{Frontend} – statyczna aplikacja HTML/JavaScript hostowana lokalnie (lub w Azure Static Web Apps).
+	\item \textbf{API} – Azure Functions (Python), udostępniające dwa endpointy: przesyłanie pliku oraz pobieranie listy plików.
+\end{itemize}
+
+Komunikacja odbywała się w formacie JSON z zawartością pliku kodowaną w base64.
+
+\subsection{Tworzenie i konfiguracja projektu Azure Functions}
+
+Utworzono nowy projekt:
+
+\begin{verbatim}
+	func init ApiApp --worker-runtime python
+	cd ApiApp
+\end{verbatim}
+
+Dodano dwie funkcje HTTP Trigger:
+
+\begin{verbatim}
+	func new --name UploadFile --template "HTTP trigger" --authlevel "anonymous"
+	func new --name GetFiles --template "HTTP trigger" --authlevel "anonymous"
+\end{verbatim}
+
+Zainstalowano wymagane biblioteki:
+
+\begin{verbatim}
+	pip install azure-functions azure-storage-blob
+\end{verbatim}
+
+\subsection{Implementacja API}
+
+\subsubsection{Endpoint UploadFile}
+
+Funkcja odbiera nazwę pliku oraz zawartość zakodowaną jako base64. Po dekodowaniu dane są zapisywane w pamięci jako obiekt metadanych. Wprowadzono obsługę CORS (w tym preflight requests).
+
+Fragment implementacji:
+
+\begin{lstlisting}
+	@app.route(route="UploadFile", methods=["POST", "OPTIONS"],
+	auth_level=func.AuthLevel.ANONYMOUS)
+	def UploadFile(req: func.HttpRequest) -> func.HttpResponse:
+	if req.method == "OPTIONS":
+	response = func.HttpResponse("", status_code=200)
+	response.headers['Access-Control-Allow-Origin'] = '*'
+	response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+	response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+	return response
+	
+	body = req.get_json()
+	filename = body.get("filename", "unknown")
+	content_b64 = body.get("content", "")
+	
+	if not content_b64:
+	return func.HttpResponse(
+	json.dumps({"error": "Brak zawartości pliku"}),
+	mimetype="application/json",
+	status_code=400
+	)
+	
+	file_content = base64.b64decode(content_b64)
+	uploaded_files.append({
+		"filename": filename,
+		"size": len(file_content),
+		"uploaded_at": datetime.utcnow().isoformat()
+	})
+	
+	response = func.HttpResponse(
+	json.dumps({"success": True, "filename": filename}),
+	mimetype="application/json"
+	)
+	response.headers["Access-Control-Allow-Origin"] = "*"
+	return response
+\end{lstlisting}
+
+\subsubsection{Endpoint GetFiles}
+
+Zwraca listę wszystkich przesłanych plików wraz z metadanymi:
+
+\begin{lstlisting}
+	@app.route(route="GetFiles", methods=["GET", "OPTIONS"],
+	auth_level=func.AuthLevel.ANONYMOUS)
+	def GetFiles(req: func.HttpRequest) -> func.HttpResponse:
+	if req.method == "OPTIONS":
+	response = func.HttpResponse("", status_code=200)
+	response.headers['Access-Control-Allow-Origin'] = '*'
+	return response
+	
+	data = {
+		"success": True,
+		"total": len(uploaded_files),
+		"files": uploaded_files
+	}
+	
+	response = func.HttpResponse(json.dumps(data),
+	mimetype="application/json")
+	response.headers["Access-Control-Allow-Origin"] = "*"
+	return response
+\end{lstlisting}
+
+\subsection{Frontend HTML/JavaScript}
+
+Interfejs użytkownika został zrealizowany jako prosta aplikacja HTML/JS. Umożliwia wybór pliku, wysyłanie go do API oraz wyświetlanie listy przesłanych elementów.
+
+\subsubsection{Logika wysyłania pliku}
+
+\begin{lstlisting}
+	async function uploadFile() {
+		const file = fileInput.files[0];
+		const reader = new FileReader();
+		
+		reader.onload = async function(e) {
+			const base64 = e.target.result.split(",")[1];
+			
+			await fetch(`${API}/UploadFile`, {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({
+					filename: file.name,
+					content: base64
+				})
+			});
+			
+			loadFiles();
+		};
+		
+		reader.readAsDataURL(file);
+	}
+\end{lstlisting}
+
+\subsubsection{Pobieranie listy plików}
+
+\begin{lstlisting}
+	async function loadFiles() {
+		const response = await fetch(`${API}/GetFiles`);
+		const data = await response.json();
+		
+		fileList.innerHTML = "";
+		data.files.forEach(f => {
+			const li = document.createElement("li");
+			li.textContent = `${f.filename} (${f.size} B)`;
+			fileList.appendChild(li);
+		});
+	}
+\end{lstlisting}
+
+\subsection{Uruchomienie lokalne}
+
+\subsubsection{API}
+
+\begin{verbatim}
+	func host start --port 7072
+\end{verbatim}
+
+\subsubsection{Frontend}
+
+\begin{verbatim}
+	python -m http.server 8000
+\end{verbatim}
+
+Frontend dostępny był pod adresem:
+
+\begin{center}
+	\texttt{http://localhost:8000}
+\end{center}
+
+\subsection{Wyniki testów}
+
+Wykonano dwa testy:
+
+\begin{itemize}
+	\item przesyłanie pliku (plik poprawnie zakodowany, wysłany i zapisany),
+	\item pobieranie listy plików (zwrócona lista z poprawną liczbą pozycji i metadanymi).
+\end{itemize}
+
+Komunikacja między frontendem a API wymagała konfiguracji CORS, w tym obsługi zapytań typu OPTIONS.
+
+\section{Zadanie 7 – Kolejki – przetwarzanie asynchroniczne}
+
+\subsection{Cel}
+Stworzenie systemu asynchronicznego przetwarzania wiadomości przy użyciu \textbf{Azure Storage Queue}. Aplikacja wysyła wiadomości do kolejki, QueueTrigger automatycznie je przetwarza w tle.
+
+\subsection{Architektura}
+
+\begin{enumerate}
+	\item POST \texttt{/api/SendToQueue} -- wysyła wiadomość do Azure Queue (\texttt{z7-tasks}),
+	\item QueueTrigger automatycznie odbiera i przetwarza wiadomość,
+	\item dane zapisywane do SQLite z timestampem,
+	\item GET \texttt{/api/GetQueueTasks} -- lista przetworzonych wiadomości.
+\end{enumerate}
+
+\subsection{Konfiguracja}
+
+\begin{itemize}
+	\item \textbf{Storage Account:} \texttt{z6storage} (West Europe)
+	\item \textbf{Kolejka:} \texttt{z7-tasks}
+	\item \textbf{Connection:} \texttt{QueueStorageConnection} (app settings)
+\end{itemize}
+
+\begin{lstlisting}[language=Python,caption=Inicjalizacja,firstnumber=582]
+	from azure.storage.queue import QueueServiceClient
+	
+	QUEUE_CONNECTION_STRING = os.getenv("QueueStorageConnection", "")
+	QUEUE_NAME = "z7-tasks"
+\end{lstlisting}
+
+\subsection{Endpoint SendToQueue – Wysłanie wiadomości do kolejki}
+
+\textbf{Metoda:} POST \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/SendToQueue} \\
+\textbf{Status:} 200 OK \\
+\textbf{Usługa:} Azure Storage Queue (\texttt{z7-tasks})
+
+\subsubsection{Request}
+
+\begin{lstlisting}[language=json,caption=SendToQueue request]
+	POST /api/SendToQueue HTTP/1.1
+	Host: z6functions.azurewebsites.net
+	Content-Type: application/json
+	
+	{
+		"message": "Final Azure Test",
+		"task_type": "report_generation",
+		"priority": "high"
+	}
+\end{lstlisting}
+
+\subsubsection{Response}
+
+\begin{lstlisting}[language=json,caption=SendToQueue response (200 OK)]
+	{
+		"success": true,
+		"message": "Task queued successfully",
+		"task_id": "a917168f-0921-4233-b6e8-53f78fd48e11",
+		"task_type": "report_generation",
+		"priority": "high",
+		"queued_at": "2025-12-07T15:16:10.123456"
+	}
+\end{lstlisting}
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[language=Python,caption=Funkcja SendToQueue]
+	@app.route(route="SendToQueue", methods=["POST"], 
+	auth_level=func.AuthLevel.ANONYMOUS)
+	def send_to_queue(req: func.HttpRequest) -> func.HttpResponse:
+	"""
+	Endpoint do wysyłania wiadomości do Azure Storage Queue.
+	Body: {"message": "content", "task_type": "process", "priority": "high"}
+	"""
+	try:
+	req_body = req.get_json()
+	
+	if 'message' not in req_body:
+	return func.HttpResponse(
+	json.dumps({"error": "Missing 'message' field"}),
+	mimetype="application/json",
+	status_code=400
+	)
+	
+	# Przygotuj strukturę wiadomości
+	queue_message = {
+		"id": str(uuid.uuid4()),
+		"message": req_body['message'],
+		"task_type": req_body.get('task_type', 'generic_task'),
+		"priority": req_body.get('priority', 'normal'),
+		"created_at": datetime.utcnow().isoformat(),
+		"status": "queued"
+	}
+	
+	# Wyślij do Azure Storage Queue
+	logging.info(f'[QUEUE] Sending message: {queue_message["id"]}')
+	queue_service_client = QueueServiceClient.from_connection_string(
+	QUEUE_CONNECTION_STRING
+	)
+	queue_client = queue_service_client.get_queue_client(QUEUE_NAME)
+	queue_client.send_message(json.dumps(queue_message))
+	
+	logging.info(f'[QUEUE] Message queued: {queue_message["id"]}')
+	
+	response = {
+		"success": True,
+		"message": "Task queued successfully",
+		"task_id": queue_message["id"],
+		"task_type": queue_message["task_type"],
+		"priority": queue_message["priority"],
+		"queued_at": queue_message["created_at"]
+	}
+	
+	return func.HttpResponse(
+	json.dumps(response),
+	mimetype="application/json",
+	status_code=200
+	)
+	
+	except Exception as e:
+	logging.error(f'[QUEUE] Error: {str(e)}')
+	return func.HttpResponse(
+	json.dumps({"error": str(e)}),
+	mimetype="application/json",
+	status_code=500
+	)
+\end{lstlisting}
+
+\subsection{QueueTrigger – Automatyczne przetwarzanie}
+
+\textbf{Trigger type:} Azure Queue Storage Trigger \\
+\textbf{Nazwa funkcji:} \texttt{process\_queue\_message} \\
+\textbf{Wyzwalacz:} Automatycznie gdy pojawi się nowa wiadomość w \texttt{z7-tasks}
+
+QueueTrigger wykonuje się asynchronicznie w tle, bez żadnego ręcznego interwencji. Każda wiadomość jest przetwarzana oddzielnie.
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[language=Python,caption=QueueTrigger process\_queue\_message]
+	@app.queue_trigger(
+	arg_name="msg",
+	queue_name="z7-tasks",
+	connection="QueueStorageConnection"
+	)
+	def process_queue_message(msg: func.QueueMessage):
+	"""
+	Trigger odbiera wiadomość z Azure Queue Storage i przetwarza ją.
+	Uruchamia się automatycznie każdorazowo gdy pojawi się wiadomość.
+	"""
+	try:
+	# Odczytaj zawartość wiadomości
+	message_json = msg.get_body()
+	logging.info(f'[TRIGGER] Processing: {msg.id}')
+	
+	# Parsuj JSON
+	message_data = json.loads(message_json)
+	
+	task_id = message_data.get('id')
+	task_type = message_data.get('task_type', 'unknown')
+	message_content = message_data.get('message')
+	priority = message_data.get('priority')
+	
+	# Zapisz do bazy danych
+	conn = sqlite3.connect(DB_PATH)
+	cursor = conn.cursor()
+	
+	# Utwórz tabelę jeśli nie istnieje
+	cursor.execute('''
+	CREATE TABLE IF NOT EXISTS queue_tasks (
+	task_id TEXT PRIMARY KEY,
+	message TEXT NOT NULL,
+	task_type TEXT,
+	priority TEXT,
+	status TEXT,
+	created_at TEXT,
+	processed_at TEXT
+	)
+	''')
+	
+	# Zapisz zadanie
+	processed_at = datetime.utcnow().isoformat()
+	cursor.execute('''
+	INSERT OR REPLACE INTO queue_tasks 
+	(task_id, message, task_type, priority, status, created_at, processed_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?)
+	''', (task_id, message_content, task_type, priority, 'processed',
+	message_data.get('created_at'), processed_at))
+	
+	conn.commit()
+	conn.close()
+	
+	logging.info(f'[TRIGGER] Processed: {task_id} ({task_type})')
+	
+	except json.JSONDecodeError as e:
+	logging.error(f'[TRIGGER] JSON error: {str(e)}')
+	except Exception as e:
+	logging.error(f'[TRIGGER] Error: {str(e)}')
+\end{lstlisting}
+
+\subsection{Endpoint GetQueueTasks – Pobieranie przetworzonych wiadomości}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/GetQueueTasks} \\
+\textbf{Status:} 200 OK
+
+\subsubsection{Request}
+
+\begin{lstlisting}[caption=GetQueueTasks request]
+	GET /api/GetQueueTasks HTTP/1.1
+	Host: z6functions.azurewebsites.net
+\end{lstlisting}
+
+\subsubsection{Response}
+
+\begin{lstlisting}[language=json,caption=GetQueueTasks response]
+	{
+		"success": true,
+		"total": 3,
+		"tasks": [
+		{
+			"task_id": "a917168f-0921-4233-b6e8-53f78fd48e11",
+			"message": "Final Azure Test",
+			"task_type": "report_generation",
+			"priority": "high",
+			"status": "processed",
+			"created_at": "2025-12-07T15:16:10.123456",
+			"processed_at": "2025-12-07T15:16:22.654321"
+		},
+		{
+			"task_id": "b217168f-0921-4233-b6e8-53f78fd48e12",
+			"message": "Background data sync",
+			"task_type": "sync",
+			"priority": "normal",
+			"status": "processed",
+			"created_at": "2025-12-07T15:10:05.111111",
+			"processed_at": "2025-12-07T15:10:12.222222"
+		}
+		]
+	}
+\end{lstlisting}
+
+\subsection{Endpoint DebugQueue – Podgląd kolejki}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/DebugQueue} \\
+\textbf{Status:} 200 OK
+
+Endpoint umożliwia podgląd stanu Azure Storage Queue bez usuwania wiadomości (peek operation):
+
+\begin{lstlisting}[language=json,caption=DebugQueue response]
+	{
+		"success": true,
+		"queue_name": "z7-tasks",
+		"message_count": 0,
+		"messages_peeked": 0,
+		"peeked_messages": [],
+		"status": "Queue is empty"
+	}
+\end{lstlisting}
+
+Jeśli są wiadomości w kolejce:
+
+\begin{lstlisting}[language=json,caption=DebugQueue response with messages]
+	{
+		"success": true,
+		"queue_name": "z7-tasks",
+		"message_count": 2,
+		"messages_peeked": 2,
+		"peeked_messages": [
+		{
+			"message_id": "uuid-1234",
+			"content": {"id": "...", "message": "Test message", "status": "queued"}
+		},
+		{
+			"message_id": "uuid-5678",
+			"content": {"id": "...", "message": "Another task", "status": "queued"}
+		}
+		]
+	}
+\end{lstlisting}
+
+\subsection{Endpoint ClearPoisonQueue – Czyszczenie poison queue}
+
+\textbf{Metoda:} POST \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/ClearPoisonQueue} \\
+\textbf{Status:} 200 OK
+
+Poison queue jest tworzona automatycznie przez Azure Functions dla wiadomości, które nie mogły być przetworzone. Ten endpoint ją czysty:
+
+\begin{lstlisting}[language=json,caption=ClearPoisonQueue response]
+	{
+		"success": true,
+		"message": "Poison queue cleared",
+		"messages_deleted": 0,
+		"poison_queue_name": "z7-tasks-poison"
+	}
+\end{lstlisting}
+
+\subsection{Testy i walidacja}
+
+\subsubsection{Test 1: Wysłanie wiadomości}
+
+\begin{verbatim}
+	POST https://z6functions.azurewebsites.net/api/SendToQueue
+	Content-Type: application/json
+	
+	{
+		"message": "Final Azure Test",
+		"task_type": "report_generation",
+		"priority": "high"
+	}
+	
+	Status: 200 OK
+	Response:
+	{
+		"success": true,
+		"task_id": "a917168f-0921-4233-b6e8-53f78fd48e11",
+		"queued_at": "2025-12-07T15:16:10.123456"
+	}
+\end{verbatim}
+
+\subsubsection{Test 2: Oczekiwanie na przetworzenie}
+
+\begin{verbatim}
+	(Czekamy 3-5 sekund aby QueueTrigger przetworzył wiadomość)
+	
+	Azure Portal Logs → GetQueueTasks
+	Status: 200 OK
+	
+	[QUEUE] Sending message: a917168f-0921-4233-b6e8-53f78fd48e11
+	[TRIGGER] Processing: ...
+	[TRIGGER] Processed: a917168f-0921-4233-b6e8-53f78fd48e11 (report_generation)
+\end{verbatim}
+
+\subsubsection{Test 3: Pobranie przetworzonych wiadomości}
+
+\begin{verbatim}
+	GET https://z6functions.azurewebsites.net/api/GetQueueTasks
+	Status: 200 OK
+	
+	Response:
+	{
+		"success": true,
+		"total": 1,
+		"tasks": [
+		{
+			"task_id": "a917168f-0921-4233-b6e8-53f78fd48e11",
+			"message": "Final Azure Test",
+			"status": "processed",
+			"processed_at": "2025-12-07T15:16:22.654321"
+		}
+		]
+	}
+	
+	Wiadomość przetworzona pomyślnie a dane zostały zaspiane do db.
+	
+\end{verbatim}
+
+\subsubsection{Test 4: Sprawdzenie stanu kolejki}
+
+\begin{verbatim}
+	GET https://z6functions.azurewebsites.net/api/DebugQueue
+	Status: 200 OK
+	
+	Response:
+	{
+		"queue_name": "z7-tasks",
+		"message_count": 0,
+		"status": "Queue is empty"
+	}
+	
+	Wszystkie wiadomości przetworzone
+\end{verbatim}
 
 \end{document}

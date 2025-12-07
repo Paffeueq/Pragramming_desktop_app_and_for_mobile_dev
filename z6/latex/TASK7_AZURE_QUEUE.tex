@@ -1,0 +1,452 @@
+\section{Zadanie 7 – Kolejki – przetwarzanie asynchroniczne}
+
+\subsection{Cel}
+Stworzenie systemu asynchronicznego przetwarzania wiadomości przy użyciu \textbf{Azure Storage Queue}. Aplikacja wysyła wiadomości do kolejki, QueueTrigger automatycznie je przetwarza w tle.
+
+\subsection{Architektura}
+
+\begin{enumerate}
+	\item POST \texttt{/api/SendToQueue} -- wysyła wiadomość do Azure Queue (\texttt{z7-tasks}),
+	\item QueueTrigger automatycznie odbiera i przetwarza wiadomość,
+	\item dane zapisywane do SQLite z timestampem,
+	\item GET \texttt{/api/GetQueueTasks} -- lista przetworzonych wiadomości.
+\end{enumerate}
+
+\subsection{Konfiguracja}
+
+\begin{itemize}
+	\item \textbf{Storage Account:} \texttt{z6storage} (West Europe)
+	\item \textbf{Kolejka:} \texttt{z7-tasks}
+	\item \textbf{Connection:} \texttt{QueueStorageConnection} (app settings)
+\end{itemize}
+
+\begin{lstlisting}[language=Python,caption=Inicjalizacja,firstnumber=582]
+from azure.storage.queue import QueueServiceClient
+
+QUEUE_CONNECTION_STRING = os.getenv("QueueStorageConnection", "")
+QUEUE_NAME = "z7-tasks"
+\end{lstlisting}
+
+\subsection{Endpoint SendToQueue – Wysłanie wiadomości do kolejki}
+
+\textbf{Metoda:} POST \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/SendToQueue} \\
+\textbf{Status:} 200 OK \\
+\textbf{Usługa:} Azure Storage Queue (\texttt{z7-tasks})
+
+\subsubsection{Request}
+
+\begin{lstlisting}[language=json,caption=SendToQueue request]
+POST /api/SendToQueue HTTP/1.1
+Host: z6functions.azurewebsites.net
+Content-Type: application/json
+
+{
+  "message": "Final Azure Test",
+  "task_type": "report_generation",
+  "priority": "high"
+}
+\end{lstlisting}
+
+\subsubsection{Response}
+
+\begin{lstlisting}[language=json,caption=SendToQueue response (200 OK)]
+{
+  "success": true,
+  "message": "Task queued successfully",
+  "task_id": "a917168f-0921-4233-b6e8-53f78fd48e11",
+  "task_type": "report_generation",
+  "priority": "high",
+  "queued_at": "2025-12-07T15:16:10.123456"
+}
+\end{lstlisting}
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[language=Python,caption=Funkcja SendToQueue]
+@app.route(route="SendToQueue", methods=["POST"], 
+           auth_level=func.AuthLevel.ANONYMOUS)
+def send_to_queue(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Endpoint do wysyłania wiadomości do Azure Storage Queue.
+    Body: {"message": "content", "task_type": "process", "priority": "high"}
+    """
+    try:
+        req_body = req.get_json()
+        
+        if 'message' not in req_body:
+            return func.HttpResponse(
+                json.dumps({"error": "Missing 'message' field"}),
+                mimetype="application/json",
+                status_code=400
+            )
+        
+        # Przygotuj strukturę wiadomości
+        queue_message = {
+            "id": str(uuid.uuid4()),
+            "message": req_body['message'],
+            "task_type": req_body.get('task_type', 'generic_task'),
+            "priority": req_body.get('priority', 'normal'),
+            "created_at": datetime.utcnow().isoformat(),
+            "status": "queued"
+        }
+        
+        # Wyślij do Azure Storage Queue
+        logging.info(f'[QUEUE] Sending message: {queue_message["id"]}')
+        queue_service_client = QueueServiceClient.from_connection_string(
+            QUEUE_CONNECTION_STRING
+        )
+        queue_client = queue_service_client.get_queue_client(QUEUE_NAME)
+        queue_client.send_message(json.dumps(queue_message))
+        
+        logging.info(f'[QUEUE] Message queued: {queue_message["id"]}')
+        
+        response = {
+            "success": True,
+            "message": "Task queued successfully",
+            "task_id": queue_message["id"],
+            "task_type": queue_message["task_type"],
+            "priority": queue_message["priority"],
+            "queued_at": queue_message["created_at"]
+        }
+        
+        return func.HttpResponse(
+            json.dumps(response),
+            mimetype="application/json",
+            status_code=200
+        )
+        
+    except Exception as e:
+        logging.error(f'[QUEUE] Error: {str(e)}')
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            mimetype="application/json",
+            status_code=500
+        )
+\end{lstlisting}
+
+\subsection{QueueTrigger – Automatyczne przetwarzanie}
+
+\textbf{Trigger type:} Azure Queue Storage Trigger \\
+\textbf{Nazwa funkcji:} \texttt{process\_queue\_message} \\
+\textbf{Wyzwalacz:} Automatycznie gdy pojawi się nowa wiadomość w \texttt{z7-tasks}
+
+QueueTrigger wykonuje się asynchronicznie w tle, bez żadnego ręcznego interwencji. Każda wiadomość jest przetwarzana oddzielnie.
+
+\subsubsection{Implementacja}
+
+\begin{lstlisting}[language=Python,caption=QueueTrigger process\_queue\_message]
+@app.queue_trigger(
+    arg_name="msg",
+    queue_name="z7-tasks",
+    connection="QueueStorageConnection"
+)
+def process_queue_message(msg: func.QueueMessage):
+    """
+    Trigger odbiera wiadomość z Azure Queue Storage i przetwarza ją.
+    Uruchamia się automatycznie każdorazowo gdy pojawi się wiadomość.
+    """
+    try:
+        # Odczytaj zawartość wiadomości
+        message_json = msg.get_body()
+        logging.info(f'[TRIGGER] Processing: {msg.id}')
+        
+        # Parsuj JSON
+        message_data = json.loads(message_json)
+        
+        task_id = message_data.get('id')
+        task_type = message_data.get('task_type', 'unknown')
+        message_content = message_data.get('message')
+        priority = message_data.get('priority')
+        
+        # Zapisz do bazy danych
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Utwórz tabelę jeśli nie istnieje
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS queue_tasks (
+                task_id TEXT PRIMARY KEY,
+                message TEXT NOT NULL,
+                task_type TEXT,
+                priority TEXT,
+                status TEXT,
+                created_at TEXT,
+                processed_at TEXT
+            )
+        ''')
+        
+        # Zapisz zadanie
+        processed_at = datetime.utcnow().isoformat()
+        cursor.execute('''
+            INSERT OR REPLACE INTO queue_tasks 
+            (task_id, message, task_type, priority, status, created_at, processed_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (task_id, message_content, task_type, priority, 'processed',
+              message_data.get('created_at'), processed_at))
+        
+        conn.commit()
+        conn.close()
+        
+        logging.info(f'[TRIGGER] Processed: {task_id} ({task_type})')
+        
+    except json.JSONDecodeError as e:
+        logging.error(f'[TRIGGER] JSON error: {str(e)}')
+    except Exception as e:
+        logging.error(f'[TRIGGER] Error: {str(e)}')
+\end{lstlisting}
+
+\subsection{Endpoint GetQueueTasks – Pobieranie przetworzonych wiadomości}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/GetQueueTasks} \\
+\textbf{Status:} 200 OK
+
+\subsubsection{Request}
+
+\begin{lstlisting}[caption=GetQueueTasks request]
+GET /api/GetQueueTasks HTTP/1.1
+Host: z6functions.azurewebsites.net
+\end{lstlisting}
+
+\subsubsection{Response}
+
+\begin{lstlisting}[language=json,caption=GetQueueTasks response]
+{
+  "success": true,
+  "total": 3,
+  "tasks": [
+    {
+      "task_id": "a917168f-0921-4233-b6e8-53f78fd48e11",
+      "message": "Final Azure Test",
+      "task_type": "report_generation",
+      "priority": "high",
+      "status": "processed",
+      "created_at": "2025-12-07T15:16:10.123456",
+      "processed_at": "2025-12-07T15:16:22.654321"
+    },
+    {
+      "task_id": "b217168f-0921-4233-b6e8-53f78fd48e12",
+      "message": "Background data sync",
+      "task_type": "sync",
+      "priority": "normal",
+      "status": "processed",
+      "created_at": "2025-12-07T15:10:05.111111",
+      "processed_at": "2025-12-07T15:10:12.222222"
+    }
+  ]
+}
+\end{lstlisting}
+
+\subsection{Endpoint DebugQueue – Podgląd kolejki}
+
+\textbf{Metoda:} GET \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/DebugQueue} \\
+\textbf{Status:} 200 OK
+
+Endpoint umożliwia podgląd stanu Azure Storage Queue bez usuwania wiadomości (peek operation):
+
+\begin{lstlisting}[language=json,caption=DebugQueue response]
+{
+  "success": true,
+  "queue_name": "z7-tasks",
+  "message_count": 0,
+  "messages_peeked": 0,
+  "peeked_messages": [],
+  "status": "Queue is empty"
+}
+\end{lstlisting}
+
+Jeśli są wiadomości w kolejce:
+
+\begin{lstlisting}[language=json,caption=DebugQueue response with messages]
+{
+  "success": true,
+  "queue_name": "z7-tasks",
+  "message_count": 2,
+  "messages_peeked": 2,
+  "peeked_messages": [
+    {
+      "message_id": "uuid-1234",
+      "content": {"id": "...", "message": "Test message", "status": "queued"}
+    },
+    {
+      "message_id": "uuid-5678",
+      "content": {"id": "...", "message": "Another task", "status": "queued"}
+    }
+  ]
+}
+\end{lstlisting}
+
+\subsection{Endpoint ClearPoisonQueue – Czyszczenie poison queue}
+
+\textbf{Metoda:} POST \\
+\textbf{URL:} \texttt{https://z6functions.azurewebsites.net/api/ClearPoisonQueue} \\
+\textbf{Status:} 200 OK
+
+Poison queue jest tworzona automatycznie przez Azure Functions dla wiadomości, które nie mogły być przetworzone. Ten endpoint ją czysty:
+
+\begin{lstlisting}[language=json,caption=ClearPoisonQueue response]
+{
+  "success": true,
+  "message": "Poison queue cleared",
+  "messages_deleted": 0,
+  "poison_queue_name": "z7-tasks-poison"
+}
+\end{lstlisting}
+
+\subsection{Testy i walidacja}
+
+\subsubsection{Test 1: Wysłanie wiadomości}
+
+\begin{verbatim}
+POST https://z6functions.azurewebsites.net/api/SendToQueue
+Content-Type: application/json
+
+{
+  "message": "Final Azure Test",
+  "task_type": "report_generation",
+  "priority": "high"
+}
+
+Status: 200 OK
+Response:
+{
+  "success": true,
+  "task_id": "a917168f-0921-4233-b6e8-53f78fd48e11",
+  "queued_at": "2025-12-07T15:16:10.123456"
+}
+\end{verbatim}
+
+\subsubsection{Test 2: Oczekiwanie na przetworzenie}
+
+\begin{verbatim}
+(Czekamy 3-5 sekund aby QueueTrigger przetworzył wiadomość)
+
+Azure Portal Logs → GetQueueTasks
+Status: 200 OK
+
+[QUEUE] Sending message: a917168f-0921-4233-b6e8-53f78fd48e11
+[TRIGGER] Processing: ...
+[TRIGGER] Processed: a917168f-0921-4233-b6e8-53f78fd48e11 (report_generation)
+\end{verbatim}
+
+\subsubsection{Test 3: Pobranie przetworzonych wiadomości}
+
+\begin{verbatim}
+GET https://z6functions.azurewebsites.net/api/GetQueueTasks
+Status: 200 OK
+
+Response:
+{
+  "success": true,
+  "total": 1,
+  "tasks": [
+    {
+      "task_id": "a917168f-0921-4233-b6e8-53f78fd48e11",
+      "message": "Final Azure Test",
+      "status": "processed",
+      "processed_at": "2025-12-07T15:16:22.654321"
+    }
+  ]
+}
+
+✓ Wiadomość przetworzona pomyślnie
+✓ Dane zapisane w bazie danych
+✓ Timestamp przetworzenia zarejestrowany
+\end{verbatim}
+
+\subsubsection{Test 4: Sprawdzenie stanu kolejki}
+
+\begin{verbatim}
+GET https://z6functions.azurewebsites.net/api/DebugQueue
+Status: 200 OK
+
+Response:
+{
+  "queue_name": "z7-tasks",
+  "message_count": 0,
+  "status": "Queue is empty"
+}
+
+✓ Wszystkie wiadomości przetworzone
+✓ Nie ma zalegających wiadomości
+\end{verbatim}
+
+\subsection{Porównanie: SQLite vs Azure Storage Queue}
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Aspekt} & \textbf{Lokalne rozwiązanie} & \textbf{Azure Storage Queue} \\
+\hline
+Przechowywanie & Plik lokalny lub w pamięci & Cloud (z6storage) \\
+\hline
+Trwałość & Efemeryczna & Persystentna (replikowana) \\
+\hline
+Skalowanie & Ograniczone & Automatyczne \\
+\hline
+Dostępność & Lokalna & 24/7 w chmurze \\
+\hline
+Poison queue & Brak wsparcia & Auto-tworzona \\
+\hline
+Monitoring & Brak & Azure Portal + Application Insights \\
+\hline
+Cost & Darmowe & \$0.01 za milion operacji \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Architektura – Diagram przepływu}
+
+\begin{verbatim}
+┌─────────────────┐
+│  HTTP Client    │
+└────────┬────────┘
+         │ POST /api/SendToQueue
+         ▼
+┌──────────────────────────────┐
+│  SendToQueue Endpoint        │
+│  - Walidacja wiadomości      │
+│  - Generacja UUID            │
+└────────┬─────────────────────┘
+         │
+         │ json.dumps(message)
+         ▼
+┌──────────────────────────────┐
+│ Azure Storage Queue          │
+│ (z7-tasks)                   │
+│ Storage: z6storage           │
+└────────┬─────────────────────┘
+         │ Azure Functions Runtime
+         │ (monitoring queue)
+         ▼
+┌──────────────────────────────┐
+│ QueueTrigger                 │
+│ process_queue_message()      │
+│ - Auto-triggered             │
+│ - Asynchronous               │
+└────────┬─────────────────────┘
+         │ INSERT INTO queue_tasks
+         ▼
+┌──────────────────────────────┐
+│ SQLite DB (queue_tasks)      │
+│ - Audit trail                │
+│ - Timestamps                 │
+│ - Status tracking            │
+└──────────────────────────────┘
+\end{verbatim}
+
+\subsection{Wnioski}
+
+\begin{itemize}
+	\item \textbf{Azure Storage Queue} zapewnia niezawodne, skalowalne przetwarzanie asynchroniczne
+	\item \textbf{QueueTrigger} automatycznie odbiera i przetwarza wiadomości bez interwencji
+	\item \textbf{Persistence} -- wiadomości przechowywane w chmurze Azure, dostępne 24/7
+	\item \textbf{Audit trail} -- każda wiadomość rejestrowana w bazie danych z timestampem
+	\item \textbf{Poison queue} -- automatyczna obsługa wiadomości błędnych
+	\item \textbf{Skalowanie} -- brak obaw o wydajność przy wzroście liczby wiadomości
+	\item \textbf{Dane rzeczywiste} -- system wdrożony na faktycznym Azure Storage Account (\texttt{z6storage})
+\end{itemize}
+
+\end{document}

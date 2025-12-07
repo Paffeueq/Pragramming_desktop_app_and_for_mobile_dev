@@ -4,6 +4,7 @@
 
 azure-functions
 azure-storage-blob
+azure-storage-queue
 azure-data-tables
-sqlite3
 python-dotenv
+pyodbc
