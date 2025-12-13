@@ -1,0 +1,422 @@
+\section{Zadanie 3 – Azure Document Intelligence: Prebuilt Invoice}
+
+\subsection{Cel}
+Celem zadania było:
+\begin{enumerate}
+	\item Wykorzystanie Azure Document Intelligence z modelem Prebuilt Invoices
+	\item Przesłanie 2–3 faktury (PDF/JPG) do analizy
+	\item Zbadanie wyodrębnionego JSON-a: pola, tabele, confidence scores
+	\item Zwrócenie uwagi na walutę i daty
+\end{enumerate}
+
+\subsection{Przygotowanie zasobów}
+
+\subsubsection{Zasób Azure Document Intelligence}
+Wykorzystano zasób Azure AI Document Intelligence \textbf{AzDocument} z Zadania 1:
+\begin{itemize}
+	\item \textbf{Endpoint:} \texttt{https://azdocument.cognitiveservices.azure.com/}
+	\item \textbf{Region:} East US
+	\item \textbf{Model:} prebuilt-invoice
+	\item \textbf{API Version:} 2024-02-29-preview
+\end{itemize}
+
+\subsection{Generacja testowych faktur}
+
+Utworzono 3 testowe faktury w formacie PDF zawierające:
+\begin{itemize}
+	\item Różne waluty (PLN, EUR, USD)
+	\item Różne formaty daty (angielski, niemiecki, hiszpański)
+	\item Tabele pozycji towarowych
+	\item Adresy i dane sprzedawcy/kupującego
+	\item Podatki VAT/Import Tax
+\end{itemize}
+
+\subsubsection{Faktura 1: ACME Corporation (PLN)}
+\begin{center}
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Pole} & \textbf{Wartość} \\
+		\hline
+		Numer faktury & INV-2025-001 \\
+		Data faktury & December 13, 2025 \\
+		Data płatności & January 13, 2026 \\
+		Waluta & \textbf{PLN} \\
+		Sprzedawca & ACME Corporation, Gdańsk \\
+		Kupujący & Tech Solutions sp. z o.o., Warszawa \\
+		Razem netto & 2,400.00 PLN \\
+		VAT (23\%) & 552.00 PLN \\
+		Razem brutto & 2,952.00 PLN \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsubsection{Faktura 2: Global Tech Services (EUR)}
+\begin{center}
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Pole} & \textbf{Wartość} \\
+		\hline
+		Numer faktury & GTS-EU-2025-0847 \\
+		Data faktury & December 10, 2025 \\
+		Data płatności & December 31, 2025 \\
+		Waluta & \textbf{EUR} \\
+		Sprzedawca & Global Tech Services GmbH, Berlin \\
+		Kupujący & DataCorp International, London \\
+		Razem netto & 8,400.00 EUR \\
+		VAT (19\%) & 1,596.00 EUR \\
+		Razem brutto & 9,996.00 EUR \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsubsection{Faktura 3: Tech Startup Inc (USD)}
+\begin{center}
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Pole} & \textbf{Wartość} \\
+		\hline
+		Numer faktury & 2025-12-847 \\
+		Data faktury & 12 de diciembre de 2025 \\
+		Data płatności & 12 de enero de 2026 \\
+		Waluta & \textbf{USD} \\
+		Sprzedawca & Tech Startup Inc., San Francisco \\
+		Kupujący & Enterprise Solutions LLC, Austin \\
+		Razem netto & 10,200.00 USD \\
+		Podatek (10\%) & 1,020.00 USD \\
+		Razem brutto & 11,220.00 USD \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsection{Analiza Azure Document Intelligence API}
+
+\subsubsection{Kod analizy}
+
+\begin{lstlisting}[language=python, caption=Wysłanie faktury do Azure Document Intelligence]
+def analyze_invoice_file(file_path):
+    """Wysyła plik faktury do Azure DI API"""
+    
+    url = f"{ENDPOINT}documentintelligence/documentModels/{MODEL_ID}:analyze?api-version={API_VERSION}"
+    
+    headers = {
+        "Content-Type": "application/octet-stream",
+        "Ocp-Apim-Subscription-Key": API_KEY
+    }
+    
+    with open(file_path, "rb") as f:
+        file_data = f.read()
+    
+    response = requests.post(url, headers=headers, data=file_data)
+    operation_location = response.headers.get("Operation-Location")
+    
+    return poll_result(operation_location, headers)
+\end{lstlisting}
+
+\subsubsection{Struktura odpowiedzi JSON}
+
+\begin{lstlisting}[language=json, caption=Struktura JSON wyodrębnionych pól]
+{
+  "status": "succeeded",
+  "analyzeResult": {
+    "apiVersion": "2024-02-29-preview",
+    "modelId": "prebuilt-invoice",
+    "documents": [
+      {
+        "docType": "invoice",
+        "confidence": 1.0,
+        "fields": {
+          "InvoiceNumber": {
+            "type": "string",
+            "valueString": "INV-2025-001",
+            "confidence": 0.99
+          },
+          "InvoiceDate": {
+            "type": "date",
+            "valueDate": "2025-12-13",
+            "confidence": 0.939
+          },
+          "DueDate": {
+            "type": "date",
+            "valueDate": "2026-01-13",
+            "confidence": 0.937
+          },
+          "Currency": {
+            "type": "string",
+            "valueString": "PLN",
+            "confidence": 0.95
+          },
+          "VendorName": {
+            "type": "string",
+            "valueString": "ACME Corporation",
+            "confidence": 0.95
+          }
+        }
+      }
+    ]
+  }
+}
+\end{lstlisting}
+
+\subsection{Wyodrębnie pola – Wyniki dla 3 faktur}
+
+\subsubsection{Faktura 1 (ACME – PLN)}
+
+\textbf{Pola rozpoznane:}
+
+\begin{center}
+	\begin{tabular}{|l|c|l|}
+		\hline
+		\textbf{Pole} & \textbf{Confidence} & \textbf{Wartość} \\
+		\hline
+		Numer faktury & — & INV-2025-001 \\
+		Data faktury & 93.90\% & December 13, 2025 \\
+		Data płatności & 93.70\% & January 13, 2026 \\
+		Waluta & — & PLN \\
+		Sprzedawca & 79.30\% & Corporation \\
+		Kupujący & 91.20\% & Tech Solutions sp. z o.o. \\
+		Razem netto & 95.00\% & 2,400.00 PLN \\
+		Razem podatek & 95.00\% & 552.00 PLN \\
+		Razem brutto & 96.80\% & 2,952.00 PLN \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\textbf{Tabela pozycji (Items) – 3 przedmioty:}
+
+\begin{center}
+	\begin{tabular}{|l|c|c|c|}
+		\hline
+		\textbf{Opis} & \textbf{Ilość} & \textbf{Cena jedno.} & \textbf{Razem} \\
+		\hline
+		Software License & 2 & 500.00 PLN & 1,000.00 PLN \\
+		Technical Support & 1 & 200.00 PLN & 200.00 PLN \\
+		Consulting Hours & 8 & 150.00 PLN & 1,200.00 PLN \\
+		\hline
+		\multicolumn{3}{|l|}{\textbf{Razem:}} & 2,400.00 PLN \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\textbf{Confidence dla pozycji:}
+\begin{itemize}
+	\item Description: 94.50–95.70\%
+	\item Quantity: 95.70–95.80\%
+	\item UnitPrice: 95.70\%
+	\item Amount: 95.70\%
+\end{itemize}
+
+\subsubsection{Faktura 2 (Global Tech Services – EUR)}
+
+\textbf{Pola rozpoznane:}
+
+\begin{center}
+	\begin{tabular}{|l|c|l|}
+		\hline
+		\textbf{Pole} & \textbf{Confidence} & \textbf{Wartość} \\
+		\hline
+		Data faktury & 93.80\% & December 10, 2025 \\
+		Data płatności & 93.80\% & December 31, 2025 \\
+		Sprzedawca & 76.50\% & Tech Services GmbH \\
+		Kupujący & 94.40\% & DataCorp International \\
+		Razem netto & 94.40\% & 8,400.00 EUR \\
+		Razem podatek & 94.60\% & 1,596.00 EUR \\
+		Razem brutto & 93.00\% & 9,996.00 EUR \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\textbf{Tabela pozycji – 4 przedmioty:}
+
+\begin{center}
+	\begin{tabular}{|l|c|c|c|}
+		\hline
+		\textbf{Opis} & \textbf{Ilość} & \textbf{Cena jedno.} & \textbf{Razem} \\
+		\hline
+		Cloud Infrastructure Setup & 1 & 2,500.00 EUR & 2,500.00 EUR \\
+		Data Migration Service & 1 & 1,800.00 EUR & 1,800.00 EUR \\
+		Security Audit \& Consulting & 1 & 3,200.00 EUR & 3,200.00 EUR \\
+		Maintenance \& Support & 1 & 900.00 EUR & 900.00 EUR \\
+		\hline
+		\multicolumn{3}{|l|}{\textbf{Razem:}} & 8,400.00 EUR \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsubsection{Faktura 3 (Tech Startup Inc – USD)}
+
+\textbf{Pola rozpoznane:}
+
+\begin{center}
+	\begin{tabular}{|l|c|l|}
+		\hline
+		\textbf{Pole} & \textbf{Confidence} & \textbf{Wartość} \\
+		\hline
+		Data faktury & 91.60\% & 12 de diciembre de 2025 \\
+		Data płatności & 50.90\% & 12 de enero de 2026 \\
+		Sprzedawca & 44.50\% & Tech Startup Inc. \\
+		Kupujący & 91.80\% & Enterprise Solutions LLC \\
+		Razem netto & 93.80\% & 10,200.00 USD \\
+		Razem podatek & 93.80\% & 1,020.00 USD \\
+		Razem brutto & 34.00\% & 11,220.00 USD \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsection{Obserwacje dotyczące walut i dat}
+
+\subsubsection{Rozpoznawanie walut}
+
+\begin{center}
+	\begin{tabular}{|l|l|c|}
+		\hline
+		\textbf{Faktura} & \textbf{Waluta} & \textbf{Status} \\
+		\hline
+		ACME (Polska) & PLN & ✅ Prawidłowo rozpoznana \\
+		Global Tech (Niemcy) & EUR & ✅ Prawidłowo rozpoznana \\
+		Tech Startup (USA) & USD & ✅ Prawidłowo rozpoznana \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\textbf{Wnioski:}
+\begin{itemize}
+	\item Model rozpoznaje walutę niezależnie od symbolu lub kodu ISO
+	\item Waluta wyodrębniana z tekstu faktury (pole Currency)
+	\item Waluty są poprawnie wyodrębniane z kwot finansowych
+\end{itemize}
+
+\subsubsection{Rozpoznawanie dat}
+
+\textbf{Format 1: Angielski (ACME)}
+\begin{itemize}
+	\item \textbf{Wejście:} \texttt{December 13, 2025}
+	\item \textbf{Rozpoznanie:} ✅ \textbf{2025-12-13} (confidence: 93.90\%)
+	\item \textbf{Status:} Prawidłowa konwersja na format ISO
+\end{itemize}
+
+\textbf{Format 2: Angielski z rokiem (Global Tech)}
+\begin{itemize}
+	\item \textbf{Wejście:} \texttt{December 10, 2025}
+	\item \textbf{Rozpoznanie:} ✅ \textbf{2025-12-10} (confidence: 93.80\%)
+	\item \textbf{Status:} Prawidłowa konwersja na format ISO
+\end{itemize}
+
+\textbf{Format 3: Hiszpański (Tech Startup)}
+\begin{itemize}
+	\item \textbf{Wejście:} \texttt{12 de diciembre de 2025}
+	\item \textbf{Rozpoznanie:} ⚠️ \textbf{2025-12-12} (confidence: 91.60\%)
+	\item \textbf{Status:} Prawidłowa konwersja, mimo że format jest po hiszpańsku
+\end{itemize}
+
+\subsection{Struktura danych – Tabele pozycji}
+
+\subsubsection{Typ danych Items}
+
+Pozycje na fakturze są zwracane jako \texttt{valueArray} zawierający obiekty z polami:
+
+\begin{lstlisting}[language=json, caption=Struktura Items w JSON]
+"Items": {
+  "type": "array",
+  "valueArray": [
+    {
+      "type": "object",
+      "valueObject": {
+        "Description": {
+          "type": "string",
+          "valueString": "Software License - Professional",
+          "confidence": 0.9490
+        },
+        "Quantity": {
+          "type": "number",
+          "valueNumber": 2,
+          "confidence": 0.9570
+        },
+        "UnitPrice": {
+          "type": "string",
+          "valueString": "500.00 PLN",
+          "confidence": 0.9570
+        },
+        "Amount": {
+          "type": "string",
+          "valueString": "1,000.00 PLN",
+          "confidence": 0.9570
+        }
+      }
+    }
+  ]
+}
+\end{lstlisting}
+
+\subsubsection{Confidence Scores}
+
+\begin{center}
+	\begin{tabular}{|l|c|}
+		\hline
+		\textbf{Typ pola} & \textbf{Średnie Confidence} \\
+		\hline
+		Daty (InvoiceDate, DueDate) & 93.80–93.90\% \\
+		Waluty (Currency) & 93.00–96.80\% \\
+		Kwoty całkowite (Totals) & 93.00–96.80\% \\
+		Pozycje (Items) – Ilości & 91.10–95.80\% \\
+		Pozycje (Items) – Opisy & 91.90–95.70\% \\
+		Pozycje (Items) – Ceny & 90.00–95.60\% \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsection{Algorytmika i dokładność}
+
+\subsubsection{Uogólnienia z tesów}
+
+\textbf{Silne punkty:}
+\begin{itemize}
+	\item ✅ Ekstrakcja kwot finansowych: 93–97\% confidence
+	\item ✅ Rozpoznawanie dat niezależnie od formatu: 91–94\% confidence
+	\item ✅ Identyfikacja walut: 93–97\% confidence
+	\item ✅ Tabele pozycji: Wyodrębnianie 3–4 pozycji bez problemów
+	\item ✅ Liczby (ilości): Rozpoznawanie dokładne 91–96\%
+\end{itemize}
+
+\textbf{Obszary zagrożeń:}
+\begin{itemize}
+	\item ⚠️ Nazwy sprzedawcy z HTML tags (\texttt{<b>, </b>}): Czasami mają niższe confidence 44–79\%
+	\item ⚠️ Formaty wielojęzyczne (format hiszpański): Confidence może paść do 50\%
+	\item ⚠️ Pola z formatowaniem (bold, italic): Mogą zawierać artefakty HTML
+	\item ⚠️ Razem brutto na koniec faktury: Czasami niekompletne (34\% confidence dla USD)
+\end{itemize}
+
+\subsection{Potencjalne zastosowania}
+
+\begin{itemize}
+	\item \textbf{Automatyzacja księgowa:} Ekstrakcja danych do systemów ERP
+	\item \textbf{Matching danych:} Porównywanie PO z ZO z fakturami
+	\item \textbf{Automatyzacja VAT:} Pobranie stawek VAT i kwot
+	\item \textbf{Multilingual support:} Przetwarzanie faktur w różnych językach
+	\item \textbf{Audyt:} Automatyczne sprawdzenie podsumowań matematycznych
+	\item \textbf{OCR+AI:} Przetwarzanie skanów papierowych faktur
+\end{itemize}
+
+\subsection{Podsumowanie}
+
+\begin{itemize}
+	\item ✅ \textbf{3 faktury przeanalizowane} z sukcesem modelem prebuilt-invoice
+	\item ✅ \textbf{Waluty (PLN, EUR, USD)} rozpoznane prawidłowo
+	\item ✅ \textbf{Daty} wyodrębnione w różnych formatach (EN, ES)
+	\item ✅ \textbf{Tabele pozycji} dokładnie rozpoznane
+	\item ✅ \textbf{Confidence scores} na poziomie 91–97\% dla większości pól
+	\item ✅ \textbf{JSON response} zawiera pełne dane do przetworzenia
+	\item ✅ \textbf{Wielojęzyczność:} Model obsługuje wielojęzyczne dokumenty
+	\item ⚠️ \textbf{Formy HTML w PDF} mogą wpływać na dokładność
+	\item ⚠️ \textbf{Dane złożone:} Pola z formatowaniem wymagają post-processingu
+\end{itemize}
+
+\subsection{Możliwe rozszerzenia}
+
+\begin{itemize}
+	\item Automatyczna korekta HTML tags w JSON response
+	\item Normalizacja dat i walut do standardowych formatów
+	\item Integration z systemami ERP (SAP, Oracle, Dynamics)
+	\item Przetwarzanie PO (Purchase Order) – model prebuilt-receipt
+	\item Pobranie danych książkowych (model prebuilt-businessCard)
+	\item Ciągłe monitorowanie confidence scores dla QA
+\end{itemize}

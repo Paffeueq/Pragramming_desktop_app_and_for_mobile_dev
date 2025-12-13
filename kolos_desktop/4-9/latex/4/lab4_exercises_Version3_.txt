@@ -1,0 +1,377 @@
+\section{Kluczowe ćwiczenia - powtórka}
+
+\subsection{Ćwiczenie 1: Utworzenie projektu Blazor Web App}
+
+\begin{tcolorbox}[colback=cyan!5!white,colframe=cyan! 75!black]
+\textbf{Polecenie:}
+\begin{verbatim}
+dotnet new blazor -o MyBlazorApp -int Server
+\end{verbatim}
+
+Parametry:
+\begin{itemize}
+    \item \texttt{-int Server} - interaktywność Server
+    \item \texttt{-int WebAssembly} - interaktywność Wasm
+    \item \texttt{-int Auto} - automatyczny tryb
+    \item \texttt{-int None} - tylko SSR
+\end{itemize}
+\end{tcolorbox}
+
+\subsection{Ćwiczenie 2: Stream Rendering}
+
+\textbf{Zadanie:} Stwórz stronę z danymi pobieranymi asynchronicznie
+
+\begin{lstlisting}
+@page "/weather"
+@attribute [StreamRendering(true)]
+
+<h3>Prognoza pogody</h3>
+
+@if (forecasts == null)
+{
+    <p><em>Ładowanie...</em></p>
+}
+else
+{
+    <table class="table">
+        @foreach (var f in forecasts)
+        {
+            <tr>
+                <td>@f.Date. ToShortDateString()</td>
+                <td>@f. TemperatureC</td>
+            </tr>
+        }
+    </table>
+}
+
+@code {
+    private WeatherForecast[]? forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(3000); // Symulacja API
+        forecasts = Enumerable.Range(1, 5).Select(i => 
+            new WeatherForecast
+            {
+                Date = DateTime. Now.AddDays(i),
+                TemperatureC = Random.Shared.Next(-20, 55)
+            }).ToArray();
+    }
+
+    private class WeatherForecast
+    {
+        public DateTime Date { get; set; }
+        public int TemperatureC { get; set; }
+    }
+}
+\end{lstlisting}
+
+\subsection{Ćwiczenie 3: Dodanie interaktywności (Server)}
+
+\textbf{Zadanie:} Zmień stronę Counter na interaktywną
+
+\begin{lstlisting}
+@page "/counter"
+@rendermode InteractiveServer
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p>Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">
+    Click me
+</button>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
+\end{lstlisting}
+
+\subsection{Ćwiczenie 4: Formularz z walidacją}
+
+\textbf{Zadanie:} Stwórz formularz rejestracji
+
+\textbf{Model:}
+\begin{lstlisting}
+using System.ComponentModel.DataAnnotations;
+
+public class RegisterModel
+{
+    [Required(ErrorMessage = "Email jest wymagany")]
+    [EmailAddress(ErrorMessage = "Nieprawidłowy format email")]
+    public string Email { get; set; } = "";
+
+    [Required(ErrorMessage = "Hasło jest wymagane")]
+    [StringLength(100, MinimumLength = 6, 
+        ErrorMessage = "Hasło musi mieć 6-100 znaków")]
+    public string Password { get; set; } = "";
+
+    [Compare("Password", ErrorMessage = "Hasła muszą się zgadzać")]
+    public string ConfirmPassword { get; set; } = "";
+}
+\end{lstlisting}
+
+\textbf{Komponent:}
+\begin{lstlisting}
+@page "/register"
+@rendermode InteractiveServer
+
+<h3>Rejestracja</h3>
+
+<EditForm Model="@model" OnValidSubmit="HandleRegistration">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Email:</label>
+        <InputText class="form-control" 
+                   @bind-Value="model.Email" />
+        <ValidationMessage For="@(() => model.Email)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Hasło:</label>
+        <InputText type="password" class="form-control" 
+                   @bind-Value="model. Password" />
+        <ValidationMessage For="@(() => model.Password)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Potwierdź hasło:</label>
+        <InputText type="password" class="form-control" 
+                   @bind-Value="model.ConfirmPassword" />
+        <ValidationMessage For="@(() => model.ConfirmPassword)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Zarejestruj
+    </button>
+</EditForm>
+
+@if (! string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-success mt-3">@message</div>
+}
+
+@code {
+    private RegisterModel model = new();
+    private string message = "";
+
+    private void HandleRegistration()
+    {
+        message = $"Rejestracja pomyślna: {model.Email}";
+        model = new(); // Reset formularza
+    }
+}
+\end{lstlisting}
+
+\subsection{Ćwiczenie 5: CRUD z Entity Framework}
+
+\textbf{Zadanie:} Aplikacja do zarządzania osobami
+
+\textbf{Model:}
+\begin{lstlisting}
+public class Person
+{
+    public int Id { get; set; }
+    
+    [Required]
+    [StringLength(100)]
+    public string Name { get; set; } = "";
+    
+    [Range(0, 150)]
+    public int Age { get; set; }
+}
+\end{lstlisting}
+
+\textbf{DbContext:}
+\begin{lstlisting}
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options) { }
+
+    public DbSet<Person> People { get; set; }
+}
+\end{lstlisting}
+
+\textbf{Rejestracja (Program.cs):}
+\begin{lstlisting}
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=app.db"));
+\end{lstlisting}
+
+\textbf{Komponent CRUD:}
+\begin{lstlisting}
+@page "/people"
+@rendermode InteractiveServer
+@inject AppDbContext Db
+
+<h3>Zarządzanie osobami</h3>
+
+<EditForm Model="@newPerson" OnValidSubmit="AddPerson">
+    <DataAnnotationsValidator />
+    <div class="row">
+        <div class="col">
+            <InputText @bind-Value="newPerson.Name" 
+                       placeholder="Imię" class="form-control" />
+        </div>
+        <div class="col">
+            <InputNumber @bind-Value="newPerson.Age" 
+                         placeholder="Wiek" class="form-control" />
+        </div>
+        <div class="col">
+            <button type="submit" class="btn btn-primary">
+                Dodaj
+            </button>
+        </div>
+    </div>
+    <ValidationSummary />
+</EditForm>
+
+<table class="table mt-3">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Imię</th>
+            <th>Wiek</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var person in people)
+        {
+            <tr>
+                <td>@person.Id</td>
+                <td>@person.Name</td>
+                <td>@person.Age</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" 
+                            @onclick="() => DeletePerson(person.Id)">
+                        Usuń
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Person> people = new();
+    private Person newPerson = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPeople();
+    }
+
+    private async Task LoadPeople()
+    {
+        people = await Db.People.ToListAsync();
+    }
+
+    private async Task AddPerson()
+    {
+        Db.People.Add(newPerson);
+        await Db. SaveChangesAsync();
+        
+        newPerson = new Person();
+        await LoadPeople();
+    }
+
+    private async Task DeletePerson(int id)
+    {
+        var person = await Db. People.FindAsync(id);
+        if (person != null)
+        {
+            Db.People.Remove(person);
+            await Db.SaveChangesAsync();
+            await LoadPeople();
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection{Ćwiczenie 6: WebAssembly + HTTP API}
+
+\textbf{Zadanie:} Przenieś CRUD na WebAssembly z API
+
+\textbf{API Controller (Server):}
+\begin{lstlisting}
+[ApiController]
+[Route("api/[controller]")]
+public class PeopleController : ControllerBase
+{
+    private readonly AppDbContext _db;
+
+    public PeopleController(AppDbContext db) => _db = db;
+
+    [HttpGet]
+    public async Task<List<Person>> GetAll() =>
+        await _db.People. ToListAsync();
+
+    [HttpPost]
+    public async Task<Person> Create(Person person)
+    {
+        _db. People.Add(person);
+        await _db.SaveChangesAsync();
+        return person;
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var person = await _db.People. FindAsync(id);
+        if (person == null) return NotFound();
+        
+        _db.People. Remove(person);
+        await _db.SaveChangesAsync();
+        return Ok();
+    }
+}
+\end{lstlisting}
+
+\textbf{Komponent WebAssembly:}
+\begin{lstlisting}
+@page "/people-wasm"
+@rendermode InteractiveWebAssembly
+@inject HttpClient Http
+
+<!-- Analogiczny UI jak wyżej -->
+
+@code {
+    private List<Person> people = new();
+    private Person newPerson = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPeople();
+    }
+
+    private async Task LoadPeople()
+    {
+        people = await Http.GetFromJsonAsync<List<Person>>(
+            "api/people") ?? new();
+    }
+
+    private async Task AddPerson()
+    {
+        await Http.PostAsJsonAsync("api/people", newPerson);
+        newPerson = new Person();
+        await LoadPeople();
+    }
+
+    private async Task DeletePerson(int id)
+    {
+        await Http.DeleteAsync($"api/people/{id}");
+        await LoadPeople();
+    }
+}
+\end{lstlisting}

@@ -1,0 +1,133 @@
+
+Home
+Research
+Teaching
+Contact
+Tworzenie aplikacji Blazor (.NET 8)
+Materiały
+Filmy (omawiane w zajęciach):
+
+Blazor SSR vs Server vs WebAssembly vs Auto – https://www.youtube.com/watch?v=LHHBFh1rsGE
+CRUD z wszystkimi trybami renderowania (.NET 8) – https://www.youtube.com/watch?v=w8imy7LT9zY
+CRUD z trybem WebAssembly (.NET 8) – https://www.youtube.com/watch?v=AKiGGtBj1go
+Dokumentacja:
+
+Blazor (ASP.NET Core) – https://learn.microsoft.com/aspnet/core/blazor
+Render modes (.NET 8) – https://learn.microsoft.com/aspnet/core/blazor/components/render-modes
+Komponenty / routing – https://learn.microsoft.com/aspnet/core/blazor/fundamentals/routing
+Forms & EditForm – https://learn.microsoft.com/aspnet/core/blazor/forms
+Stream rendering / enhanced navigation – https://learn.microsoft.com/aspnet/core/blazor/components/rendering
+SignalR (Blazor Server) – https://learn.microsoft.com/aspnet/core/signalr
+EF Core – https://learn.microsoft.com/ef/core
+Hosting / publikacja – https://learn.microsoft.com/aspnet/core/blazor/host-and-deploy
+PWA (Blazor WebAssembly) – https://learn.microsoft.com/aspnet/core/blazor/progressive-web-app
+Repozytoria:
+
+Przykłady oficjalne – https://github.com/dotnet/aspnetcore/tree/main/src/Components
+Dotnet runtime & issues – https://github.com/dotnet/aspnetcore/issues
+Tematy do poruszenia
+Dlaczego Blazor (.NET 8 „Blazor Web App”)
+Jeden szablon = wiele trybów renderowania (progressive enhancement).
+SEO + szybkość pierwszego ładowania (SSR).
+Możliwość przejścia do interaktywności bez przepisywania całości.
+Wspólny kod .NET (Model, walidacja, logika) – brak duplikacji w JS/TS.
+Tryby renderowania (@rendermode)
+Static SSR (brak interaktywności) – none.
+Interactive Server – logika po stronie serwera (SignalR/WebSocket), niski transfer, ograniczona skalowalność (liczba połączeń).
+Interactive WebAssembly – logika w przeglądarce, offline, większy initial payload.
+Interactive Auto – pierwszy raz Server (szybki TTFB) potem przełącza się na WebAssembly (cache).
+Wybór per komponent / per strona / globalnie.
+Koszt / trade-off
+Server: + mały rozmiar startowy, - połączenia stałe, latency roundtrip.
+WebAssembly: + skalowalność, offline, PWA, - większy początkowy download, cold start.
+Auto: + UX, - większa złożoność i debug.
+SSR static: + minimalny koszt, idealne dla content / blog / landing.
+Stream Rendering & Enhanced Navigation
+Szkielet strony natychmiast + późniejszy dopływ danych.
+Eliminacja „białej strony” przy wolniejszych zapytaniach.
+Porównanie z klasycznym pełnym odświeżeniem.
+Struktura projektu „Blazor Web App”
+Server (host + API + SSR).
+Client (WebAssembly – komponenty interaktywne).
+Shared (modele / kontrakty / DTO / serwisy interfejsowe).
+Rejestracja assembly klienta w Program.cs (dodanie interaktywnych komponentów).
+Różnice względem dawnych szablonów „Hosted WASM”.
+Formularze
+EditForm (interaktywny) vs klasyczny POST w SSR static.
+formname + [SupplyParameterFromForm] aby zadziałało bez WebSocket / WASM.
+Walidacja (DataAnnotations, komunikaty błędów).
+Architektura
+Warstwy: Controller / Service / Repository / DbContext / Shared models.
+Interfejsy + implementacje (np. IGameService – ServerGameService + ClientApiGameService).
+Minimalizacja duplikacji kodu przy obu trybach.
+EF Core w Blazor
+AddDbContext, migracje: dotnet ef migrations add, dotnet ef database update.
+Seeding w OnModelCreating.
+Konfiguracja connection string.
+PWA / Offline * Tylko WebAssembly (Service Worker, cache zasobów).
+Zachowanie formularza w offline + LocalStorage / IndexedDB.
+Kiedy który tryb? (skrót)
+Tylko SSR static: content / marketing / SEO / minimalny koszt.
+Server: mały zespół backoffice (<50 aktywnych), szybka iteracja.
+WebAssembly: duża liczba interaktywnych użytkowników, offline, PWA.
+Auto: first paint krytyczny + później intensywna interakcja.
+Ćwiczenia
+1. Szablon SSR static
+dotnet new blazor -n BlogSsr --interactivity None
+Uruchom, dodaj stronę Blog.razor z listą statycznych postów.
+Zmierz czas pierwszego ładowania (DevTools).
+2. Stream rendering
+W Blog.razor dodaj sztuczny delay (Task.Delay 1500ms).
+Włącz stream rendering – pokaż placeholder „Ładowanie…”.
+Porównaj UX vs bez stream.
+3. Dodanie interaktywności (Server)
+Utwórz stronę Counter.razor (Server): @rendermode InteractiveServer.
+Obserwuj WebSocket w DevTools (Network → WS).
+Usuń @rendermode → brak inkrementacji.
+4. Formularz bez interaktywności
+Strona Contact.razor w SSR static z <form method="post">.
+Dodaj [SupplyParameterFromForm] + formname.
+Wyświetl dane po POST (redirect / ten sam komponent).
+5. Migracja do interaktywnego formularza
+Zamień na EditForm.
+Dodaj DataAnnotations i walidację.
+6. Dodanie Client (WebAssembly)
+Utwórz nowy projekt Blazor Web App z WebAssembly.
+Przenieś komponent Counter do Client/Pages.
+Dodaj @rendermode InteractiveWebAssembly.
+Porównaj payload (zakładka Network > Wasm).
+7. Model domenowy + EF Core
+Dodaj projekt Shared.
+Klasa VideoGame { Id, Title, Publisher, ReleaseYear }.
+DbContext + migracja + seeding 3 rekordy.
+8. Warstwa usług
+IGameService + GameService (Server – bezpośrednio DbContext).
+Rejestracja AddScoped.
+Utwórz API GameController (CRUD).
+9. Druga implementacja (HTTP)
+ClientGameService używa HttpClient.
+Wstrzyknij przez DI (warunkowo dla WASM).
+Ten sam interfejs – brak zmian w komponencie listy.
+10. Komponenty CRUD
+Games.razor (lista) – SSR + stream.
+Przyciski: Dodaj (interaktywny przycisk), Edytuj, Usuń.
+EditGame.razor (create/update) z podwójną trasą:
+@page "/games/edit"
+@page "/games/edit/{id:int}"
+11. Pre-rendering
+Włącz @rendermode bez parametrów – zaobserwuj podwójne logi init.
+Wyłącz: @rendermode new InteractiveServerRenderMode(prerender:false).
+Zanotuj różnicę.
+12. Tryb Auto
+Zmień EditGame.razor → @rendermode InteractiveAuto.
+Wyczyść cache, załaduj ×2 i obserwuj: pierwszy WebSocket, drugi – brak.
+13. Offline & PWA (WASM)
+Włącz PWA (Service Worker) – aktualizacja projektu.
+Odłącz sieć → test odczytu listy z cache / LocalStorage fallback.
+Zainstaluj aplikację na puplicie.
+← Powrót do planu zajęć
+
+💻
+💼
+📧
+© 2025 Tomasz Leś | Warsaw University of Technology

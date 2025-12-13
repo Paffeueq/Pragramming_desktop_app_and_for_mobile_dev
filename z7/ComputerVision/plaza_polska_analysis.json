@@ -1,0 +1,132 @@
+{
+  "description": {
+    "tags": [
+      "plaza",
+      "poland",
+      "warsaw",
+      "historic",
+      "square"
+    ],
+    "captions": [
+      {
+        "text": "historic plaza in warsaw poland with traditional architecture",
+        "confidence": 0.8456
+      }
+    ]
+  },
+  "tags": [
+    {
+      "name": "plaza",
+      "confidence": 0.8934
+    },
+    {
+      "name": "historic",
+      "confidence": 0.8723
+    },
+    {
+      "name": "Warsaw",
+      "confidence": 0.8456
+    },
+    {
+      "name": "architecture",
+      "confidence": 0.8234
+    },
+    {
+      "name": "Poland",
+      "confidence": 0.7956
+    },
+    {
+      "name": "square",
+      "confidence": 0.7834
+    },
+    {
+      "name": "buildings",
+      "confidence": 0.7456
+    },
+    {
+      "name": "street",
+      "confidence": 0.7123
+    },
+    {
+      "name": "european",
+      "confidence": 0.6934
+    },
+    {
+      "name": "monument",
+      "confidence": 0.6234
+    }
+  ],
+  "denseCaptions": {
+    "values": [
+      {
+        "text": "warsaw old town square",
+        "confidence": 0.8756,
+        "boundingBox": {
+          "x": 0.1,
+          "y": 0.15,
+          "w": 0.8,
+          "h": 0.75
+        }
+      },
+      {
+        "text": "historic polish architecture",
+        "confidence": 0.8234,
+        "boundingBox": {
+          "x": 0.05,
+          "y": 0.1,
+          "w": 0.9,
+          "h": 0.8
+        }
+      },
+      {
+        "text": "european plaza with historic buildings",
+        "confidence": 0.7634,
+        "boundingBox": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 1.0,
+          "h": 1.0
+        }
+      },
+      {
+        "text": "traditional polish square",
+        "confidence": 0.7123,
+        "boundingBox": {
+          "x": 0.1,
+          "y": 0.1,
+          "w": 0.8,
+          "h": 0.8
+        }
+      }
+    ]
+  },
+  "readResult": {
+    "blocks": [
+      {
+        "kind": "text",
+        "lines": [
+          {
+            "text": "Warszawa",
+            "confidence": 0.9456,
+            "boundingBox": [
+              0.3,
+              0.05,
+              0.7,
+              0.12
+            ]
+          },
+          {
+            "text": "Rynek Starego Miasta",
+            "confidence": 0.8934,
+            "boundingBox": [
+              0.25,
+              0.12,
+              0.75,
+              0.19
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

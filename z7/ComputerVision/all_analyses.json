@@ -1,0 +1,86 @@
+{
+  "honda.jpg": {
+    "status": "success",
+    "file_size_bytes": 40581,
+    "categories": [
+      {
+        "name": "trans_car",
+        "score": 0.96875
+      }
+    ],
+    "metadata": {
+      "height": 214,
+      "width": 320,
+      "format": "Jpeg"
+    },
+    "requestId": "b24af5fa-e4d9-4227-bb2c-8ec7bad7e299"
+  },
+  "moza_lisa.jpg": {
+    "status": "success",
+    "file_size_bytes": 46660,
+    "categories": [
+      {
+        "name": "people_",
+        "score": 0.52734375
+      }
+    ],
+    "metadata": {
+      "height": 373,
+      "width": 250,
+      "format": "Jpeg"
+    },
+    "requestId": "1dde25c2-cd5d-433f-8160-58c81ee85bc2"
+  },
+  "plaza_malo.jpg": {
+    "status": "success",
+    "file_size_bytes": 285993,
+    "categories": [
+      {
+        "name": "outdoor_oceanbeach",
+        "score": 0.94140625
+      }
+    ],
+    "metadata": {
+      "height": 1080,
+      "width": 1920,
+      "format": "Jpeg"
+    },
+    "requestId": "820091d6-8297-4c73-b3a5-10e29a859c8d"
+  },
+  "plaza_polska.jpg": {
+    "status": "success",
+    "file_size_bytes": 244981,
+    "categories": [
+      {
+        "name": "outdoor_",
+        "score": 0.0078125
+      }
+    ],
+    "metadata": {
+      "height": 800,
+      "width": 1200,
+      "format": "Jpeg"
+    },
+    "requestId": "23484ac4-ea99-4aa2-ac04-bcbcb2c70e06"
+  },
+  "traktor.jpg": {
+    "status": "success",
+    "file_size_bytes": 800813,
+    "categories": [
+      {
+        "name": "others_",
+        "score": 0.015625
+      },
+      {
+        "name": "trans_car",
+        "score": 0.42578125
+      }
+    ],
+    "metadata": {
+      "height": 1500,
+      "width": 2000,
+      "format": "Jpeg"
+    },
+    "requestId": "15cda99f-7d48-4083-a1cc-62a0f60cca29"
+  }
+}

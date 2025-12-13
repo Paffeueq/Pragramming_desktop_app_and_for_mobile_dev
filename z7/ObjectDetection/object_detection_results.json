@@ -1,0 +1,17 @@
+{
+  "model": "ObjectDetectionModel",
+  "test_results": [
+    {
+      "image": "test_1.jpg",
+      "error": "Invalid project type for operation."
+    },
+    {
+      "image": "test_2.jpg",
+      "error": "Invalid project type for operation."
+    },
+    {
+      "image": "test_3.jpg",
+      "error": "Invalid project type for operation."
+    }
+  ]
+}

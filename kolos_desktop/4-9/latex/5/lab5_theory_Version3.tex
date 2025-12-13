@@ -1,0 +1,255 @@
+\section{Teoria: .NET Aspire}
+
+\subsection{Czym jest .NET Aspire? }
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title=Definicja]
+\textbf{.NET Aspire} to stack technologiczny zaprojektowany do budowy obserwowalnych, gotowych na produkcję aplikacji rozproszonych. Jest dostarczany poprzez zestaw pakietów NuGet, które obsługują konkretne potrzeby aplikacji chmurowych. 
+\end{tcolorbox}
+
+\subsubsection{Główne cele . NET Aspire}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Orkiestracja} -- Uproszczone zarządzanie wieloma projektami i zależnościami
+    \item \textbf{Integracje} -- Łączenie z różnymi usługami (bazy danych, messaging, storage)
+    \item \textbf{Narzędzia} -- Wsparcie dla lokalnego developmentu i testowania
+    \item \textbf{Telemetria} -- Wbudowane logowanie, metryki i tracing
+    \item \textbf{Deployment} -- Gotowe do wdrożenia w środowisku produkcyjnym
+\end{itemize}
+
+\subsection{Kluczowe komponenty}
+
+\subsubsection{1. App Host (Orkiestrator)}
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=App Host]
+\textbf{App Host} to projekt orkiestracyjny, który definiuje i konfiguruje wszystkie komponenty aplikacji rozproszonej.
+\end{tcolorbox}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Centralny punkt konfiguracji całej aplikacji
+    \item Definiuje zależności między serwisami
+    \item Zarządza cyklem życia komponentów
+    \item Automatycznie konfiguruje Service Discovery
+    \item Generuje manifesty dla deployment
+\end{itemize}
+
+\textbf{Typowa struktura App Host:}
+\begin{lstlisting}[language={[Sharp]C}]
+var builder = DistributedApplication.CreateBuilder(args);
+
+// Dodanie zasobow
+var cache = builder.AddRedis("cache");
+var db = builder.AddPostgres("postgres")
+               .AddDatabase("mydb");
+
+// Dodanie serwisow
+var apiService = builder.AddProject<Projects.ApiService>("apiservice")
+                       .WithReference(cache)
+                       .WithReference(db);
+
+builder.AddProject<Projects.Web>("webfrontend")
+       .WithReference(apiService);
+
+builder.Build().Run();
+\end{lstlisting}
+
+\subsubsection{2. Service Defaults}
+
+\begin{tcolorbox}[colback=yellow! 5!white,colframe=yellow!75!black,title=Service Defaults]
+Wspólna konfiguracja dla wszystkich serwisów w aplikacji, zapewniająca spójne ustawienia telemetrii, health checks i resiliency.
+\end{tcolorbox}
+
+\textbf{Co zawierają Service Defaults:}
+\begin{itemize}
+    \item Konfiguracja OpenTelemetry (logging, metrics, tracing)
+    \item Health checks
+    \item Service Discovery
+    \item Standardowe middleware
+    \item HTTP client factory z resilience patterns
+\end{itemize}
+
+\subsubsection{3.  Service Discovery}
+
+\begin{tcolorbox}[colback=purple!5!white,colframe=purple!75!black,title=Service Discovery]
+Automatyczny mechanizm wykrywania i komunikacji między serwisami bez hardcodowania adresów URL.
+\end{tcolorbox}
+
+\textbf{Jak działa:}
+\begin{enumerate}
+    \item App Host rejestruje wszystkie serwisy
+    \item Każdy serwis otrzymuje unikalną nazwę
+    \item Komunikacja odbywa się przez nazwę serwisu, nie przez URL
+    \item W runtime nazwy są rozwiązywane do rzeczywistych adresów
+\end{enumerate}
+
+\textbf{Przykład użycia:}
+\begin{lstlisting}[language={[Sharp]C}]
+// W App Host
+var apiService = builder. AddProject<Projects.ApiService>("apiservice");
+builder.AddProject<Projects.Web>("webfrontend")
+       .WithReference(apiService);
+
+// W serwisie Web
+var response = await httpClient.GetAsync("http://apiservice/api/data");
+// "apiservice" zostanie automatycznie rozwiazane
+\end{lstlisting}
+
+\subsection{Integracje (Components)}
+
+. NET Aspire dostarcza gotowe integracje z popularnymi technologiami:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Kategoria} & \textbf{Przykłady} \\
+\hline
+Bazy danych & PostgreSQL, MySQL, SQL Server, MongoDB \\
+Cache & Redis, Valkey \\
+Messaging & RabbitMQ, Azure Service Bus, Kafka \\
+Storage & Azure Blob Storage, AWS S3 \\
+Cloud Services & Azure, AWS, GCP \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Hosting Integrations vs Client Integrations}
+
+\subsubsection{Hosting Integrations}
+
+\begin{itemize}
+    \item Używane w \textbf{App Host}
+    \item Zarządzają cyklem życia zasobów
+    \item Prefix: \texttt{Aspire.Hosting.*}
+    \item Przykład: \texttt{Aspire.Hosting.Redis}
+\end{itemize}
+
+\begin{lstlisting}[language={[Sharp]C}]
+var redis = builder.AddRedis("cache");
+\end{lstlisting}
+
+\subsubsection{Client Integrations}
+
+\begin{itemize}
+    \item Używane w \textbf{serwisach aplikacyjnych}
+    \item Konfigurują klientów do łączenia się z zasobami
+    \item Prefix: \texttt{Aspire.*}
+    \item Przykład: \texttt{Aspire. StackExchange.Redis}
+\end{itemize}
+
+\begin{lstlisting}[language={[Sharp]C}]
+builder.AddRedisClient("cache");
+\end{lstlisting}
+
+\subsection{Telemetria i Observability}
+
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=OpenTelemetry]
+. NET Aspire ma wbudowane wsparcie dla OpenTelemetry, zapewniając kompletną obserwowalność aplikacji. 
+\end{tcolorbox}
+
+\subsubsection{Trzy filary observability:}
+
+\begin{enumerate}
+    \item \textbf{Logging} -- Strukturalne logi ze wszystkich serwisów
+    \item \textbf{Metrics} -- Metryki wydajności i biznesowe
+    \item \textbf{Tracing} -- Rozproszone śledzenie requestów przez wszystkie serwisy
+\end{enumerate}
+
+\subsubsection{Dashboard}
+
+Aspire dostarcza wbudowany dashboard dostępny podczas developmentu:
+\begin{itemize}
+    \item Widok wszystkich serwisów i ich statusu
+    \item Live logs z wszystkich komponentów
+    \item Metryki i wykresy
+    \item Distributed tracing
+    \item Console output
+\end{itemize}
+
+\subsection{Deployment i Manifesty}
+
+\subsubsection{Manifest}
+
+. NET Aspire może wygenerować manifest opisujący całą aplikację:
+
+\begin{lstlisting}[language=bash]
+dotnet run --project AppHost --publisher manifest --output-path manifest.json
+\end{lstlisting}
+
+\textbf{Manifest zawiera:}
+\begin{itemize}
+    \item Definicje wszystkich serwisów
+    \item Zależności między nimi
+    \item Wymagane zasoby (bazy danych, cache, itp.)
+    \item Zmienne środowiskowe
+    \item Konfigurację portów
+\end{itemize}
+
+\subsubsection{Opcje deployment:}
+
+\begin{itemize}
+    \item \textbf{Azure Container Apps} -- Natywne wsparcie
+    \item \textbf{Kubernetes} -- Przez konwersję manifestu
+    \item \textbf{Docker Compose} -- Lokalne środowisko produkcyjne
+    \item \textbf{Azure Developer CLI (azd)} -- Szybki deployment do Azure
+\end{itemize}
+
+\subsection{Dlaczego używać .NET Aspire?}
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=Korzyści]
+\textbf{Zalety używania .NET Aspire:}
+\end{tcolorbox}
+
+\begin{enumerate}
+    \item \textbf{Uproszczony development lokalny}
+    \begin{itemize}
+        \item Jeden punkt startowy dla całej aplikacji
+        \item Automatyczne zarządzanie zależnościami
+        \item Live reload i hot reload
+    \end{itemize}
+    
+    \item \textbf{Production-ready z pudełka}
+    \begin{itemize}
+        \item Wbudowana telemetria
+        \item Health checks
+        \item Resilience patterns
+    \end{itemize}
+    
+    \item \textbf{Ujednolicona konfiguracja}
+    \begin{itemize}
+        \item Service Defaults dla konsystencji
+        \item Centralna konfiguracja w App Host
+        \item Łatwe zarządzanie sekretami
+    \end{itemize}
+    
+    \item \textbf{Ecosystem integracji}
+    \begin{itemize}
+        \item Gotowe komponenty dla popularnych technologii
+        \item Spójne API dla różnych providerów
+        \item Łatwa wymiana implementacji
+    \end{itemize}
+    
+    \item \textbf{Developer Experience}
+    \begin{itemize}
+        \item Wspaniały dashboard
+        \item Intelligent IntelliSense
+        \item Visual Studio integration
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Kiedy używać .NET Aspire?}
+
+\textbf{Idealnie dla:}
+\begin{itemize}
+    \item Aplikacji mikroservices
+    \item Aplikacji cloud-native
+    \item Projektów z wieloma serwisami
+    \item Zespołów potrzebujących spójnej observability
+\end{itemize}
+
+\textbf{Możliwe overkill dla:}
+\begin{itemize}
+    \item Prostych aplikacji monolitycznych
+    \item Single-service projektów
+    \item Prototypów bez planów skalowania
+\end{itemize}

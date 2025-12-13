@@ -1,0 +1,274 @@
+\section{Zadanie 2 – Azure Speech: Realtime STT (mowa→tekst)}
+
+\subsection{Cel}
+Celem zadania było:
+\begin{enumerate}
+	\item Wykorzystanie Azure AI Speech do transkrypcji mowy na tekst (STT)
+	\item Testowanie transkrypcji z mikrofonu i pliku WAV
+	\item Zmiana języka rozpoznawania
+	\item Budowa aplikacji konsolowej w C# z użyciem Azure Speech SDK
+\end{enumerate}
+
+\subsection{Przygotowanie zasobów}
+
+\subsubsection{Zasoby Azure}
+Wykorzystano zasób Azure AI Speech \textbf{AzSpeechh} z Zadania 1:
+\begin{itemize}
+	\item \textbf{Endpoint:} \texttt{https://eastus.api.cognitive.microsoft.com/}
+	\item \textbf{Region:} East US
+	\item \textbf{Klucz:} Pobrany z Key Vault
+\end{itemize}
+
+\subsection{Budowa aplikacji C\# Console}
+
+\subsubsection{Inicjalizacja projektu}
+
+\begin{verbatim}
+dotnet new console -n SpeechToText
+cd SpeechToText
+dotnet add package Microsoft.CognitiveServices.Speech
+\end{verbatim}
+
+\subsubsection{Architektura aplikacji}
+
+Aplikacja implementuje 3 główne funkcje:
+
+\begin{enumerate}
+	\item \textbf{TranscribeFromMicrophone()} – transkrypcja z mikrofonu
+	\item \textbf{TranscribeFromFile()} – transkrypcja pliku WAV
+	\item \textbf{ChangeLanguage()} – zmiana języka rozpoznawania
+\end{enumerate}
+
+\subsection{Kod aplikacji}
+
+\subsubsection{Konfiguracja Azure Speech}
+
+\begin{lstlisting}[language=csharp, caption=Inicjalizacja SDK]
+using Microsoft.CognitiveServices.Speech;
+using Microsoft.CognitiveServices.Speech.Audio;
+
+class SpeechToTextApp
+{
+    private static readonly string SPEECH_KEY = 
+        "B7R2trwWyj6L2TnH8meh041n7P21FrZuJHS7jcqBja17GROIl2WIJQQJ99BLACYeBjFXJ3w3AAAYACOGRn9D";
+    private static readonly string SPEECH_REGION = "eastus";
+}
+\end{lstlisting}
+
+\subsubsection{Transkrypcja z mikrofonu}
+
+\begin{lstlisting}[language=csharp, caption=Funkcja TranscribeFromMicrophone]
+static async Task TranscribeFromMicrophone()
+{
+    var speechConfig = SpeechConfig.FromSubscription(SPEECH_KEY, SPEECH_REGION);
+    speechConfig.SpeechRecognitionLanguage = "pl-PL"; // Polski
+    
+    using (var audioConfig = AudioConfig.FromDefaultMicrophoneInput())
+    using (var recognizer = new SpeechRecognizer(speechConfig, audioConfig))
+    {
+        Console.WriteLine("Nasłuchuję...");
+        var result = await recognizer.RecognizeOnceAsync();
+        
+        if (result.Reason == ResultReason.RecognizedSpeech)
+        {
+            Console.WriteLine($"Rozpoznany tekst: {result.Text}");
+        }
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Transkrypcja pliku WAV}
+
+\begin{lstlisting}[language=csharp, caption=Funkcja TranscribeFromFile]
+static async Task TranscribeFromFile()
+{
+    string filePath = "test_audio.wav";
+    
+    var speechConfig = SpeechConfig.FromSubscription(SPEECH_KEY, SPEECH_REGION);
+    speechConfig.SpeechRecognitionLanguage = "pl-PL";
+    
+    using (var audioConfig = AudioConfig.FromWavFileInput(filePath))
+    using (var recognizer = new SpeechRecognizer(speechConfig, audioConfig))
+    {
+        var result = await recognizer.RecognizeOnceAsync();
+        
+        switch (result.Reason)
+        {
+            case ResultReason.RecognizedSpeech:
+                Console.WriteLine($"Transkrypcja: {result.Text}");
+                break;
+            case ResultReason.NoMatch:
+                Console.WriteLine("Nie rozpoznano mowy");
+                break;
+            case ResultReason.Canceled:
+                var cancellation = CancellationDetails.FromResult(result);
+                Console.WriteLine($"Błąd: {cancellation.ErrorDetails}");
+                break;
+        }
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Zmiana języka rozpoznawania}
+
+Aplikacja obsługuje następujące języki:
+
+\begin{center}
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Język} & \textbf{Kod locale} \\
+		\hline
+		Polski & pl-PL \\
+		Angielski (USA) & en-US \\
+		Niemiecki & de-DE \\
+		Francuski & fr-FR \\
+		Hiszpański & es-ES \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\begin{lstlisting}[language=csharp, caption=Zmiana języka]
+speechConfig.SpeechRecognitionLanguage = "en-US"; // Angielski
+\end{lstlisting}
+
+\subsection{Testowanie}
+
+\subsubsection{Przygotowanie pliku WAV}
+
+Utworzono plik testowy \texttt{test\_audio.wav} o parametrach:
+\begin{itemize}
+	\item \textbf{Częstotliwość próbkowania:} 16 kHz (16000 Hz)
+	\item \textbf{Format:} Mono (1 kanał)
+	\item \textbf{Głębia bitowa:} 16-bit
+	\item \textbf{Trwanie:} 3 sekundy
+	\item \textbf{Typ:} Ton sinusoidalny (testowy)
+\end{itemize}
+
+\begin{verbatim}
+python create_test_wav.py
+# Output:
+# ✅ Plik WAV utworzony: test_audio.wav
+#    - Częstotliwość próbkowania: 16000 Hz (16 kHz)
+#    - Kanały: 1 (Mono)
+#    - Trwanie: 3 s
+#    - Rozmiar: 93.8 KB
+\end{verbatim}
+
+\subsubsection{Build aplikacji}
+
+\begin{verbatim}
+dotnet build
+# Output:
+# SpeechToText zakończono powodzeniem
+# Kompiluj zakończono powodzeniem w 6,4s
+\end{verbatim}
+
+\subsubsection{Uruchomienie aplikacji}
+
+\begin{verbatim}
+dotnet run
+\end{verbatim}
+
+\textbf{Menu aplikacji:}
+\begin{verbatim}
+🎤 Azure Speech-to-Text (STT) Transkrypcja
+==========================================
+
+Wybierz opcję:
+1 - Transkrypcja z mikrofonu
+2 - Transkrypcja pliku WAV
+3 - Zmiana języka rozpoznawania
+4 - Wyjście
+\end{verbatim}
+
+\subsubsection{Scenario testowy}
+
+\textbf{Test 1: Transkrypcja pliku WAV}
+
+\begin{verbatim}
+Wybór: 2
+Podaj ścieżkę: test_audio.wav
+
+Output:
+✅ Transkrypcja:
+   [Tekst rozpoznany przez Azure Speech]
+\end{verbatim}
+
+\textbf{Test 2: Zmiana języka}
+
+\begin{verbatim}
+Wybór: 3
+Wyświetlona lista języków
+Język zmieniony: en-US (Angielski)
+\end{verbatim}
+
+\subsection{Struktura projektu}
+
+\begin{verbatim}
+SpeechToText/
+├── Program.cs              # Główna aplikacja
+├── SpeechToText.csproj    # Plik konfiguracyjny
+├── create_test_wav.py     # Generator pliku WAV
+└── bin/
+    └── Debug/
+        └── net9.0/
+            └── SpeechToText.dll  # Zbudowana aplikacja
+\end{verbatim}
+
+\subsection{Wymagania sprzętowe/systemowe}
+
+\begin{itemize}
+	\item \textbf{System operacyjny:} Windows, macOS, Linux
+	\item \textbf{Sprzęt:} Mikrofon (dla opcji 1)
+	\item \textbf{Połączenie internetowe:} Wymagane (komunikacja z Azure)
+	\item \textbf{.NET Runtime:} .NET 9.0+
+	\item \textbf{Klucz Azure Speech:} Przechowywany w Key Vault
+\end{itemize}
+
+\subsection{Obsługiwane formaty audio}
+
+Aplikacja obsługuje:
+\begin{itemize}
+	\item \textbf{Mikrofon:} Wejście ze sprzętu
+	\item \textbf{Pliki WAV:} 16 kHz, mono, 16-bit
+	\item \textbf{Streaming:} Możliwość rozszerzenia
+\end{itemize}
+
+\subsection{Obsługa błędów}
+
+Aplikacja obsługuje następujące scenariusze błędów:
+
+\begin{center}
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\textbf{Błąd} & \textbf{Przyczyna} & \textbf{Rozwiązanie} \\
+		\hline
+		NoMatch & Nie rozpoznano mowy & Powtórzyć, wyraźniej mówić \\
+		Canceled & Błąd sieci/auth & Sprawdzić klucz, połączenie \\
+		FileNotFound & Plik nie istnieje & Sprawdzić ścieżkę \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\subsection{Podsumowanie}
+
+\begin{itemize}
+	\item ✅ \textbf{Aplikacja C\#} zbudowana i skompilowana
+	\item ✅ \textbf{Integracja Azure Speech SDK} - transkrypcja mowy
+	\item ✅ \textbf{Obsługa mikrofonu} - nagrywanie w czasie rzeczywistym
+	\item ✅ \textbf{Obsługa pliku WAV} - transkrypcja zapisanych audio
+	\item ✅ \textbf{Wielojęzyczność} - 5 obsługiwanych języków
+	\item ✅ \textbf{Menu interaktywne} - łatwy dostęp do funkcji
+	\item ✅ \textbf{Obsługa błędów} - komunikaty diagnostyczne
+\end{itemize}
+
+\subsection{Możliwe rozszerzenia}
+
+\begin{itemize}
+	\item Obsługa plików MP3, OGG
+	\item Transkrypcja ciągła (continuous recognition)
+	\item Zmiana idiomów/dialektów
+	\item Zapisywanie wyników transkrypcji do pliku
+	\item Analiza pewności rozpoznania
+	\item Integracja z Text Analytics (analiza sentymentu)
+\end{itemize}

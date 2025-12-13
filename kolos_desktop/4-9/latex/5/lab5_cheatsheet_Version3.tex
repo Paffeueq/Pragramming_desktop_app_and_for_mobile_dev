@@ -1,0 +1,533 @@
+\section{Cheat Sheet - . NET Aspire}
+
+\subsection{Instalacja i setup}
+
+\subsubsection{Instalacja workload}
+
+\begin{lstlisting}[language=bash]
+# Instalacja . NET Aspire workload
+dotnet workload install aspire
+
+# Aktualizacja do najnowszej wersji
+dotnet workload update
+
+# Lista zainstalowanych workloads
+dotnet workload list
+\end{lstlisting}
+
+\subsubsection{Tworzenie nowego projektu}
+
+\begin{lstlisting}[language=bash]
+# Starter template (podstawowa aplikacja z Web + API)
+dotnet new aspire-starter -n MyAspireApp
+
+# Pusty App Host
+dotnet new aspire-apphost -n MyAppHost
+
+# Service Defaults
+dotnet new aspire-servicedefaults -n MyServiceDefaults
+
+# Przejscie do katalogu
+cd MyAspireApp
+
+# Uruchomienie
+dotnet run --project MyAspireApp. AppHost
+\end{lstlisting}
+
+\subsection{Struktura projektu Aspire}
+
+\begin{lstlisting}
+MyAspireApp/
+|-- MyAspireApp. AppHost/          # Projekt orkiestracyjny
+|   |-- Program.cs                 # Definicja aplikacji
+|   |-- appsettings.json
+|-- MyAspireApp.ServiceDefaults/   # Wspolna konfiguracja
+|   |-- Extensions. cs
+|-- MyAspireApp. ApiService/        # Przykladowy serwis API
+|-- MyAspireApp.Web/               # Przykladowy frontend
+\end{lstlisting}
+
+\subsection{App Host - podstawowe operacje}
+
+\subsubsection{Szablon Program.cs}
+
+\begin{lstlisting}[language={[Sharp]C}]
+var builder = DistributedApplication. CreateBuilder(args);
+
+// Dodawanie serwisow i zasobow
+
+builder.Build(). Run();
+\end{lstlisting}
+
+\subsubsection{Dodawanie projektów}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// Dodanie projektu . NET
+var apiService = builder.AddProject<Projects.ApiService>("apiservice");
+
+// Z referencja do innego serwisu
+var webApp = builder.AddProject<Projects. Web>("webapp")
+                    .WithReference(apiService);
+
+// Z zmienna srodowiskowa
+var api = builder.AddProject<Projects. Api>("api")
+                 .WithEnvironment("FEATURE_FLAG", "enabled");
+
+// Z konkretnym portem
+var service = builder.AddProject<Projects. Service>("service")
+                     .WithHttpEndpoint(port: 5001);
+\end{lstlisting}
+
+\subsubsection{Dodawanie kontenerów}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// Kontener z Docker Hub
+var redis = builder.AddContainer("redis", "redis")
+                   .WithEndpoint(targetPort: 6379);
+
+// Z woluminem
+var postgres = builder.AddContainer("postgres", "postgres")
+                      .WithEnvironment("POSTGRES_PASSWORD", "secret")
+                      .WithVolume("postgres-data", "/var/lib/postgresql/data");
+
+// Z custom image
+var myapp = builder.AddContainer("myapp", "myregistry/myimage")
+                   .WithTag("latest");
+\end{lstlisting}
+
+\subsection{Popularne integracje}
+
+\subsubsection{Redis}
+
+\begin{lstlisting}[language=bash]
+# Hosting integration (w AppHost)
+dotnet add package Aspire. Hosting.Redis
+
+# Client integration (w serwisie)
+dotnet add package Aspire.StackExchange.Redis
+\end{lstlisting}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// W AppHost
+var cache = builder.AddRedis("cache");
+var api = builder.AddProject<Projects. Api>("api")
+                 . WithReference(cache);
+
+// W serwisie API - Program.cs
+builder.AddRedisClient("cache");
+
+// W serwisie API - uzycie
+public class MyService
+{
+    private readonly IConnectionMultiplexer _redis;
+    
+    public MyService(IConnectionMultiplexer redis)
+    {
+        _redis = redis;
+    }
+    
+    public async Task SetValue(string key, string value)
+    {
+        var db = _redis.GetDatabase();
+        await db.StringSetAsync(key, value);
+    }
+}
+\end{lstlisting}
+
+\subsubsection{PostgreSQL}
+
+\begin{lstlisting}[language=bash]
+# Hosting
+dotnet add package Aspire. Hosting.PostgreSQL
+
+# Client
+dotnet add package Aspire. Npgsql
+\end{lstlisting}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// W AppHost
+var postgres = builder.AddPostgres("postgres")
+                      .AddDatabase("mydb");
+
+var api = builder.AddProject<Projects.Api>("api")
+                 .WithReference(postgres);
+
+// W serwisie
+builder.AddNpgsqlDataSource("mydb");
+
+// Uzycie
+public class MyDbContext : DbContext
+{
+    public MyDbContext(DbContextOptions<MyDbContext> options)
+        : base(options) { }
+}
+
+// Rejestracja
+builder.Services.AddDbContext<MyDbContext>();
+\end{lstlisting}
+
+\subsubsection{RabbitMQ}
+
+\begin{lstlisting}[language=bash]
+# Hosting
+dotnet add package Aspire. Hosting.RabbitMQ
+
+# Client
+dotnet add package Aspire.RabbitMQ. Client
+\end{lstlisting}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// W AppHost
+var messaging = builder.AddRabbitMQ("messaging");
+
+var worker = builder.AddProject<Projects. Worker>("worker")
+                    .WithReference(messaging);
+
+// W serwisie
+builder. AddRabbitMQClient("messaging");
+\end{lstlisting}
+
+\subsubsection{SQL Server}
+
+\begin{lstlisting}[language=bash]
+dotnet add package Aspire. Hosting.SqlServer
+dotnet add package Aspire. Microsoft.Data.SqlClient
+\end{lstlisting}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// W AppHost
+var sql = builder.AddSqlServer("sql")
+                 .AddDatabase("mydb");
+
+// W serwisie
+builder. AddSqlServerClient("mydb");
+\end{lstlisting}
+
+\subsection{Service Discovery}
+
+\subsubsection{Konfiguracja HttpClient}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// W AppHost - definiowanie zaleznosciwith
+var api = builder.AddProject<Projects. Api>("apiservice");
+var web = builder.AddProject<Projects. Web>("webfrontend")
+                 .WithReference(api);
+
+// W Web projekcie - Program.cs
+builder.Services.AddHttpClient<ApiClient>(client =>
+{
+    client.BaseAddress = new("http://apiservice");
+});
+
+// W Web projekcie - uzycie
+public class ApiClient
+{
+    private readonly HttpClient _httpClient;
+    
+    public ApiClient(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+    
+    public async Task<Data[]> GetDataAsync()
+    {
+        return await _httpClient
+            .GetFromJsonAsync<Data[]>("/api/data");
+    }
+}
+\end{lstlisting}
+
+\subsection{Service Defaults}
+
+\subsubsection{Dodawanie Service Defaults}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// W kazdym serwisie - Program.cs (na samym poczatku)
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults(); // <-- Dodaj to
+
+// ...  reszta konfiguracji
+\end{lstlisting}
+
+\subsubsection{Co zawierają Service Defaults}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// Service Defaults automatycznie konfiguruja:
+// 1. OpenTelemetry (logging, metrics, tracing)
+// 2.  Health checks
+// 3. Service discovery
+// 4. HTTP client resiliency
+
+// W Extensions.cs mozna dostosowac:
+public static IHostApplicationBuilder AddServiceDefaults(
+    this IHostApplicationBuilder builder)
+{
+    builder.ConfigureOpenTelemetry();
+    builder.AddDefaultHealthChecks();
+    builder. Services.AddServiceDiscovery();
+    builder. Services.ConfigureHttpClientDefaults(http =>
+    {
+        http. AddStandardResilienceHandler();
+        http.AddServiceDiscovery();
+    });
+    
+    return builder;
+}
+\end{lstlisting}
+
+\subsection{Konfiguracja i zmienne środowiskowe}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// Dodawanie zmiennych srodowiskowych
+var api = builder.AddProject<Projects. Api>("api")
+    .WithEnvironment("MY_SETTING", "value")
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development");
+
+// Przekazywanie sekretow
+var api = builder.AddProject<Projects.Api>("api")
+    .WithEnvironment("ApiKey", builder.Configuration["ApiKey"]);
+
+// Referencja do connectionString
+var db = builder.AddPostgres("postgres"). AddDatabase("mydb");
+var api = builder.AddProject<Projects. Api>("api")
+    .WithReference(db); // Automatycznie dodaje connection string
+\end{lstlisting}
+
+\subsection{Dashboard}
+
+\subsubsection{Dostęp do Dashboard}
+
+\begin{lstlisting}[language=bash]
+# Dashboard jest automatycznie dostepny po uruchomieniu AppHost
+# URL wyswietla sie w konsoli, typowo:
+# https://localhost:17123
+\end{lstlisting}
+
+\textbf{Funkcje Dashboard:}
+\begin{itemize}
+    \item Widok wszystkich zasobów i serwisów
+    \item Live logs
+    \item Console output
+    \item Metryki
+    \item Distributed tracing
+    \item Environment variables
+    \item Endpoints
+\end{itemize}
+
+\subsection{Telemetria i Observability}
+
+\subsubsection{Custom metrics}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// Definicja custom metric
+public class OrderMetrics
+{
+    private readonly Counter<int> _ordersProcessed;
+    
+    public OrderMetrics(IMeterFactory meterFactory)
+    {
+        var meter = meterFactory.Create("MyApp.Orders");
+        _ordersProcessed = meter.CreateCounter<int>("orders. processed");
+    }
+    
+    public void RecordOrderProcessed()
+    {
+        _ordersProcessed.Add(1);
+    }
+}
+
+// Rejestracja
+builder.Services.AddSingleton<OrderMetrics>();
+\end{lstlisting}
+
+\subsubsection{Custom tracing}
+
+\begin{lstlisting}[language={[Sharp]C}]
+using System.Diagnostics;
+
+public class MyService
+{
+    private static readonly ActivitySource _activitySource = 
+        new("MyApp.MyService");
+    
+    public async Task DoWorkAsync()
+    {
+        using var activity = _activitySource
+            .StartActivity("ProcessOrder");
+        
+        activity?.SetTag("order. id", "12345");
+        
+        // ...  logika biznesowa
+        
+        activity?.SetStatus(ActivityStatusCode.Ok);
+    }
+}
+\end{lstlisting}
+
+\subsection{Deployment}
+
+\subsubsection{Generowanie manifestu}
+
+\begin{lstlisting}[language=bash]
+# Generuj manifest JSON
+dotnet run --project AppHost \
+  --publisher manifest \
+  --output-path ../manifest.json
+
+# Manifest opisuje cala aplikacje i moze byc uzywany
+# do deployment na rozne platformy
+\end{lstlisting}
+
+\subsubsection{Azure Developer CLI (azd)}
+
+\begin{lstlisting}[language=bash]
+# Inicjalizacja
+azd init
+
+# Deploy do Azure
+azd up
+
+# Monitoring
+azd monitor
+
+# Cleanup
+azd down
+\end{lstlisting}
+
+\subsubsection{Docker Compose}
+
+\begin{lstlisting}[language=bash]
+# Wygeneruj manifest, a nastepnie:
+# Uzyj narzedzi do konwersji manifest -> docker-compose.yml
+\end{lstlisting}
+
+\subsection{Debugging i Development}
+
+\subsubsection{Uruchamianie w Visual Studio}
+
+\begin{itemize}
+    \item Ustaw AppHost jako startup project
+    \item F5 uruchomi wszystkie serwisy i dashboard
+    \item Mozesz debugowac wszystkie projekty jednoczesnie
+\end{itemize}
+
+\subsubsection{Selective startup}
+
+\begin{lstlisting}[language={[Sharp]C}]
+// Uruchamianie tylko wybranych serwisow
+var api = builder.AddProject<Projects.Api>("api")
+    . ExcludeFromManifest(); // Nie bedzie w manifescie
+
+// Warunkowe dodawanie
+if (builder.Environment.IsDevelopment())
+{
+    builder.AddProject<Projects.TestService>("testservice");
+}
+\end{lstlisting}
+
+\subsection{Najczęstsze komendy CLI}
+
+\begin{lstlisting}[language=bash]
+# Instalacja
+dotnet workload install aspire
+
+# Nowy projekt
+dotnet new aspire-starter -n MyApp
+
+# Dodanie integracji do AppHost
+dotnet add package Aspire. Hosting.Redis
+
+# Dodanie client integration
+dotnet add package Aspire.StackExchange.Redis
+
+# Uruchomienie
+dotnet run --project MyApp.AppHost
+
+# Watch mode (auto-reload)
+dotnet watch --project MyApp.AppHost
+
+# Build
+dotnet build
+
+# Generowanie manifestu
+dotnet run --project MyApp.AppHost \
+  --publisher manifest \
+  --output-path manifest.json
+
+# Czyszczenie
+dotnet clean
+\end{lstlisting}
+
+\subsection{Best Practices}
+
+\begin{enumerate}
+    \item \textbf{Zawsze używaj Service Defaults} w każdym serwisie
+    
+    \item \textbf{Nie hardcoduj URLs} -- używaj Service Discovery
+    
+    \item \textbf{Nazywaj zasoby konsekwentnie}
+    \begin{lstlisting}[language={[Sharp]C}]
+// Dobra praktyka
+var cache = builder.AddRedis("cache");
+builder.AddRedisClient("cache"); // Ta sama nazwa! 
+    \end{lstlisting}
+    
+    \item \textbf{Używaj WithReference} dla zależności
+    
+    \item \textbf{Grupuj konfigurację} w extension methods
+    
+    \item \textbf{Monitoruj telemetrię} od początku projektu
+    
+    \item \textbf{Testuj lokalnie z prawdziwymi zależnościami} (Redis, PostgreSQL w kontenerach)
+    
+    \item \textbf{Używaj parametrów} dla secrets w produkcji
+\end{enumerate}
+
+\subsection{Troubleshooting}
+
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Częste problemy]
+
+\textbf{Problem:} Serwis nie może połączyć się z bazą danych \\
+\textbf{Rozwiązanie:} Sprawdź czy:
+\begin{itemize}
+    \item Używasz \texttt{WithReference()} w AppHost
+    \item Dodałeś client integration w serwisie
+    \item Nazwy się zgadzają
+\end{itemize}
+
+\textbf{Problem:} Dashboard nie wyświetla logów \\
+\textbf{Rozwiązanie:} Upewnij się że wywołujesz \texttt{builder.AddServiceDefaults()}
+
+\textbf{Problem:} Service Discovery nie działa \\
+\textbf{Rozwiązanie:} Sprawdź czy HttpClient jest skonfigurowany z Service Discovery:
+\begin{lstlisting}[language={[Sharp]C}]
+builder.Services.ConfigureHttpClientDefaults(http =>
+{
+    http.AddServiceDiscovery();
+});
+\end{lstlisting}
+
+\end{tcolorbox}
+
+\subsection{Kluczowe pakiety NuGet}
+
+\begin{table}[h]
+\small
+\begin{tabular}{|p{6cm}|p{8cm}|}
+\hline
+\textbf{Pakiet} & \textbf{Przeznaczenie} \\
+\hline
+Aspire. Hosting & Podstawa dla AppHost \\
+Aspire. Hosting.AppHost & AppHost runtime \\
+Aspire. Hosting.Redis & Redis hosting integration \\
+Aspire. Hosting.PostgreSQL & PostgreSQL hosting \\
+Aspire.Hosting.RabbitMQ & RabbitMQ hosting \\
+Aspire.Hosting.SqlServer & SQL Server hosting \\
+Aspire. StackExchange.Redis & Redis client \\
+Aspire. Npgsql & PostgreSQL client \\
+Aspire.RabbitMQ.Client & RabbitMQ client \\
+Aspire.Microsoft.Data. SqlClient & SQL Server client \\
+\hline
+\end{tabular}
+\end{table}

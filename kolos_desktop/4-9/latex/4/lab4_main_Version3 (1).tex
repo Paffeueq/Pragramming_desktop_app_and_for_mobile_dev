@@ -1,0 +1,78 @@
+\documentclass[12pt,a4paper]{article}
+
+% Kodowanie - TYLKO TO:
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}            % WAŻNE dla ł
+\usepackage[polish]{babel}
+
+% Reszta pakietów:
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,      
+	urlcolor=cyan,
+	pdftitle={Laboratorium 4 - Blazor . NET 8 - Powtórka},
+	pdfauthor={Student},
+}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{csharpstyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2,
+	language=[Sharp]C
+}
+
+\lstset{style=csharpstyle}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Lab 4 - Blazor .NET 8}
+\lhead{Powtórka na kolokwium}
+\rfoot{Strona \thepage}
+
+\title{\textbf{Laboratorium 4 - Powtórka} \\ Blazor - Aplikacje w .NET 8}
+\author{Materiały na kolokwium}
+\date{\today}
+
+\begin{document}
+	
+	\maketitle
+	\tableofcontents
+	\newpage
+	
+	\input{lab4_theory_Version1.tex}
+	\newpage
+	\input{lab4_materials_Version1.tex}
+	\newpage
+	\input{lab4_cheatsheet_Version3.tex}
+	
+\end{document}

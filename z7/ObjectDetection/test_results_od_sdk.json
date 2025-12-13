@@ -1,0 +1,23 @@
+{
+  "method": "SDK",
+  "total": 3,
+  "passed": 0,
+  "failed": 3,
+  "results": [
+    {
+      "image": "test_1.jpg",
+      "status": "FAIL",
+      "error": "Invalid project type for operation."
+    },
+    {
+      "image": "test_2.jpg",
+      "status": "FAIL",
+      "error": "Invalid project type for operation."
+    },
+    {
+      "image": "test_3.jpg",
+      "status": "FAIL",
+      "error": "Invalid project type for operation."
+    }
+  ]
+}

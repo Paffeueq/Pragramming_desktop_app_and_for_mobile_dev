@@ -1,0 +1,100 @@
+
+Home
+Research
+Teaching
+Contact
+📘 **Tematy do poruszenia — Programowanie aplikacji w Azure **
+1. Podstawy architektury chmury
+Resource Group, subskrypcja
+Regiony i dostępność
+Modele usług: IaaS, PaaS, Serverless
+2. Azure Functions
+Typy wywołań: HTTP, Timer, Blob, Queue
+Function App – konfiguracja i środowiska
+Integracja z innymi usługami (Storage, DB, Key Vault)
+3. Azure Storage
+Blob Storage – pliki, kontenery, uprawnienia
+Queue Storage – komunikacja asynchroniczna
+Table Storage – lekka baza NoSQL
+SAS Tokens i RBAC – kontrola dostępu
+4. Azure App Service / Static Web Apps
+Hostowanie stron i API
+Konfiguracja środowiska
+Ustawienia aplikacji (App Settings)
+5. Projektowanie API w chmurze
+REST, JSON, kontrakty danych
+Autoryzacja (API Keys, Managed Identity)
+Skalowanie endpointów
+6. Key Vault
+Przechowywanie kluczy i poświadczeń
+Pobieranie sekretów z Function / App Service
+Managed Identity
+7. Azure Service Bus / Storage Queue
+Kolejki, wiadomości, Topics
+Integracja z Functions (QueueTrigger)
+Wzorce komunikacji asynchronicznej
+8. Bazy danych w Azure
+Azure SQL — relacyjna baza
+Cosmos DB — NoSQL (struktura JSON)
+Połączenie z Function/API
+1. Utworzenie API w Azure Functions (HTTP Trigger)
+Stwórz funkcję HTTP zwracającą JSON.
+Dołącz parametr (np. name) i generuj odpowiedź dynamicznie.
+Przetestuj w Postmanie.
+2. Przesyłanie plików do Azure Storage – pełna aplikacja
+Twoim celem jest stworzenie systemu:
+
+Aplikacja kliencka (konsola .NET / frontend JS / Postman) przesyła plik.
+Azure Function (HTTP Trigger) odbiera plik jako multipart/form-data lub base64.
+Funkcja zapisuje go do Blob Storage w wybranym kontenerze.
+Funkcja zwraca URL pliku (SAS lub ścieżkę).
+Osobna funkcja (Blob Trigger) loguje, że plik się pojawił — zapis do Table Storage.
+Efekt końcowy: działający upload pliku i automatyczne przetwarzanie po stronie chmury.
+
+3. Harmonogramowane zadania – Timer Trigger
+Utwórz funkcję uruchamianą co minutę lub co godzinę.
+Funkcja zapisuje timestamp do Storage Table albo logów.
+4. Praca z danymi – zapis i odczyt w bazie danych
+Utwórz bazę: Azure SQL lub Cosmos DB.
+Funkcja HTTP przyjmuje JSON (np. dane użytkownika / produkt).
+Funkcja zapisuje dane do bazy.
+Drugi endpoint pobiera rekordy.
+5. Key Vault – bezpieczne sekrety
+Utwórz Key Vault oraz dodaj sekret: connection string do DB lub Storage.
+Skonfiguruj Function App, aby korzystała z Managed Identity.
+Pobierz sekret w funkcji i użyj go do połączenia z bazą lub Storage.
+6. Aplikacja WWW + API w chmurze
+Zbuduj proste rozwiązanie:
+
+Static Web App lub App Service hostuje frontend (HTML/JS).
+Frontend wysyła żądanie do API w funkcji.
+API zwraca dane pobrane z bazy lub Storage.
+Może to być np. mini-aplikacja: ✔ upload pliku ✔ lista przesłanych plików ✔ zapis danych w bazie
+
+7. Kolejki – przetwarzanie asynchroniczne
+Stwórz system oparty o Storage Queue lub Service Bus:
+
+Aplikacja (lub HTTP Function) wrzuca wiadomość do kolejki.
+Funkcja QueueTrigger odbiera wiadomość i wykonuje operację (np. zapis do DB).
+Dodaj logi potwierdzające przetworzenie.
+8. Projekt końcowy – aplikacja chmurowa
+Celem jest zbudowanie kompletnej aplikacji w Azure, składającej się z:
+
+Azure Functions (API + przetwarzanie plików + kolejki)
+Azure Storage (pliki + tabelki)
+Azure SQL lub Cosmos DB
+Key Vault (tajne dane)
+Static Web App / App Service (frontend lub klient)
+Aplikacji konsolowej lub webowej do testowania uploadu plików
+Wymagania minimalne:
+
+API do przesyłania plików do Blob Storage
+API do zapisu/odczytu danych z DB
+Obsługa kolejki
+Pobieranie sekretów z Key Vault
+Frontend lub klient konsolowy
+Deployment do Azure
+💻
+💼
+📧
+© 2025 Tomasz Leś | Warsaw University of Technology

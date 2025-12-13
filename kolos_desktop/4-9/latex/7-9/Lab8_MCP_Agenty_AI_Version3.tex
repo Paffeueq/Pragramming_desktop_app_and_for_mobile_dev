@@ -1,0 +1,703 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\geometry{left=2cm, right=2cm, top=2cm, bottom=2cm}
+
+\definecolor{mcppurple}{RGB}{138,43,226}
+\definecolor{lightpurple}{RGB}{230,230,250}
+\definecolor{darkpurple}{RGB}{75,0,130}
+
+\newtcolorbox{infobox}[1]{
+    colback=lightpurple,
+    colframe=mcppurple,
+    fonttitle=\bfseries,
+    title=#1
+}
+
+\newtcolorbox{warnbox}{
+    colback=yellow! 10,
+    colframe=orange,
+    fonttitle=\bfseries,
+    title=Ważne! 
+}
+
+\title{\textbf{\Huge Lab 8: Tworzenie Agentów AI MCP} \\ \Large Model Context Protocol}
+\author{Materiały na kolokwium - Część 2}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Model Context Protocol (MCP)}
+
+\subsection{Podstawy}
+
+\begin{infobox}{Czym jest MCP?}
+\textbf{Model Context Protocol} - otwarty protokół komunikacji między aplikacjami AI a źródłami danych/narzędziami
+
+\textbf{Problem który rozwiązuje:}
+\begin{itemize}
+    \item LLM mają ograniczony kontekst (training data cutoff)
+    \item Brak dostępu do real-time data
+    \item Brak dostępu do prywatnych danych (bazy danych, internal APIs)
+    \item Brak możliwości wykonania akcji w external systems
+    \item Każdy vendor ma własne API (vendor lock-in)
+\end{itemize}
+
+\textbf{Rozwiązanie MCP:}
+\begin{itemize}
+    \item \textbf{Standardowy protokół} - jeden standard dla wszystkich
+    \item \textbf{Modułowe rozszerzenia} - plug-and-play tools
+    \item \textbf{Dostęp do external data} - real-time info
+    \item \textbf{Możliwość akcji} - wywołanie funkcji, API calls
+    \item \textbf{Provider-agnostic} - działa z różnymi LLM
+\end{itemize}
+
+\textbf{Specyfikacja:} modelcontextprotocol.io (open standard)
+\end{infobox}
+
+\subsection{Architektura MCP}
+
+\begin{infobox}{Komponenty Systemu}
+\textbf{MCP Server:}
+\begin{itemize}
+    \item Udostępnia \textbf{tools} (narzędzia do wywołania)
+    \item Udostępnia \textbf{resources} (dane, dokumenty)
+    \item Udostępnia \textbf{prompts} (prompt templates)
+    \item Implementacja: C\#, Python, TypeScript, Go
+    \item Hosting: lokalnie (stdio) lub zdalnie (HTTP)
+\end{itemize}
+
+\textbf{MCP Client:}
+\begin{itemize}
+    \item Aplikacja AI (GitHub Copilot, ChatGPT, Claude, Gemini)
+    \item Łączy się z MCP server
+    \item Discover tools (lista dostępnych narzędzi)
+    \item Invoke tools (wywołanie funkcji)
+    \item Process responses
+\end{itemize}
+
+\textbf{Transport Layer:}
+\begin{itemize}
+    \item \textbf{stdio} - standard input/output (local processes)
+    \item \textbf{HTTP} - REST API (remote servers)
+    \item \textbf{SSE} - Server-Sent Events (streaming)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Workflow MCP}
+\textbf{Typowy przepływ:}
+\begin{enumerate}
+    \item User zadaje pytanie AI assistant
+    \item AI assistant analizuje - potrzebuje external data/action
+    \item Client wysyła request do MCP Server: "list tools"
+    \item Server zwraca listę dostępnych tools (name, description, parameters)
+    \item AI wybiera odpowiednie tool
+    \item Client wywołuje tool z parametrami
+    \item Server wykonuje akcję (query database, call API, read file)
+    \item Server zwraca wynik
+    \item AI przetwarza wynik i odpowiada user
+\end{enumerate}
+
+\textbf{Przykład:}
+\begin{itemize}
+    \item User: "Ile mamy klientów z Polski?"
+    \item AI: potrzebuję danych z bazy
+    \item Tool: \texttt{queryDatabase(sql: "SELECT COUNT(*) FROM customers WHERE country='Poland'")}
+    \item Result: \texttt{\{count: 1523\}}
+    \item AI: "Mamy 1523 klientów z Polski."
+\end{itemize}
+\end{infobox}
+
+\subsection{Porównanie z innymi podejściami}
+
+\begin{infobox}{MCP vs Function Calling vs Plugins}
+\textbf{Function Calling (OpenAI):}
+\begin{itemize}
+    \item LLM wywołuje funkcje zdefiniowane w aplikacji
+    \item Vendor-specific API (tylko OpenAI)
+    \item Tight coupling z providerem
+    \item JSON schema dla function definitions
+    \item Limited to OpenAI models
+\end{itemize}
+
+\textbf{Plugins (ChatGPT):}
+\begin{itemize}
+    \item OpenAPI-based extensions
+    \item Tylko ChatGPT
+    \item Limited scope (HTTP only)
+    \item Deprecated (zastępowane GPTs i Actions)
+\end{itemize}
+
+\textbf{MCP (Model Context Protocol):}
+\begin{itemize}
+    \item \textbf{Universal standard} - open protocol
+    \item \textbf{Provider-agnostic} - działa z OpenAI, Anthropic, Google, Microsoft
+    \item \textbf{Modular} - plug-and-play servers
+    \item \textbf{Multiple transports} - stdio, HTTP, SSE
+    \item \textbf{Community-driven} - open source implementations
+    \item \textbf{Richer capabilities} - tools + resources + prompts
+\end{itemize}
+
+\textbf{Kiedy MCP:}
+\begin{itemize}
+    \item Multi-provider support (nie jesteś locked do jednego LLM)
+    \item Reusable tools (share między różnymi AI apps)
+    \item Complex integrations (databases, APIs, files)
+    \item Local development (VS Code Copilot)
+\end{itemize}
+\end{infobox}
+
+\section{MCP Server}
+
+\subsection{Podstawy Serwera}
+
+\begin{infobox}{Rola MCP Server}
+\textbf{Serwer udostępnia 3 typy zasobów:}
+
+\textbf{1. Tools (Narzędzia):}
+\begin{itemize}
+    \item Funkcje które LLM może wywołać
+    \item Przykłady: searchDatabase, sendEmail, readFile, callAPI
+    \item Parametry wejściowe (input schema)
+    \item Typ zwracany (output)
+\end{itemize}
+
+\textbf{2. Resources (Zasoby):}
+\begin{itemize}
+    \item Dane dostępne dla LLM jako kontekst
+    \item Przykłady: dokumentacja, config files, knowledge base
+    \item Read-only (LLM czyta, nie modyfikuje)
+\end{itemize}
+
+\textbf{3. Prompts (Szablony):}
+\begin{itemize}
+    \item Pre-defined prompt templates
+    \item Parametryzowane prompty
+    \item Przykład: "Analyze code in \{file\}" template
+\end{itemize}
+\end{infobox}
+
+\subsection{Implementacja w C\# (.NET 9)}
+
+\begin{infobox}{MCP SDK dla . NET}
+\textbf{Instalacja:}
+\begin{itemize}
+    \item NuGet package: (sprawdź GitHub - dotnet-sdk)
+    \item Repository: github.com/modelcontextprotocol/dotnet-sdk
+\end{itemize}
+
+\textbf{Podstawowa struktura:}
+\begin{itemize}
+    \item \texttt{McpServer} - main server class
+    \item \texttt{[McpTool]} - attribute dla tool methods
+    \item \texttt{[McpResource]} - attribute dla resources
+    \item Transport configuration (stdio/HTTP)
+\end{itemize}
+
+\textbf{Tool definition:}
+\begin{itemize}
+    \item Public method z \texttt{[McpTool]} attribute
+    \item Description (pomaga LLM decide kiedy użyć)
+    \item Parameters z JSON Schema validation
+    \item Return type (string, object, list)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Kontrakt Narzędzi}
+\textbf{Tool metadata:}
+\begin{itemize}
+    \item \textbf{Name} - unikalna nazwa (camelCase recommended)
+    \item \textbf{Description} - jasny opis co robi (LLM używa do decision)
+    \item \textbf{Parameters} - input schema (JSON Schema)
+    \item \textbf{Required fields} - które parametry obowiązkowe
+\end{itemize}
+
+\textbf{JSON Schema dla parametrów:}
+\begin{itemize}
+    \item Type: string, number, boolean, object, array
+    \item Format: date, email, uri, etc.
+    \item Constraints: minLength, maxLength, pattern (regex)
+    \item Enum: ograniczony zestaw wartości
+    \item Validation przed wykonaniem tool
+\end{itemize}
+
+\textbf{Przykład tool:}
+\begin{itemize}
+    \item Name: \texttt{searchDatabase}
+    \item Description: "Search customer database by country"
+    \item Parameters: \texttt{\{country: string (required)\}}
+    \item Returns: \texttt{List<Customer>}
+\end{itemize}
+\end{infobox}
+
+\subsection{Transport: stdio vs HTTP}
+
+\begin{infobox}{stdio Transport}
+\textbf{Standard Input/Output}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Local process communication
+    \item Server runs jako subprocess
+    \item Communication przez stdin/stdout
+    \item JSON-RPC over stdio
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Local development (VS Code extensions)
+    \item Desktop applications
+    \item Trusted environment (same machine)
+    \item Low latency (no network overhead)
+\end{itemize}
+
+\textbf{VS Code integration:}
+\begin{itemize}
+    \item Copilot automatycznie discovers MCP servers
+    \item Configuration w \texttt{settings.json}
+    \item Server path i arguments
+\end{itemize}
+
+\textbf{Zalety:}
+\begin{itemize}
+    \item (+) Prosty setup
+    \item (+) No authentication needed (local trust)
+    \item (+) Low latency
+\end{itemize}
+
+\textbf{Wady:}
+\begin{itemize}
+    \item (-) Only local (nie remote)
+    \item (-) Wymaga spawning processes
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{HTTP Transport}
+\textbf{REST API}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Remote server communication
+    \item Standard HTTP requests (POST)
+    \item JSON payloads
+    \item Can be hosted anywhere (Azure, AWS, on-prem)
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Remote access (distributed systems)
+    \item Multiple clients (shared server)
+    \item Production deployments
+    \item Cloud-hosted services
+\end{itemize}
+
+\textbf{Security:}
+\begin{itemize}
+    \item HTTPS (TLS encryption)
+    \item API key authentication
+    \item Rate limiting
+    \item CORS configuration
+\end{itemize}
+
+\textbf{Zalety:}
+\begin{itemize}
+    \item (+) Remote access
+    \item (+) Scalable (load balancing)
+    \item (+) Language agnostic (any HTTP client)
+\end{itemize}
+
+\textbf{Wady:}
+\begin{itemize}
+    \item (-) Network latency
+    \item (-) Authentication complexity
+    \item (-) Requires hosting infrastructure
+\end{itemize}
+\end{infobox}
+
+\section{MCP Client}
+
+\subsection{Integracja z Aplikacją}
+
+\begin{infobox}{Rola MCP Client}
+\textbf{Client responsibilities:}
+\begin{itemize}
+    \item \textbf{Connect} - nawiązanie połączenia z MCP server
+    \item \textbf{Discover} - listowanie dostępnych tools/resources
+    \item \textbf{Invoke} - wywoływanie tools z parametrami
+    \item \textbf{Handle responses} - przetwarzanie wyników
+    \item \textbf{Error handling} - retry, timeout, fallback
+\end{itemize}
+
+\textbf{Przykładowi klienci:}
+\begin{itemize}
+    \item GitHub Copilot (VS Code)
+    \item Claude Desktop (Anthropic)
+    \item Custom aplikacje (C\#, Python, TypeScript)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Implementacja w C\#}
+\textbf{HttpClient approach:}
+\begin{itemize}
+    \item HttpClient do komunikacji z HTTP server
+    \item JSON-RPC protocol
+    \item Request: \texttt{\{jsonrpc: "2.0", method: "tools/call", params: .. .\}}
+    \item Response: \texttt{\{jsonrpc: "2.0", result: ...\}}
+\end{itemize}
+
+\textbf{Error handling:}
+\begin{itemize}
+    \item Network errors (timeout, connection refused)
+    \item Server errors (tool execution failed)
+    \item Validation errors (invalid parameters)
+    \item Retry logic (exponential backoff)
+\end{itemize}
+
+\textbf{Timeout configuration:}
+\begin{itemize}
+    \item Connection timeout (5-10 seconds)
+    \item Request timeout (30-60 seconds dla long operations)
+    \item CancellationToken support
+\end{itemize}
+\end{infobox}
+
+\subsection{VS Code MCP Integration}
+
+\begin{infobox}{Copilot + MCP}
+\textbf{Auto-discovery:}
+\begin{itemize}
+    \item VS Code Copilot automatycznie wykrywa MCP servers
+    \item Configuration w \texttt{. vscode/settings.json}
+    \item Lista servers z paths i args
+\end{itemize}
+
+\textbf{Chat integration:}
+\begin{itemize}
+    \item User chat z Copilot
+    \item Copilot analizuje - potrzebuje MCP tool
+    \item Automatyczne wywołanie tool
+    \item Wynik injected do context
+    \item Copilot odpowiada z pełnym kontekstem
+\end{itemize}
+
+\textbf{Context injection:}
+\begin{itemize}
+    \item MCP resources dodane do context window
+    \item LLM ma dostęp do local docs, configs
+    \item Better code suggestions (context-aware)
+\end{itemize}
+
+\textbf{Dokumentacja:}
+\begin{itemize}
+    \item code.visualstudio.com/docs/copilot/chat-mcp
+\end{itemize}
+\end{infobox}
+
+\section{Narzędzia (Tools) w MCP}
+
+\subsection{Definiowanie Tools}
+
+\begin{infobox}{Anatomia Tool}
+\textbf{Komponenty:}
+
+\textbf{1. Name (Nazwa):}
+\begin{itemize}
+    \item Unikalna w ramach servera
+    \item camelCase convention
+    \item Opisowa (searchDatabase, sendEmail, readFile)
+\end{itemize}
+
+\textbf{2. Description (Opis):}
+\begin{itemize}
+    \item Jasny, precyzyjny opis funkcjonalności
+    \item LLM używa do decision making (kiedy użyć tool)
+    \item Include use case i constraints
+    \item Przykład: "Search customer database by country.  Returns list of customers with name, email, and registration date."
+\end{itemize}
+
+\textbf{3. Input Parameters (Parametry wejściowe):}
+\begin{itemize}
+    \item JSON Schema definition
+    \item Required vs optional fields
+    \item Type constraints (string, number, boolean, object)
+    \item Validation rules (min/max, pattern, enum)
+\end{itemize}
+
+\textbf{4. Output (Wynik):}
+\begin{itemize}
+    \item Return type description
+    \item Schema dla structured output
+    \item Error cases (co zwraca przy failure)
+\end{itemize}
+\end{infobox}
+
+\subsection{Przykładowe Tools}
+
+\begin{infobox}{Przykłady Narzędzi}
+\textbf{1. searchDatabase}
+\begin{itemize}
+    \item Description: "Query SQL database"
+    \item Input: \texttt{\{sql: string (required), limit: number (optional)\}}
+    \item Output: \texttt{List<Row>}
+    \item Use case: data retrieval, analytics
+\end{itemize}
+
+\textbf{2. fetchWeather}
+\begin{itemize}
+    \item Description: "Get current weather for city"
+    \item Input: \texttt{\{city: string (required), units: 'metric'|'imperial' (optional)\}}
+    \item Output: \texttt{\{temp: number, condition: string, humidity: number\}}
+    \item Use case: real-time data
+\end{itemize}
+
+\textbf{3. sendEmail}
+\begin{itemize}
+    \item Description: "Send email via SMTP"
+    \item Input: \texttt{\{to: string, subject: string, body: string\}}
+    \item Output: \texttt{\{success: bool, messageId: string\}}
+    \item Use case: notifications, communication
+\end{itemize}
+
+\textbf{4. readFile}
+\begin{itemize}
+    \item Description: "Read file content from path"
+    \item Input: \texttt{\{path: string\}}
+    \item Output: \texttt{\{content: string, size: number\}}
+    \item Use case: local file access
+\end{itemize}
+
+\textbf{5. executeSQL}
+\begin{itemize}
+    \item Description: "Execute SQL query (SELECT only)"
+    \item Input: \texttt{\{query: string, database: string\}}
+    \item Output: \texttt{\{rows: array, rowCount: number\}}
+    \item Use case: business intelligence queries
+\end{itemize}
+\end{infobox}
+
+\subsection{JSON Schema Validation}
+
+\begin{infobox}{Walidacja Parametrów}
+\textbf{Typy podstawowe:}
+\begin{itemize}
+    \item \texttt{string} - tekst
+    \item \texttt{number} - liczby (int lub float)
+    \item \texttt{boolean} - true/false
+    \item \texttt{object} - zagnieżdżone obiekty
+    \item \texttt{array} - listy
+\end{itemize}
+
+\textbf{Constraints:}
+\begin{itemize}
+    \item \texttt{minLength/maxLength} - dla stringów
+    \item \texttt{minimum/maximum} - dla liczb
+    \item \texttt{pattern} - regex dla stringów
+    \item \texttt{enum} - limited set of values
+    \item \texttt{format} - email, uri, date, etc.
+\end{itemize}
+
+\textbf{Required fields:}
+\begin{itemize}
+    \item \texttt{required: ["field1", "field2"]}
+    \item Walidacja przed wykonaniem tool
+    \item Error jeśli brakuje required field
+\end{itemize}
+
+\textbf{Przykład schema:}
+\begin{itemize}
+    \item Type: object
+    \item Properties: \texttt{\{country: \{type: "string", minLength: 2\}\}}
+    \item Required: \texttt{["country"]}
+\end{itemize}
+\end{infobox}
+
+\section{Ćwiczenia Praktyczne}
+
+\subsection{Ćwiczenie 1: Prosty Serwer MCP}
+
+\begin{infobox}{Stworzenie Basic Server w C\#}
+\textbf{Cel:} Prosty MCP server z jednym tool
+
+\textbf{Kroki:}
+\begin{enumerate}
+    \item Utwórz . NET console app
+    \item Dodaj MCP SDK (NuGet)
+    \item Zdefiniuj tool: \texttt{getCurrentTime}
+    \item Description: "Returns current server time"
+    \item Parameters: \texttt{\{timezone: string (optional)\}}
+    \item Return: \texttt{\{time: string, timezone: string\}}
+    \item Configure stdio transport
+    \item Test w VS Code Copilot
+\end{enumerate}
+
+\textbf{Test:}
+\begin{itemize}
+    \item VS Code: Add MCP server do settings
+    \item Copilot Chat: "What time is it?"
+    \item Verify tool invocation
+\end{itemize}
+\end{infobox}
+
+\subsection{Ćwiczenie 2: Klient MCP}
+
+\begin{infobox}{Wywołanie Tool przez LLM}
+\textbf{Cel:} Custom aplikacja wywołująca MCP server
+
+\textbf{Kroki:}
+\begin{enumerate}
+    \item Utwórz HTTP MCP server (z ćwiczenia 1)
+    \item Deploy lokalnie (localhost:5000)
+    \item Utwórz console client app
+    \item Implement discovery (list tools)
+    \item Implement tool invocation
+    \item Integrate z OpenAI API (function calling)
+    \item LLM decyduje kiedy użyć tool
+    \item Client wywołuje MCP tool
+    \item LLM przetwarza result
+\end{enumerate}
+
+\textbf{Flow:}
+\begin{itemize}
+    \item User → OpenAI → decyzja: use tool → MCP Server → result → OpenAI → answer
+\end{itemize}
+\end{infobox}
+
+\subsection{Ćwiczenie 3: Dostęp do Bazy Danych}
+
+\begin{infobox}{Database Integration}
+\textbf{Cel:} MCP server z database access
+
+\textbf{Tools:}
+\begin{enumerate}
+    \item \texttt{queryCustomers} - SELECT customers by filters
+    \item \texttt{getOrderStats} - aggregate statistics
+    \item \texttt{searchProducts} - full-text search
+\end{enumerate}
+
+\textbf{Implementation:}
+\begin{itemize}
+    \item Entity Framework Core
+    \item SQL Server / SQLite
+    \item Parameterized queries (SQL injection prevention)
+    \item Error handling (connection errors, timeouts)
+    \item Logging (query execution time)
+\end{itemize}
+
+\textbf{Security:}
+\begin{itemize}
+    \item Read-only access (SELECT only)
+    \item Query whitelist (allowed tables)
+    \item Row-level security (jeśli applicable)
+\end{itemize}
+\end{infobox}
+
+\subsection{Ćwiczenie 4: Deployment na Azure}
+
+\begin{infobox}{Production Deployment}
+\textbf{Cel:} Host MCP server w Azure
+
+\textbf{Opcje:}
+\begin{enumerate}
+    \item \textbf{Azure App Service}
+    \begin{itemize}
+        \item HTTP transport
+        \item Easy deployment (VS / GitHub Actions)
+        \item Auto-scaling
+    \end{itemize}
+    
+    \item \textbf{Azure Container Apps}
+    \begin{itemize}
+        \item Docker container
+        \item Microservices architecture
+        \item Serverless scaling
+    \end{itemize}
+    
+    \item \textbf{Azure Functions}
+    \begin{itemize}
+        \item Serverless (pay-per-execution)
+        \item HTTP trigger
+        \item Tool jako function endpoint
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Configuration:}
+\begin{itemize}
+    \item API key w Azure Key Vault
+    \item Connection strings z App Settings
+    \item CORS configuration
+    \item Application Insights (monitoring)
+\end{itemize}
+
+\textbf{Security:}
+\begin{itemize}
+    \item HTTPS only
+    \item API key authentication
+    \item Rate limiting (Azure API Management)
+    \item IP whitelisting (optional)
+\end{itemize}
+\end{infobox}
+
+\section{Semantic Kernel}
+
+\begin{infobox}{Microsoft Semantic Kernel}
+\textbf{Alternatywny framework dla AI agents}
+
+\textbf{Czym jest:}
+\begin{itemize}
+    \item SDK od Microsoft do budowania AI applications
+    \item Integration z OpenAI, Azure OpenAI, Hugging Face
+    \item Plugin system (podobny do MCP tools)
+    \item Planners (multi-step reasoning)
+\end{itemize}
+
+\textbf{Vs MCP:}
+\begin{itemize}
+    \item SK = application framework (higher level)
+    \item MCP = communication protocol (lower level)
+    \item SK może używać MCP jako transport layer
+    \item SK ma więcej features (memory, planners)
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Complex multi-agent systems
+    \item Enterprise AI applications
+    \item Microsoft ecosystem (Azure OpenAI)
+\end{itemize}
+
+\textbf{Dokumentacja:}
+\begin{itemize}
+    \item learn.microsoft.com/semantic-kernel
+\end{itemize}
+\end{infobox}
+
+\section{Pytania kontrolne}
+
+\begin{enumerate}
+    \item Czym jest Model Context Protocol i jaki problem rozwiązuje?
+    \item Wymień 3 komponenty architektury MCP. 
+    \item Czym różni się MCP od Function Calling?
+    \item Co to są Tools, Resources i Prompts w MCP?
+    \item Kiedy użyć stdio transport a kiedy HTTP?
+    \item Jakie są zalety i wady HTTP transport?
+    \item Co to jest JSON Schema i do czego służy w MCP?
+    \item Jak wygląda workflow wywołania MCP tool przez LLM?
+    \item Co powinien zawierać dobry opis (description) tool?
+    \item Jakie są security considerations dla HTTP MCP server?
+\end{enumerate}
+
+\end{document}

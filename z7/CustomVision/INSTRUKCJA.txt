@@ -1,0 +1,36 @@
+=== CUSTOM VISION PROJECT - INSTRUKCJA WGRANIA OBRAZÓW ===
+
+📁 STRUKTURA OBRAZÓW:
+Wgraj obrazy w następującej strukturze:
+```
+CustomVision/images/
+├── tag1/              (np. "koty")
+│   ├── image1.jpg
+│   ├── image2.jpg
+│   └── ...
+├── tag2/              (np. "psy")
+│   ├── image1.jpg
+│   ├── image2.jpg
+│   └── ...
+└── tag3/              (np. "ptaki")
+    ├── image1.jpg
+    ├── image2.jpg
+    └── ...
+```
+
+📝 WYMAGANIA:
+- Każda podfolders = 1 tag
+- 2-3 tagi/klasy
+- ~20-30 obrazów RAZEM (min 5-10 na tag)
+- Formaty: JPG, PNG, GIF, BMP
+- Rozmiary: min 256×256 px
+
+🎯 AZURE CUSTOM VISION RESOURCE:
+- Project Type: Classification (Multiclass)
+- Training: eastus.api.cognitive.microsoft.com
+- Key: BxqCSFSTuBEUi62E254er6zl05fgDoDW7DCGQmusb2nSQoo6jdeRJQQJ99BLACYeBjFXJ3w3AAAJACOGG47V
+
+⚠️ WAŻNE:
+Wgrywanie obrazów odbędzie się poprzez Python script gdy będą gotowe!
+
+Czekam na obrazy... 📸

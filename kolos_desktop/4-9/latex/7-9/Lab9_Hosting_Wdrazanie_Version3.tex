@@ -1,0 +1,1085 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\geometry{left=2cm, right=2cm, top=2cm, bottom=2cm}
+
+\definecolor{hostgreen}{RGB}{34,139,34}
+\definecolor{lightgreen}{RGB}{240,255,240}
+\definecolor{serverblue}{RGB}{70,130,180}
+
+\newtcolorbox{infobox}[1]{
+    colback=lightgreen,
+    colframe=hostgreen,
+    fonttitle=\bfseries,
+    title=#1
+}
+
+\newtcolorbox{warnbox}{
+    colback=yellow! 10,
+    colframe=orange,
+    fonttitle=\bfseries,
+    title=Ważne!  
+}
+
+\title{\textbf{\Huge Lab 9: Hosting i Wdrażanie} \\ \Large Deployment aplikacji . NET}
+\author{Materiały na kolokwium - Część 3}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Wprowadzenie do Hostingu}
+
+\subsection{Typy Hostingu}
+
+\begin{infobox}{Klasyfikacja Hostingu Aplikacji}
+\textbf{1. Hosting Lokalny (On-Premises):}
+\begin{itemize}
+    \item Własny serwer fizyczny lub lokalny komputer
+    \item Pełna kontrola nad infrastrukturą
+    \item IIS (Windows) / Kestrel / Docker
+    \item Odpowiedzialność za maintenance, updates, security
+\end{itemize}
+
+\textbf{2. VPS (Virtual Private Server):}
+\begin{itemize}
+    \item Wirtualna maszyna w chmurze
+    \item Root access, pełna kontrola OS
+    \item Providers: Azure VM, Oracle Cloud, Google Cloud, DigitalOcean
+    \item Ręczna konfiguracja i zarządzanie
+\end{itemize}
+
+\textbf{3. Managed Hosting (PaaS):}
+\begin{itemize}
+    \item Platform as a Service
+    \item Azure App Service, Heroku, Vercel
+    \item Zero infrastructure management
+    \item Auto-scaling, monitoring, backups
+    \item Wyższy koszt, mniejsza kontrola
+\end{itemize}
+
+\textbf{4. Serverless:}
+\begin{itemize}
+    \item Azure Functions, AWS Lambda
+    \item Pay-per-execution
+    \item Automatic scaling
+    \item Ograniczenia (timeout, stateless)
+\end{itemize}
+\end{infobox}
+
+\subsection{Kluczowe Pojęcia}
+
+\begin{infobox}{Terminologia Hostingu}
+\textbf{Reverse Proxy:}
+\begin{itemize}
+    \item Serwer pośredniczący między internetem a aplikacją
+    \item Nginx, IIS, Apache
+    \item Funkcje: SSL termination, load balancing, caching
+    \item Przykład: Nginx (port 80/443) → Kestrel (port 5000)
+\end{itemize}
+
+\textbf{Load Balancing:}
+\begin{itemize}
+    \item Dystrybucja ruchu między wiele instancji aplikacji
+    \item Round-robin, least connections, IP hash
+    \item High availability i performance
+\end{itemize}
+
+\textbf{SSL/TLS:}
+\begin{itemize}
+    \item Encryption komunikacji (HTTPS)
+    \item Certyfikaty: Let's Encrypt (free), Cloudflare, commercial
+    \item Port 443 (HTTPS) vs 80 (HTTP)
+\end{itemize}
+
+\textbf{Public IP:}
+\begin{itemize}
+    \item Adres IP widoczny z internetu
+    \item Wymagany do bezpośredniego dostępu z zewnątrz
+    \item Alternatywa: tunelowanie (Cloudflare Tunnel)
+\end{itemize}
+
+\textbf{DNS (Domain Name System):}
+\begin{itemize}
+    \item Mapowanie domeny na IP address
+    \item Przykład: myapp.com → 20.123.45.67
+    \item Rekordy: A, CNAME, TXT, MX
+\end{itemize}
+
+\textbf{Port Forwarding:}
+\begin{itemize}
+    \item Przekierowanie ruchu z routera do lokalnej maszyny
+    \item Konfiguracja w routerze domowym
+    \item External port → Internal IP:port
+    \item Przykład: 80 (external) → 192.168.1.10:5000 (internal)
+\end{itemize}
+\end{infobox}
+
+\section{Hosting na Własnym Serwerze}
+
+\subsection{Kestrel (ASP.NET Core)}
+
+\begin{infobox}{Kestrel Web Server}
+\textbf{Czym jest Kestrel:}
+\begin{itemize}
+    \item Built-in web server w ASP.  NET Core
+    \item Cross-platform (Windows, Linux, macOS)
+    \item High performance (async I/O)
+    \item Default server dla .  NET applications
+\end{itemize}
+
+\textbf{Uruchomienie lokalnie:}
+\begin{itemize}
+    \item \texttt{dotnet run} - development mode
+    \item \texttt{dotnet myapp.  dll} - production
+    \item Default: \texttt{http://localhost:5000}
+    \item Konfiguracja portów: \texttt{appsettings.json} lub environment variables
+\end{itemize}
+
+\textbf{Expose na sieć lokalną:}
+\begin{itemize}
+    \item Bind do \texttt{0.0.0.0} zamiast \texttt{localhost}
+    \item \texttt{--urls "http://0.0.0.0:5000"}
+    \item Dostęp z innych komputerów: \texttt{http://<IP>:5000}
+    \item Firewall: otwórz port 5000
+\end{itemize}
+
+\textbf{Production considerations:}
+\begin{itemize}
+    \item Kestrel alone = OK dla internal apps
+    \item Za reverse proxy (Nginx/IIS) = recommended dla public
+    \item Reason: security, SSL termination, load balancing
+\end{itemize}
+\end{infobox}
+
+\subsection{IIS (Internet Information Services)}
+
+\begin{infobox}{IIS - Windows Web Server}
+\textbf{Instalacja:}
+\begin{itemize}
+    \item Windows Features → IIS (Internet Information Services)
+    \item Zainstaluj ASP.  NET Core Hosting Bundle
+    \item Hosting Bundle = .  NET Runtime + IIS integration module
+\end{itemize}
+
+\textbf{Konfiguracja witryny:}
+\begin{enumerate}
+    \item IIS Manager → Sites → Add Website
+    \item Site name: MyApp
+    \item Physical path: \texttt{C:\textbackslash inetpub\textbackslash myapp}
+    \item Binding: 
+    \begin{itemize}
+        \item Type: http/https
+        \item Port: 80 (HTTP) lub 443 (HTTPS)
+        \item Host name: myapp.com (optional)
+    \end{itemize}
+    \item Application Pool: .NET CLR Version = "No Managed Code"
+\end{enumerate}
+
+\textbf{Deployment:}
+\begin{itemize}
+    \item Publish z Visual Studio → Folder
+    \item Copy plików do physical path
+    \item Restart Application Pool
+\end{itemize}
+
+\textbf{SSL Certificate:}
+\begin{itemize}
+    \item Let's Encrypt - darmowy SSL (90 dni ważności)
+    \item Certbot - automatic renewal
+    \item IIS Manager → Server Certificates → Import
+    \item Binding → Add https (port 443) z certificate
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Firewall i Port Forwarding}
+\textbf{Windows Firewall:}
+\begin{itemize}
+    \item Inbound Rules → New Rule
+    \item Port: 80 (HTTP), 443 (HTTPS)
+    \item Allow connection
+    \item Apply to Domain, Private, Public (wybierz odpowiednie)
+\end{itemize}
+
+\textbf{Router Port Forwarding:}
+\begin{itemize}
+    \item Panel administracyjny routera (np. 192.168.1. 1)
+    \item Port Forwarding / Virtual Server section
+    \item External port: 80 → Internal IP: 192.168.1.10, port 80
+    \item External port: 443 → Internal IP: 192.168.1. 10, port 443
+    \item Save i restart router
+\end{itemize}
+
+\textbf{Test:}
+\begin{itemize}
+    \item Z internetu: \texttt{http://<public-IP>}
+    \item Lub \texttt{http://myapp.com} (jeśli DNS skonfigurowane)
+\end{itemize}
+\end{infobox}
+
+\subsection{Utrzymanie i Monitoring}
+
+\begin{infobox}{Maintenance Aplikacji}
+\textbf{Restarty:}
+\begin{itemize}
+    \item IIS: Recycle Application Pool
+    \item Kestrel: restart procesu (\texttt{systemctl restart myapp})
+    \item Windows Service: Service Manager → Restart
+\end{itemize}
+
+\textbf{Updates:}
+\begin{itemize}
+    \item Deploy nowej wersji (publish)
+    \item Stop application
+    \item Replace plików
+    \item Start application
+    \item Zero-downtime: deployment slots (Azure) lub blue-green deployment
+\end{itemize}
+
+\textbf{Logi:}
+\begin{itemize}
+    \item ASP.  NET Core: logging do pliku (\texttt{Serilog, NLog})
+    \item IIS: Event Viewer → Application logs
+    \item Location: \texttt{C:\textbackslash inetpub\textbackslash logs} (IIS)
+    \item Rotation: automatic (old logs archived/deleted)
+\end{itemize}
+
+\textbf{Monitoring:}
+\begin{itemize}
+    \item Health checks endpoint (\texttt{/health})
+    \item Uptime monitoring (UptimeRobot, Pingdom - external)
+    \item Application Insights (Azure)
+    \item CPU/Memory monitoring (Task Manager, Performance Monitor)
+\end{itemize}
+\end{infobox}
+
+\section{Maszyny Wirtualne i Proxmox VE}
+
+\subsection{Proxmox VE}
+
+\begin{infobox}{Proxmox Virtual Environment}
+\textbf{Czym jest Proxmox:}
+\begin{itemize}
+    \item Open-source hypervisor (virtualization platform)
+    \item Bazuje na KVM (Kernel Virtual Machine) + LXC (Linux Containers)
+    \item Web-based management interface
+    \item Free (community edition)
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Tworzenie wielu VM na jednym fizycznym serwerze
+    \item Izolacja aplikacji (każda w osobnym VM)
+    \item Testing environments (snapshots, clones)
+    \item Home lab / lab developerski
+\end{itemize}
+
+\textbf{Zalety:}
+\begin{itemize}
+    \item (+) Free i open-source
+    \item (+) Web GUI (easy management)
+    \item (+) Snapshots i backups
+    \item (+) High performance
+\end{itemize}
+\end{infobox}
+
+\subsection{Tworzenie VM}
+
+\begin{infobox}{Workflow Tworzenia VM}
+\textbf{Krok 1: Utwórz VM}
+\begin{itemize}
+    \item Proxmox Web UI → Create VM
+    \item OS: Windows Server lub Ubuntu Server
+    \item Resources: CPU (2-4 cores), RAM (2-4 GB), Disk (20-50 GB)
+    \item Network: Bridge mode (recommended dla external access)
+\end{itemize}
+
+\textbf{Krok 2: Instalacja OS}
+\begin{itemize}
+    \item Mount ISO (Windows Server / Ubuntu Server)
+    \item Start VM i instaluj OS
+    \item Konfiguracja sieci (static IP lub DHCP)
+\end{itemize}
+
+\textbf{Krok 3: Instalacja .  NET}
+\begin{itemize}
+    \item Ubuntu: \texttt{sudo apt install dotnet-sdk-9.0}
+    \item Windows: Download .NET SDK installer
+    \item Verify: \texttt{dotnet --version}
+\end{itemize}
+
+\textbf{Krok 4: Deploy Aplikacji}
+\begin{itemize}
+    \item SCP (Secure Copy): \texttt{scp -r ./publish user@vm-ip:/var/www/myapp}
+    \item Git clone: \texttt{git clone <repo>; dotnet publish}
+    \item Run: \texttt{dotnet myapp.  dll}
+\end{itemize}
+\end{infobox}
+
+\subsection{Networking w Proxmox}
+
+\begin{infobox}{Networking Modes}
+\textbf{NAT (Network Address Translation):}
+\begin{itemize}
+    \item VM za routerem Proxmox
+    \item Private IP (np. 10.0.0.x)
+    \item Port forwarding z host do VM
+    \item Use case: internal testing, nie potrzebujesz external access
+\end{itemize}
+
+\textbf{Bridge:}
+\begin{itemize}
+    \item VM ma własny IP w sieci (jak fizyczna maszyna)
+    \item Direct access z sieci lokalnej
+    \item Możliwy external access (z port forwarding na routerze)
+    \item Use case: production-like environment
+\end{itemize}
+
+\textbf{VLAN:}
+\begin{itemize}
+    \item Izolowana sieć wirtualna
+    \item Segmentacja (np. production vs development)
+    \item Advanced use case
+\end{itemize}
+\end{infobox}
+
+\subsection{Snapshots i Backups}
+
+\begin{infobox}{Data Protection}
+\textbf{Snapshots:}
+\begin{itemize}
+    \item Point-in-time kopia stanu VM
+    \item Instant (seconds)
+    \item Use case: przed update/upgrade (quick rollback)
+    \item Limit: nie zastępuje backups (snapshots mogą się uszkodzić)
+\end{itemize}
+
+\textbf{Backups:}
+\begin{itemize}
+    \item Full backup VM (disk image)
+    \item Scheduled backups (daily, weekly)
+    \item Storage: external disk, NAS, cloud (S3, Azure Blob)
+    \item Restore: pełny restore VM z backupu
+\end{itemize}
+
+\textbf{Best practice:}
+\begin{itemize}
+    \item Snapshot przed każdą zmianą
+    \item Daily backups (retention: 7 dni)
+    \item Weekly backups (retention: 4 tygodnie)
+    \item Test restore (verify backups działają)
+\end{itemize}
+\end{infobox}
+
+\section{Cloudflare Tunnel}
+
+\subsection{Problem i Rozwiązanie}
+
+\begin{infobox}{Ekspozycja Aplikacji Lokalnej}
+\textbf{Problem:}
+\begin{itemize}
+    \item Aplikacja działa lokalnie (localhost:5000)
+    \item Brak publicznego IP
+    \item Router za CGNAT (carrier-grade NAT) - nie można port forward
+    \item Chcesz udostępnić aplikację z internetu
+\end{itemize}
+
+\textbf{Tradycyjne rozwiązania:}
+\begin{itemize}
+    \item Port forwarding (wymaga public IP)
+    \item VPN (kompleksowe, wymaga konfiguracji klienta)
+    \item Ngrok (limited free tier)
+\end{itemize}
+
+\textbf{Cloudflare Tunnel (Zero Trust):}
+\begin{itemize}
+    \item Bezpieczne tunelowanie bez public IP
+    \item Outbound connection (firewall-friendly)
+    \item Cloudflare jako reverse proxy
+    \item Automatic SSL
+    \item DDoS protection
+    \item FREE tier dostępny
+\end{itemize}
+\end{infobox}
+
+\subsection{Jak Działa Cloudflare Tunnel}
+
+\begin{infobox}{Architektura}
+\textbf{Flow:}
+\begin{enumerate}
+    \item \texttt{cloudflared} daemon na lokalnym serwerze
+    \item Outbound encrypted connection do Cloudflare edge (port 443)
+    \item Cloudflare publishes domain (myapp.  com)
+    \item User request: Internet → Cloudflare edge
+    \item Cloudflare forward przez tunnel → local app (localhost:5000)
+    \item Response: local app → Cloudflare → User
+\end{enumerate}
+
+\textbf{Kluczowe właściwości:}
+\begin{itemize}
+    \item \textbf{No inbound ports} - zero port forwarding needed
+    \item \textbf{Firewall-friendly} - tylko outbound HTTPS (443)
+    \item \textbf{Encrypted} - end-to-end TLS
+    \item \textbf{Global network} - Cloudflare CDN (low latency)
+\end{itemize}
+\end{infobox}
+
+\subsection{Konfiguracja}
+
+\begin{infobox}{Setup Cloudflare Tunnel}
+\textbf{Krok 1: Przygotowanie}
+\begin{itemize}
+    \item Załóż konto Cloudflare (free)
+    \item Dodaj domenę do Cloudflare (zmień nameservers)
+    \item Wait for DNS propagation (~24h, często szybciej)
+\end{itemize}
+
+\textbf{Krok 2: Instalacja cloudflared}
+\begin{itemize}
+    \item Download: cloudflare.com/products/tunnel
+    \item Windows: installer exe
+    \item Linux: \texttt{wget <url>; dpkg -i cloudflared.  deb}
+    \item Verify: \texttt{cloudflared --version}
+\end{itemize}
+
+\textbf{Krok 3: Utworzenie tunelu}
+\begin{itemize}
+    \item Login: \texttt{cloudflared tunnel login} (otwiera browser, authorize)
+    \item Create tunnel: \texttt{cloudflared tunnel create myapp}
+    \item Note tunnel ID (UUID)
+    \item Credentials saved: \texttt{~/.cloudflared/<UUID>. json}
+\end{itemize}
+
+\textbf{Krok 4: Konfiguracja routingu}
+\begin{itemize}
+    \item Mapowanie: tunnel → local service
+    \item \texttt{cloudflared tunnel route dns myapp myapp.com}
+    \item To tworzy DNS record: \texttt{myapp.com} → \texttt{<UUID>.cfargotunnel.com}
+\end{itemize}
+
+\textbf{Krok 5: Config file}
+\begin{itemize}
+    \item \texttt{~/.cloudflared/config.yml}
+    \item Specify: tunnel ID, credentials, ingress rules
+    \item Ingress: \texttt{hostname: myapp.  com → service: http://localhost:5000}
+\end{itemize}
+
+\textbf{Krok 6: Uruchomienie}
+\begin{itemize}
+    \item \texttt{cloudflared tunnel run myapp}
+    \item Daemon w background (systemd service on Linux)
+    \item Auto-start on boot
+\end{itemize}
+
+\textbf{Krok 7: Test}
+\begin{itemize}
+    \item Z internetu: \texttt{https://myapp.com}
+    \item Automatic HTTPS (Cloudflare certificate)
+    \item No SSL setup needed on local server
+\end{itemize}
+\end{infobox}
+
+\subsection{Zalety Cloudflare Tunnel}
+
+\begin{infobox}{Benefits}
+\textbf{Security:}
+\begin{itemize}
+    \item No exposed ports (brak attack surface)
+    \item DDoS protection (Cloudflare absorbs attacks)
+    \item Web Application Firewall (WAF) - optional
+    \item Rate limiting - built-in
+\end{itemize}
+
+\textbf{SSL/TLS:}
+\begin{itemize}
+    \item Automatic SSL certificates
+    \item No Let's Encrypt setup needed
+    \item Always HTTPS
+    \item Auto-renewal (Cloudflare managed)
+\end{itemize}
+
+\textbf{Performance:}
+\begin{itemize}
+    \item Global CDN (200+ locations)
+    \item Low latency dla użytkowników worldwide
+    \item Caching static content
+\end{itemize}
+
+\textbf{Cost:}
+\begin{itemize}
+    \item FREE tier (unlimited tunnels)
+    \item No bandwidth charges
+    \item No per-request fees
+\end{itemize}
+\end{infobox}
+
+\section{VPS Hosting}
+
+\subsection{Czym jest VPS}
+
+\begin{infobox}{Virtual Private Server}
+\textbf{Definicja:}
+\begin{itemize}
+    \item Wirtualna maszyna w chmurze (datacenter)
+    \item Dedicated resources (CPU, RAM, disk)
+    \item Root/admin access
+    \item Public IP address
+    \item 24/7 uptime (SLA 99.9\%+)
+\end{itemize}
+
+\textbf{Vs Shared Hosting:}
+\begin{itemize}
+    \item VPS = dedicated resources, full control
+    \item Shared = shared resources, limited control, cheaper
+\end{itemize}
+
+\textbf{Vs Dedicated Server:}
+\begin{itemize}
+    \item VPS = virtual, cheaper, easier scaling
+    \item Dedicated = physical machine, max performance, expensive
+\end{itemize}
+\end{infobox}
+
+\subsection{Darmowe Opcje VPS}
+
+\begin{infobox}{Free Tier Providers}
+\textbf{Oracle Cloud Free Tier:}
+\begin{itemize}
+    \item \textbf{FREE forever} (nie trial, permanent free)
+    \item 2x VM: 1 OCPU, 1 GB RAM each (AMD/Intel)
+    \item LUB: 4x ARM cores, 24 GB RAM (Ampere A1)
+    \item 200 GB Block Storage
+    \item 10 TB outbound bandwidth/month
+    \item Public IP included
+    \item Use case: production workloads (stable, reliable)
+\end{itemize}
+
+\textbf{Google Cloud Free Tier:}
+\begin{itemize}
+    \item 1x e2-micro VM (0.25-1 vCPU, 1 GB RAM)
+    \item FREE forever
+    \item 30 GB storage
+    \item 1 GB outbound bandwidth/month (USA only)
+    \item Use case: small apps, testing
+\end{itemize}
+
+\textbf{Uwaga:}
+\begin{itemize}
+    \item Wymagana karta kredytowa (weryfikacja, nie charging)
+    \item Oracle: może wymagać waiting list (popular)
+    \item Free tier limits - monitor usage
+\end{itemize}
+\end{infobox}
+
+\subsection{Konfiguracja VPS}
+
+\begin{infobox}{Setup Ubuntu VPS}
+\textbf{Krok 1: Create VM}
+\begin{itemize}
+    \item Oracle/Google Cloud Console → Compute → Create Instance
+    \item OS: Ubuntu 22.04/24.04 LTS
+    \item Region: wybierz closest do target users
+    \item SSH key: upload public key (lub create new)
+\end{itemize}
+
+\textbf{Krok 2: SSH Access}
+\begin{itemize}
+    \item \texttt{ssh ubuntu@<public-IP>} (Linux/Mac)
+    \item PuTTY (Windows) z private key
+    \item First login: change password (security)
+\end{itemize}
+
+\textbf{Krok 3: System Updates}
+\begin{itemize}
+    \item \texttt{sudo apt update}
+    \item \texttt{sudo apt upgrade -y}
+    \item \texttt{sudo reboot} (jeśli kernel update)
+\end{itemize}
+
+\textbf{Krok 4: Instalacja . NET}
+\begin{itemize}
+    \item \texttt{wget https://dot.net/v1/dotnet-install.sh}
+    \item \texttt{bash dotnet-install.sh --channel 9. 0}
+    \item Add to PATH: \texttt{export PATH=\$PATH:\$HOME/.dotnet}
+    \item Verify: \texttt{dotnet --version}
+\end{itemize}
+
+\textbf{Krok 5: Firewall}
+\begin{itemize}
+    \item \texttt{sudo ufw allow 22} (SSH)
+    \item \texttt{sudo ufw allow 80} (HTTP)
+    \item \texttt{sudo ufw allow 443} (HTTPS)
+    \item \texttt{sudo ufw enable}
+\end{itemize}
+\end{infobox}
+
+\subsection{Deploy Aplikacji}
+
+\begin{infobox}{Deployment Methods}
+\textbf{1. Git Clone}
+\begin{itemize}
+    \item \texttt{git clone https://github.com/user/myapp.git}
+    \item \texttt{cd myapp}
+    \item \texttt{dotnet publish -c Release -o ./publish}
+    \item \texttt{cd publish}
+    \item \texttt{dotnet myapp. dll}
+\end{itemize}
+
+\textbf{2. SCP (Secure Copy)}
+\begin{itemize}
+    \item Local: \texttt{dotnet publish -c Release}
+    \item \texttt{scp -r ./bin/Release/net9.0/publish/* user@vps:/var/www/myapp}
+    \item SSH to VPS: \texttt{cd /var/www/myapp; dotnet myapp.  dll}
+\end{itemize}
+
+\textbf{3. GitHub Actions (CI/CD)}
+\begin{itemize}
+    \item Workflow: build → publish → deploy to VPS via SSH
+    \item Automatic deployment on push to main branch
+    \item Secrets: VPS IP, SSH key, username
+\end{itemize}
+\end{infobox}
+
+\subsection{Nginx jako Reverse Proxy}
+
+\begin{infobox}{Nginx Configuration}
+\textbf{Instalacja:}
+\begin{itemize}
+    \item \texttt{sudo apt install nginx}
+    \item \texttt{sudo systemctl start nginx}
+    \item \texttt{sudo systemctl enable nginx} (auto-start on boot)
+\end{itemize}
+
+\textbf{Konfiguracja:}
+\begin{itemize}
+    \item \texttt{sudo nano /etc/nginx/sites-available/myapp}
+    \item Server block:
+    \begin{itemize}
+        \item \texttt{listen 80;}
+        \item \texttt{server\_name myapp.com;}
+        \item \texttt{location / \{ proxy\_pass http://localhost:5000; \}}
+        \item Headers: \texttt{proxy\_set\_header Host \$host;}
+    \end{itemize}
+    \item Symlink: \texttt{sudo ln -s /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled/}
+    \item Test: \texttt{sudo nginx -t}
+    \item Reload: \texttt{sudo systemctl reload nginx}
+\end{itemize}
+
+\textbf{SSL (Let's Encrypt):}
+\begin{itemize}
+    \item \texttt{sudo apt install certbot python3-certbot-nginx}
+    \item \texttt{sudo certbot --nginx -d myapp.com}
+    \item Automatic: certificate + nginx config update (port 443)
+    \item Auto-renewal: \texttt{sudo certbot renew --dry-run} (test)
+    \item Cron job: renewal check 2x daily (automatic)
+\end{itemize}
+
+\textbf{Workflow:}
+\begin{itemize}
+    \item User → Nginx (port 80/443) → Kestrel (port 5000)
+    \item Nginx handles: SSL, static files, load balancing
+    \item Kestrel handles: application logic
+\end{itemize}
+\end{infobox}
+
+\section{Azure App Service}
+
+\subsection{Podstawy}
+
+\begin{infobox}{Azure App Service - PaaS}
+\textbf{Czym jest:}
+\begin{itemize}
+    \item Managed platform do hostingu web apps
+    \item Zero infrastructure management
+    \item Auto-scaling, load balancing
+    \item Built-in CI/CD (GitHub, Azure DevOps)
+    \item Deployment slots (staging, production)
+\end{itemize}
+
+\textbf{Wspierane:}
+\begin{itemize}
+    \item .  NET, Node.js, Python, Java, PHP, Ruby
+    \item Docker containers
+    \item Static sites
+\end{itemize}
+\end{infobox}
+
+\subsection{Pricing Tiers}
+
+\begin{infobox}{App Service Plans}
+\textbf{Free (F1):}
+\begin{itemize}
+    \item Shared infrastructure
+    \item 1 GB disk, 1 GB RAM
+    \item 60 min CPU/day limit
+    \item No custom domain, no SSL
+    \item Use case: development, testing
+\end{itemize}
+
+\textbf{Basic (B1):}
+\begin{itemize}
+    \item \$13/month (~54 PLN)
+    \item Dedicated VM (1 core, 1. 75 GB RAM)
+    \item Always On support
+    \item Custom domain + SSL
+    \item Manual scaling (up to 3 instances)
+    \item Use case: small production apps
+\end{itemize}
+
+\textbf{Standard (S1):}
+\begin{itemize}
+    \item \$70/month
+    \item Auto-scaling (up to 10 instances)
+    \item Deployment slots (5)
+    \item Daily backups
+    \item Use case: production apps z traffic
+\end{itemize}
+
+\textbf{Premium (P1V2):}
+\begin{itemize}
+    \item \$150/month
+    \item Faster scaling, better hardware
+    \item More slots (20)
+    \item VNET integration
+    \item Use case: enterprise, high-traffic
+\end{itemize}
+\end{infobox}
+
+\subsection{Deployment}
+
+\begin{infobox}{Deploy Methods}
+\textbf{1. Visual Studio}
+\begin{itemize}
+    \item Right-click project → Publish
+    \item Target: Azure App Service
+    \item Select subscription, resource group, plan
+    \item One-click deploy
+\end{itemize}
+
+\textbf{2. Azure CLI}
+\begin{itemize}
+    \item \texttt{az webapp up --name myapp --resource-group rg --runtime "DOTNETCORE:9.0"}
+    \item Single command: create + deploy
+\end{itemize}
+
+\textbf{3. GitHub Actions}
+\begin{itemize}
+    \item Workflow file: \texttt{.  github/workflows/deploy.yml}
+    \item Trigger: push to main
+    \item Steps: checkout → build → publish → deploy
+    \item Secrets: Azure credentials (service principal)
+\end{itemize}
+
+\textbf{4. Docker Container}
+\begin{itemize}
+    \item Build image: \texttt{docker build -t myapp .}
+    \item Push to ACR (Azure Container Registry)
+    \item App Service pull from ACR
+    \item Container Apps (alternative) - serverless containers
+\end{itemize}
+\end{infobox}
+
+\subsection{Configuration}
+
+\begin{infobox}{App Settings}
+\textbf{Application Settings:}
+\begin{itemize}
+    \item Environment variables dla aplikacji
+    \item Przykład: \texttt{ConnectionStrings:DefaultConnection}
+    \item Override \texttt{appsettings. json}
+    \item Azure Portal → App Service → Configuration → Application Settings
+\end{itemize}
+
+\textbf{Connection Strings:}
+\begin{itemize}
+    \item Database connection strings
+    \item Secure storage (not in code)
+    \item Types: SQL Server, MySQL, PostgreSQL, Custom
+\end{itemize}
+
+\textbf{Key Vault Integration:}
+\begin{itemize}
+    \item Reference secrets z Azure Key Vault
+    \item Format: \texttt{@Microsoft.  KeyVault(SecretUri=https://... )}
+    \item Managed Identity (no credentials in config)
+    \item Best practice dla production secrets
+\end{itemize}
+\end{infobox}
+
+\subsection{Monitoring}
+
+\begin{infobox}{Application Insights}
+\textbf{Telemetria:}
+\begin{itemize}
+    \item Request rates, response times, failure rates
+    \item Dependency calls (database, APIs)
+    \item Exceptions i stack traces
+    \item Custom events i metrics
+\end{itemize}
+
+\textbf{Setup:}
+\begin{itemize}
+    \item Enable Application Insights w App Service
+    \item Instrumentation Key automatically injected
+    \item Zero code changes (auto-instrumentation)
+\end{itemize}
+
+\textbf{Features:}
+\begin{itemize}
+    \item Live metrics - real-time dashboard
+    \item Application Map - dependencies visualization
+    \item Failures - exception analysis
+    \item Performance - slow requests
+    \item Alerts - email/SMS notifications
+\end{itemize}
+\end{infobox}
+
+\section{Domeny i DNS}
+
+\subsection{Konfiguracja DNS}
+
+\begin{infobox}{DNS Records}
+\textbf{A Record (Address):}
+\begin{itemize}
+    \item Maps domain → IP address
+    \item Przykład: \texttt{myapp.  com → 20.123.45.67}
+    \item Use case: główna domena
+\end{itemize}
+
+\textbf{CNAME (Canonical Name):}
+\begin{itemize}
+    \item Maps subdomain → domain (alias)
+    \item Przykład: \texttt{www. myapp.com → myapp. com}
+    \item Use case: subdomeny, CDN
+\end{itemize}
+
+\textbf{TXT (Text):}
+\begin{itemize}
+    \item Verification records
+    \item Przykład: Google verification, SPF, DKIM
+    \item Use case: domain ownership proof
+\end{itemize}
+
+\textbf{MX (Mail Exchange):}
+\begin{itemize}
+    \item Mail server configuration
+    \item Priority levels
+    \item Use case: custom email (@myapp.com)
+\end{itemize}
+\end{infobox}
+
+\subsection{Darmowe Domeny}
+
+\begin{infobox}{Free Domain Options}
+\textbf{Freenom (. tk, .ml, .ga, .cf, .gq):}
+\begin{itemize}
+    \item Darmowe domeny (12 months, renewable)
+    \item \textbf{Uwaga:} mogą być odebrane (ToS violations, inactivity)
+    \item Nie recommended dla production (reputacja, stability)
+    \item Use case: testing, personal projects
+\end{itemize}
+
+\textbf{eu. org:}
+\begin{itemize}
+    \item Darmowa subdomena (yourname.eu. org)
+    \item Stabilna, respectable
+    \item Manual approval (może zająć dni)
+    \item Use case: free reliable domain
+\end{itemize}
+
+\textbf{DuckDNS / No-IP:}
+\begin{itemize}
+    \item Dynamic DNS (DDNS)
+    \item Subdomena wskazująca na dynamic IP
+    \item Auto-update IP (client software)
+    \item Use case: home servers z non-static IP
+\end{itemize}
+
+\textbf{GitHub Pages (username.github.io):}
+\begin{itemize}
+    \item Free subdomain dla static sites
+    \item Automatic HTTPS
+    \item Custom domain support (CNAME)
+\end{itemize}
+\end{infobox}
+
+\subsection{SSL Certificates}
+
+\begin{infobox}{SSL/TLS Options}
+\textbf{Let's Encrypt:}
+\begin{itemize}
+    \item FREE, automated, open CA
+    \item 90-day validity (auto-renewal)
+    \item Certbot - official client (Linux)
+    \item win-acme - Windows client
+    \item Use case: self-hosted servers
+\end{itemize}
+
+\textbf{Cloudflare:}
+\begin{itemize}
+    \item FREE automatic SSL
+    \item No installation needed (proxy mode)
+    \item Universal SSL (wildcard)
+    \item Auto-renewal
+    \item Use case: easiest option
+\end{itemize}
+
+\textbf{Azure:}
+\begin{itemize}
+    \item Free managed certificate (App Service)
+    \item Auto-renewal
+    \item Requires custom domain
+\end{itemize}
+
+\textbf{Commercial (DigiCert, Sectigo):}
+\begin{itemize}
+    \item Paid certificates
+    \item Extended Validation (EV) - green bar
+    \item Warranty
+    \item Use case: e-commerce, banks
+\end{itemize}
+\end{infobox}
+
+\section{GitHub Pages}
+
+\subsection{Podstawy}
+
+\begin{infobox}{GitHub Pages - Static Hosting}
+\textbf{Czym jest:}
+\begin{itemize}
+    \item FREE hosting dla static websites
+    \item Served directly z GitHub repository
+    \item Automatic HTTPS
+    \item Custom domain support
+    \item Jekyll support (static site generator)
+\end{itemize}
+
+\textbf{Limity:}
+\begin{itemize}
+    \item Static content only (HTML/CSS/JS)
+    \item No server-side code (no .  NET backend)
+    \item Max 1 GB repo size
+    \item 100 GB bandwidth/month (soft limit)
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Portfolio, landing pages
+    \item Documentation (MkDocs, Docusaurus)
+    \item SPA (React, Vue, Angular builds)
+    \item Blogs (Jekyll, Hugo)
+\end{itemize}
+\end{infobox}
+
+\subsection{Setup}
+
+\begin{infobox}{Publishing na GitHub Pages}
+\textbf{Metoda 1: username.github.io repository}
+\begin{itemize}
+    \item Create repo: \texttt{username.github.  io}
+    \item Push HTML files to \texttt{main} branch
+    \item Automatic publish
+    \item URL: \texttt{https://username.github.io}
+\end{itemize}
+
+\textbf{Metoda 2: Project pages}
+\begin{itemize}
+    \item Any repo name
+    \item Settings → Pages → Source: \texttt{main} branch lub \texttt{/docs} folder
+    \item URL: \texttt{https://username.github.io/repo-name}
+\end{itemize}
+
+\textbf{Custom domain:}
+\begin{itemize}
+    \item Add CNAME file w repo root: \texttt{myapp.com}
+    \item DNS: A records → GitHub IPs (4 records)
+    \item Or CNAME: \texttt{www.myapp.com → username.github.io}
+    \item GitHub Settings → Pages → Custom domain
+    \item Automatic SSL (Let's Encrypt)
+\end{itemize}
+\end{infobox}
+
+\subsection{GitHub Actions Deployment}
+
+\begin{infobox}{Automatyczny Deploy}
+\textbf{Workflow dla SPA (React/Vue):}
+\begin{itemize}
+    \item Build locally lub w Actions
+    \item Output folder: \texttt{build/} lub \texttt{dist/}
+    \item Actions: checkout → build → deploy to \texttt{gh-pages} branch
+    \item Trigger: push to \texttt{main}
+\end{itemize}
+
+\textbf{Przykład workflow:}
+\begin{itemize}
+    \item \texttt{.  github/workflows/deploy.  yml}
+    \item Steps: \texttt{npm install → npm run build → peaceiris/actions-gh-pages}
+    \item Automatic deployment on commit
+\end{itemize}
+\end{infobox}
+
+\subsection{Alternatywy}
+
+\begin{infobox}{Inne Static Hosting}
+\textbf{Netlify:}
+\begin{itemize}
+    \item Drag-and-drop deploy
+    \item Automatic builds z Git
+    \item Serverless functions (limited)
+    \item Free tier: 100 GB bandwidth
+    \item Custom domains, automatic SSL
+\end{itemize}
+
+\textbf{Vercel:}
+\begin{itemize}
+    \item Optimized dla Next.js (ale też inne)
+    \item Edge functions
+    \item Automatic preview deployments (PR)
+    \item Free tier: 100 GB bandwidth
+\end{itemize}
+
+\textbf{Cloudflare Pages:}
+\begin{itemize}
+    \item Edge deployment (ultra-fast)
+    \item Unlimited bandwidth (free)
+    \item Workers (serverless functions)
+    \item Git integration
+\end{itemize}
+\end{infobox}
+
+\section{Pytania kontrolne}
+
+\begin{enumerate}
+    \item Czym różni się hosting lokalny od VPS od PaaS?
+    \item Co to jest reverse proxy i jakie ma funkcje?
+    \item Dlaczego Kestrel powinien być za Nginx/IIS w production?
+    \item Co to jest port forwarding i kiedy jest potrzebny?
+    \item Czym jest Proxmox VE i do czego służy?
+    \item Wymień 3 networking modes w Proxmox i ich różnice.
+    \item Jaki problem rozwiązuje Cloudflare Tunnel?
+    \item Jak działa Cloudflare Tunnel (opisz flow)? 
+    \item Wymień 2 darmowe opcje VPS i ich limity.
+    \item Co to jest Nginx i jaką pełni rolę?
+    \item Czym różni się Free tier od Basic tier w Azure App Service?
+    \item Co to jest Application Insights? 
+    \item Czym różni się A record od CNAME?
+    \item Wymień 3 źródła darmowych domen.
+    \item Czym różni się Let's Encrypt od Cloudflare SSL?
+    \item Do czego służy GitHub Pages i jakie ma limity?
+    \item Wymień 3 alternatywy dla GitHub Pages.
+\end{enumerate}
+
+\end{document}

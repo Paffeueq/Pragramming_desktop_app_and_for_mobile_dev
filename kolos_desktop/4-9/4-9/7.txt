@@ -1,0 +1,68 @@
+
+Home
+Research
+Teaching
+Contact
+Programowanie AI z Azure (Custom Vision, Speech, Document Intelligence)
+Tematy do poruszenia
+Azure AI Speech (STT/TTS/Translation)
+Zasoby: Azure AI Speech (regiony, kwoty, cennik Free vs S0).
+Funkcje: Speech-to-Text (Realtime/Batch), Text-to-Speech (Neural), Speech Translation.
+Jakość i języki: modele „Neural”/„Enhanced”, formaty audio, sampling, mikrofony.
+Customizacja: Custom Speech (akustyka/słownictwo); Custom Neural Voice – wymagane zatwierdzenie.
+Integracja: SDK (C#/Python/JS).
+Azure AI Document Intelligence (Form Recognizer)
+Studio i prebuilt modele: Invoices, Receipts, ID/Passport, Business Cards, W-2, Read/OCR, Layout.
+Custom extraction: etykietowanie, trening, ocena, compose (łączenie modeli).
+Azure AI Vision (Computer Vision)
+Image Analysis: tagi, opisy, gęste podpisy (dense captions), OCR (Read).
+Integracja: Vision Studio, REST/SDK, batch vs pojedyncze obrazy.
+Custom Vision – własne modele klasyfikacji i detekcji
+Projekty: Classification (Multiclass/Multilabel), Object Detection.
+Dane: tagowanie, balans klas, augmentacje, train/val/test, wersjonowanie iteracji.
+Trening: Quick Training vs Advanced, metryki (Precision/Recall/mAP), eksport modeli (ONNX/TF/TFLite/NCNN).
+Wdrożenie: Prediction endpoint (SaaS) vs export „on-edge” (IoT/MAUI/Android/iOS).
+Operacje: zarządzanie iteracjami, progami decyzji, drift datasetu.
+Materiały
+Dokumentacja i narzędzia:
+
+Speech – “$BROWSER” https://learn.microsoft.com/azure/ai-services/speech-service/
+Speech Studio – “$BROWSER” https://speech.microsoft.com/
+Document Intelligence – “$BROWSER” https://learn.microsoft.com/azure/ai-services/document-intelligence/
+Document Intelligence Studio – “$BROWSER” https://documentintelligence.azure.com/studio
+Azure AI Vision – “$BROWSER” https://learn.microsoft.com/azure/ai-services/computer-vision/
+Vision Studio – “$BROWSER” https://vision.microsoft.com/
+Custom Vision – “$BROWSER” https://learn.microsoft.com/azure/ai-services/custom-vision-service/
+Cennik (Speech/Document Intelligence/Vision) – “$BROWSER” https://azure.microsoft.com/pricing/details/cognitive-services/
+Ćwiczenia
+1. Zasoby i konfiguracja
+Utwórz Resource Group i zasoby: Azure AI Speech, Azure AI Document Intelligence, Azure AI Vision, (opcjonalnie) Custom Vision Training/Prediction. Utrzymaj ten sam region.
+Zanotuj: endpointy, klucze, region; zapisz w Key Vault.
+2. Speech: Realtime STT (mowa→tekst)
+Speech Studio → Transcribe → nagraj/prześlij próbkę WAV (16 kHz mono).
+Zmień język rozpoznawania.
+SDK (opcjonalnie): zbuduj aplikację konsolową konsolę (C#) do transkrypcji mikrofonu lub pliku wav/mp3.
+4. Document Intelligence: prebuilt Invoice
+Document Intelligence Studio → Prebuilt → Invoices → prześlij 2–3 faktury (PDF/JPG).
+Przejrzyj JSON: pola, tabele, confidence. Zwróć uwagę na walutę i daty.
+5. Document Intelligence: custom extraction (opcjonalnie)
+Przygotuj 5–15 dokumentów jednego typu; oznacz pola w Studio.
+Wytrenuj model, oceń metryki, użyj „Compose” dla wariantów formularzy.
+6. Computer Vision: Image Analysis
+Vision Studio → Image Analysis → wgraj obrazy; odczytaj tagi/opisy/OCR.
+Sprawdź Dense Captions i język opisu. Porównaj wyniki dla różnych jakości.
+7. Custom Vision: klasyfikacja
+customvision.ai → New Project (Classification Multiclass).
+Wgraj ~20–30 obrazów z 2–3 tagami; Train (Quick Training).
+Oceń Precision/Recall, ustaw próg; przetestuj Prediction URL lub eksport ONNX.
+8. Custom Vision: detekcja obiektów
+Nowy projekt „Object Detection”; oznacz bounding boxy.
+Trening i ocena mAP; przetestuj obraz z wieloma obiektami.
+9. Integracja .NET 9
+Minimal API: endpoint /analyze-image wywołujący Vision REST; konfiguracja przez IOptions + Key Vault.
+← Powrót do planu zajęć
+
+💻
+💼
+📧
+© 2025 Tomasz Leś | Warsaw University of Technology

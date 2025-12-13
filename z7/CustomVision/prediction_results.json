@@ -1,0 +1,25 @@
+{
+  "training": {
+    "project_id": "2d44e737-37e6-40a0-98db-6bee58ea8f56",
+    "project_name": "ImageClassificationLab7",
+    "iteration_id": "5b70fac0-4c17-4c8f-8ec1-0417c39047ca",
+    "status": "Completed",
+    "precision": 1.0,
+    "recall": 1.0,
+    "trained_at": "2025-12-13 15:53:19.613000+00:00",
+    "tags": {
+      "koty": "e483b79e-06c9-431d-a2dc-f7771034a3ea",
+      "traktory": "2f708736-db58-4ac1-803f-21c3ab46b1e0",
+      "wydry": "1dabcd5e-50ff-47ca-8115-ff3d7a99913c"
+    },
+    "total_images": 27
+  },
+  "prediction_endpoint": "https://eastus.api.cognitive.microsoft.com/",
+  "published_iteration": "Iteration1",
+  "test_results": {
+    "koty": [],
+    "traktory": [],
+    "wydry": []
+  },
+  "test_accuracy": 0
+}

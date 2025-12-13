@@ -1,0 +1,104 @@
+{
+  "description": {
+    "tags": [
+      "painting",
+      "portrait",
+      "mona lisa",
+      "renaissance",
+      "art"
+    ],
+    "captions": [
+      {
+        "text": "the mona lisa painting by leonardo da vinci",
+        "confidence": 0.9234
+      }
+    ]
+  },
+  "tags": [
+    {
+      "name": "painting",
+      "confidence": 0.9987
+    },
+    {
+      "name": "portrait",
+      "confidence": 0.9876
+    },
+    {
+      "name": "Mona Lisa",
+      "confidence": 0.9456
+    },
+    {
+      "name": "renaissance",
+      "confidence": 0.8765
+    },
+    {
+      "name": "artwork",
+      "confidence": 0.8654
+    },
+    {
+      "name": "woman",
+      "confidence": 0.8234
+    },
+    {
+      "name": "smile",
+      "confidence": 0.7654
+    },
+    {
+      "name": "oil painting",
+      "confidence": 0.7456
+    },
+    {
+      "name": "historical",
+      "confidence": 0.7234
+    },
+    {
+      "name": "famous",
+      "confidence": 0.6234
+    }
+  ],
+  "denseCaptions": {
+    "values": [
+      {
+        "text": "woman with enigmatic smile",
+        "confidence": 0.9345,
+        "boundingBox": {
+          "x": 0.25,
+          "y": 0.15,
+          "w": 0.5,
+          "h": 0.7
+        }
+      },
+      {
+        "text": "renaissance portrait painting",
+        "confidence": 0.8934,
+        "boundingBox": {
+          "x": 0.05,
+          "y": 0.05,
+          "w": 0.9,
+          "h": 0.9
+        }
+      },
+      {
+        "text": "da vinci masterpiece",
+        "confidence": 0.8234,
+        "boundingBox": {
+          "x": 0.1,
+          "y": 0.1,
+          "w": 0.8,
+          "h": 0.8
+        }
+      },
+      {
+        "text": "famous artwork on display",
+        "confidence": 0.7634,
+        "boundingBox": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 1.0,
+          "h": 1.0
+        }
+      }
+    ]
+  },
+  "readResult": null
+}

@@ -1,0 +1,426 @@
+\section{Cheat Sheet - Ściąga na kolokwium}
+
+\subsection{Tryby renderowania - składnia}
+
+\begin{tcolorbox}[colback=red!10!white,colframe=red!75!black,title=NAJWAŻNIEJSZE! ]
+\begin{lstlisting}
+// 1. Brak interaktywności
+@page "/static"
+<h3>Static SSR</h3>
+
+// 2. Interactive Server
+@page "/server"
+@rendermode InteractiveServer
+
+// 3. Interactive WebAssembly
+@page "/wasm"
+@rendermode InteractiveWebAssembly
+
+// 4. Interactive Auto
+@page "/auto"
+@rendermode InteractiveAuto
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Stream Rendering}
+
+\begin{lstlisting}
+@attribute [StreamRendering(true)]
+
+@if (data == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <!-- Wyświetl dane -->
+}
+
+@code {
+    private Data?  data;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        data = await FetchDataAsync();
+    }
+}
+\end{lstlisting}
+
+\subsection{Formularze}
+
+\begin{lstlisting}
+<EditForm Model="@model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    
+    <InputText @bind-Value="model. Name" />
+    <ValidationMessage For="@(() => model. Name)" />
+    
+    <button type="submit">Zapisz</button>
+</EditForm>
+
+@code {
+    private MyModel model = new();
+    
+    private void HandleSubmit()
+    {
+        // Zapisz
+    }
+}
+\end{lstlisting}
+
+\subsection{Walidacja modelu}
+
+\begin{lstlisting}
+using System.ComponentModel.DataAnnotations;
+
+public class MyModel
+{
+    [Required(ErrorMessage = "Pole wymagane")]
+    public string Name { get; set; } = "";
+    
+    [Range(1, 100)]
+    public int Age { get; set; }
+    
+    [EmailAddress]
+    public string Email { get; set; } = "";
+    
+    [Compare("Password")]
+    public string ConfirmPassword { get; set; } = "";
+}
+\end{lstlisting}
+
+\subsection{Entity Framework}
+
+\begin{lstlisting}
+// DbContext
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options) { }
+    
+    public DbSet<Entity> Entities { get; set; }
+}
+
+// Program. cs
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=app.db"));
+
+// Użycie
+@inject AppDbContext Db
+
+@code {
+    private List<Entity> items = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        items = await Db.Entities.ToListAsync();
+    }
+    
+    private async Task Add(Entity entity)
+    {
+        Db.Entities.Add(entity);
+        await Db.SaveChangesAsync();
+    }
+    
+    private async Task Delete(int id)
+    {
+        var item = await Db.Entities. FindAsync(id);
+        if (item != null)
+        {
+            Db.Entities. Remove(item);
+            await Db.SaveChangesAsync();
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection{Dependency Injection}
+
+\begin{lstlisting}
+// Program.cs - rejestracja
+builder.Services.AddScoped<IMyService, MyService>();
+builder.Services.AddSingleton<ICacheService, CacheService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
+
+// Komponent - użycie
+@inject IMyService MyService
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var data = await MyService.GetDataAsync();
+    }
+}
+\end{lstlisting}
+
+\subsection{HTTP w WebAssembly}
+
+\begin{lstlisting}
+@inject HttpClient Http
+
+@code {
+    // GET
+    var items = await Http.GetFromJsonAsync<List<Item>>(
+        "api/items");
+    
+    // POST
+    await Http.PostAsJsonAsync("api/items", newItem);
+    
+    // PUT
+    await Http.PutAsJsonAsync($"api/items/{id}", item);
+    
+    // DELETE
+    await Http.DeleteAsync($"api/items/{id}");
+}
+\end{lstlisting}
+
+\subsection{Nawigacja}
+
+\begin{lstlisting}
+@inject NavigationManager Navigation
+
+<button @onclick="Navigate">Przejdź</button>
+
+@code {
+    private void Navigate()
+    {
+        Navigation.NavigateTo("/other-page");
+    }
+}
+\end{lstlisting}
+
+\subsection{Parametry komponentu}
+
+\begin{lstlisting}
+// Definicja
+@code {
+    [Parameter]
+    public string Title { get; set; } = "";
+    
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+}
+
+// Użycie
+<MyComponent Title="Hello" OnClick="HandleClick" />
+\end{lstlisting}
+
+\subsection{Lifecycle hooks}
+
+\begin{lstlisting}
+protected override void OnInitialized()
+{
+    // Synchroniczny, pierwszy
+}
+
+protected override async Task OnInitializedAsync()
+{
+    // Asynchroniczny, do API/DB
+}
+
+protected override void OnParametersSet()
+{
+    // Po każdej zmianie parametrów
+}
+
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        // JS interop, focus, etc.
+    }
+}
+
+public void Dispose()
+{
+    // Cleanup
+}
+\end{lstlisting}
+
+\subsection{Binding}
+
+\begin{lstlisting}
+// One-way
+<p>@text</p>
+
+// Two-way
+<input @bind="text" />
+<input @bind="text" @bind:event="oninput" />
+
+// Checkbox
+<input type="checkbox" @bind="isChecked" />
+
+// Select
+<select @bind="selectedValue">
+    <option value="1">Opcja 1</option>
+    <option value="2">Opcja 2</option>
+</select>
+\end{lstlisting}
+
+\subsection{Conditional rendering}
+
+\begin{lstlisting}
+@if (condition)
+{
+    <p>True</p>
+}
+else
+{
+    <p>False</p>
+}
+
+@switch (value)
+{
+    case 1:
+        <p>Jeden</p>
+        break;
+    case 2:
+        <p>Dwa</p>
+        break;
+    default:
+        <p>Inne</p>
+        break;
+}
+\end{lstlisting}
+
+\subsection{Loops}
+
+\begin{lstlisting}
+@foreach (var item in items)
+{
+    <div>@item.Name</div>
+}
+
+@for (int i = 0; i < 10; i++)
+{
+    <p>@i</p>
+}
+\end{lstlisting}
+
+\subsection{Event handling}
+
+\begin{lstlisting}
+<button @onclick="HandleClick">Click</button>
+<input @onchange="HandleChange" />
+<input @oninput="HandleInput" />
+<form @onsubmit="HandleSubmit">
+
+@code {
+    private void HandleClick()
+    {
+        // ... 
+    }
+    
+    private void HandleClick(MouseEventArgs e)
+    {
+        // Z argumentami
+    }
+    
+    private async Task HandleClickAsync()
+    {
+        // Asynchroniczny
+    }
+}
+\end{lstlisting}
+
+\subsection{Kiedy którego trybu użyć - tabela decyzyjna}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Scenariusz} & \textbf{Tryb} \\
+\hline
+Strona "O nas", blog & Static SSR \\
+\hline
+Dashboard firmowy & Interactive Server \\
+\hline
+Edytor graficzny & Interactive WebAssembly \\
+\hline
+PWA, praca offline & Interactive WebAssembly \\
+\hline
+Aplikacja SaaS & Interactive Auto \\
+\hline
+Prototyp & Interactive Server \\
+\hline
+Wysoki ruch, publiczna & Interactive WebAssembly \\
+\hline
+Wymaga DB access & Interactive Server \\
+\hline
+\end{tabular}
+\caption{Decyzja o trybie renderowania}
+\end{table}
+
+\subsection{Najczęstsze błędy}
+
+\begin{tcolorbox}[colback=red!10!white,colframe=red!75!black,title=UWAGA!]
+\textbf{1. Brak @rendermode przy interaktywności}
+\begin{lstlisting}
+// ŹLE - @onclick nie zadziała
+@page "/counter"
+<button @onclick="Increment">Count</button>
+
+// DOBRZE
+@page "/counter"
+@rendermode InteractiveServer
+<button @onclick="Increment">Count</button>
+\end{lstlisting}
+
+\textbf{2. Używanie DbContext w WebAssembly}
+\begin{lstlisting}
+// ŹLE - WebAssembly nie ma dostępu do DB
+@rendermode InteractiveWebAssembly
+@inject AppDbContext Db
+
+// DOBRZE - użyj HTTP API
+@rendermode InteractiveWebAssembly
+@inject HttpClient Http
+\end{lstlisting}
+
+\textbf{3. Zapomnienie await}
+\begin{lstlisting}
+// ŹLE
+var data = Db.Items.ToListAsync();
+
+// DOBRZE
+var data = await Db. Items.ToListAsync();
+\end{lstlisting}
+
+\textbf{4. Brak DataAnnotationsValidator}
+\begin{lstlisting}
+// ŹLE - walidacja nie działa
+<EditForm Model="@model">
+    <InputText @bind-Value="model. Name" />
+</EditForm>
+
+// DOBRZE
+<EditForm Model="@model">
+    <DataAnnotationsValidator />
+    <InputText @bind-Value="model. Name" />
+</EditForm>
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Polecenia CLI}
+
+\begin{tcolorbox}[colback=green! 10!white,colframe=green!75!black,title=Przydatne komendy]
+\begin{verbatim}
+# Nowy projekt
+dotnet new blazor -o MyApp -int Server
+
+# Dodanie pakietu
+dotnet add package Microsoft.EntityFrameworkCore. Sqlite
+
+# Migracje EF Core
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+
+# Uruchomienie
+dotnet run
+
+# Publikacja
+dotnet publish -c Release
+\end{verbatim}
+\end{tcolorbox}

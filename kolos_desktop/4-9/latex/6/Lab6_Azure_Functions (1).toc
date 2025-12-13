@@ -1,0 +1,16 @@
+\babel@toc {polish}{}\relax 
+\contentsline {section}{\numberline {1}Model Chmurowy Azure}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Typy Usług Chmurowych}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Serverless Computing}{4}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Azure Functions}{6}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Podstawowe Koncepcje}{6}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Plany Hostingowe}{7}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Triggersy Azure Functions}{10}{section.3}%
+\contentsline {subsection}{\numberline {3.1}HTTP Trigger}{10}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Timer Trigger}{12}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Blob Trigger}{14}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Queue Trigger}{17}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Bindingi}{20}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Podstawy Bindingów}{20}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Input Bindings}{21}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Output Bindings}{21}{subsection.4.3}%

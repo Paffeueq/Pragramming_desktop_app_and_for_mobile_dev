@@ -1,0 +1,23 @@
+{
+  "project_id": "2eb84c36-4e64-4a0e-9880-5c0b9805d618",
+  "project_name": "ObjectDetectionLab8",
+  "tags": {
+    "osoba": "ca92abcd-0cc1-413e-8b08-8b81fd08d830",
+    "samochod": "33eb7ee5-e2e8-4c44-ab92-4d79c2523888",
+    "pies": "2ed02b1d-b345-4d6e-8ddd-dfdeb2da85ba",
+    "kot": "2a9bc302-792f-4950-89a7-5152464bb903"
+  },
+  "training_key": "BxqCSFSTuBEUi62E254er6zl05fgDoDW7DCGQmusb2nSQoo6jdeRJQQJ99BLACYeBjFXJ3w3AAAJACOGG47V",
+  "prediction_key": "Ypt2zxb4e2sDdOsJAiKEqmrkWcLEfRAR0L7Rb95FWt12QZYYJu6SJQQJ99BLACYeBjFXJ3w3AAAIACOGB2CM",
+  "status": "READY_FOR_IMAGES",
+  "instructions": {
+    "format": "Pascal VOC (XML)",
+    "required_files": "Image + XML annotation for each image",
+    "bounding_box_format": {
+      "xmin": 100,
+      "ymin": 50,
+      "xmax": 200,
+      "ymax": 300
+    }
+  }
+}

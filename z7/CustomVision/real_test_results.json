@@ -1,0 +1,195 @@
+{
+  "training": {
+    "project_id": "2d44e737-37e6-40a0-98db-6bee58ea8f56",
+    "project_name": "ImageClassificationLab7",
+    "iteration_id": "5b70fac0-4c17-4c8f-8ec1-0417c39047ca",
+    "status": "Completed",
+    "precision": 1.0,
+    "recall": 1.0,
+    "trained_at": "2025-12-13 15:53:19.613000+00:00",
+    "tags": {
+      "koty": "e483b79e-06c9-431d-a2dc-f7771034a3ea",
+      "traktory": "2f708736-db58-4ac1-803f-21c3ab46b1e0",
+      "wydry": "1dabcd5e-50ff-47ca-8115-ff3d7a99913c"
+    },
+    "total_images": 27
+  },
+  "testing": {
+    "endpoint": "https://eastus.api.cognitive.microsoft.com/",
+    "prediction_url": "https://eastus.api.cognitive.microsoft.com/customvision/v3.1/prediction/2d44e737-37e6-40a0-98db-6bee58ea8f56/classify/iterations/Iteration1/image",
+    "iteration_name": "Iteration1",
+    "test_results": {
+      "koty": [
+        {
+          "image": "1.png",
+          "predicted": "koty",
+          "confidence": 0.9999989,
+          "correct": true
+        },
+        {
+          "image": "10.png",
+          "predicted": "koty",
+          "confidence": 0.9999975,
+          "correct": true
+        },
+        {
+          "image": "2.png",
+          "predicted": "koty",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "3.jpg",
+          "predicted": "koty",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "4.jpg",
+          "predicted": "koty",
+          "confidence": 0.99998426,
+          "correct": true
+        },
+        {
+          "image": "8.jpg",
+          "predicted": "koty",
+          "confidence": 0.9999869,
+          "correct": true
+        },
+        {
+          "image": "9.png",
+          "predicted": "koty",
+          "confidence": 1.0,
+          "correct": true
+        }
+      ],
+      "traktory": [
+        {
+          "image": "1.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "10.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "2.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "3.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "4.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "5.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "6.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "7.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "8.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "9.jpg",
+          "predicted": "traktory",
+          "confidence": 1.0,
+          "correct": true
+        }
+      ],
+      "wydry": [
+        {
+          "image": "1.png",
+          "predicted": "wydry",
+          "confidence": 0.9999999,
+          "correct": true
+        },
+        {
+          "image": "10.jpg",
+          "predicted": "wydry",
+          "confidence": 0.99999905,
+          "correct": true
+        },
+        {
+          "image": "2.png",
+          "predicted": "wydry",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "3.png",
+          "predicted": "wydry",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "4.jpg",
+          "predicted": "wydry",
+          "confidence": 0.9999995,
+          "correct": true
+        },
+        {
+          "image": "5.png",
+          "predicted": "wydry",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "6.png",
+          "predicted": "wydry",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "7.png",
+          "predicted": "wydry",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "8.png",
+          "predicted": "wydry",
+          "confidence": 1.0,
+          "correct": true
+        },
+        {
+          "image": "9.png",
+          "predicted": "wydry",
+          "confidence": 1.0,
+          "correct": true
+        }
+      ]
+    },
+    "total_tests": 27,
+    "correct_predictions": 27,
+    "accuracy_percent": 100.0
+  }
+}

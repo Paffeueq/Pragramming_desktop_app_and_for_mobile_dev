@@ -1,0 +1,94 @@
+{
+  "description": {
+    "tags": [
+      "plaza",
+      "square",
+      "urban",
+      "crowd",
+      "city"
+    ],
+    "captions": [
+      {
+        "text": "a crowded public plaza in a city",
+        "confidence": 0.7634
+      }
+    ]
+  },
+  "tags": [
+    {
+      "name": "plaza",
+      "confidence": 0.8756
+    },
+    {
+      "name": "crowd",
+      "confidence": 0.8234
+    },
+    {
+      "name": "urban",
+      "confidence": 0.8123
+    },
+    {
+      "name": "square",
+      "confidence": 0.7856
+    },
+    {
+      "name": "city",
+      "confidence": 0.7634
+    },
+    {
+      "name": "people",
+      "confidence": 0.7456
+    },
+    {
+      "name": "public space",
+      "confidence": 0.6934
+    },
+    {
+      "name": "gathering",
+      "confidence": 0.6234
+    },
+    {
+      "name": "architecture",
+      "confidence": 0.5956
+    },
+    {
+      "name": "pavement",
+      "confidence": 0.5234
+    }
+  ],
+  "denseCaptions": {
+    "values": [
+      {
+        "text": "many people in public square",
+        "confidence": 0.8123,
+        "boundingBox": {
+          "x": 0.1,
+          "y": 0.1,
+          "w": 0.8,
+          "h": 0.8
+        }
+      },
+      {
+        "text": "crowded plaza with buildings",
+        "confidence": 0.7534,
+        "boundingBox": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 1.0,
+          "h": 1.0
+        }
+      },
+      {
+        "text": "urban gathering place",
+        "confidence": 0.6934,
+        "boundingBox": {
+          "x": 0.15,
+          "y": 0.2,
+          "w": 0.7,
+          "h": 0.6
+        }
+      }
+    ]
+  },
+  "readResult": null
+}

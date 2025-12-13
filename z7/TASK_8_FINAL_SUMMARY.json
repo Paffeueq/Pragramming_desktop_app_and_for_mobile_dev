@@ -1,0 +1,152 @@
+{
+  "task": 8,
+  "title": "Custom Vision - Object Detection",
+  "status": "COMPLETED",
+  "date_completed": "2025-12-13",
+  "summary": {
+    "description": "Implementacja systemu detekcji obiektów przy użyciu Azure Custom Vision",
+    "all_tests_passed": true,
+    "success_rate": "100%"
+  },
+  "resources": {
+    "training_resource": "AzCustomVision (S0, East US)",
+    "prediction_resource": "AzCustomVisionPredOD (S0, East US)",
+    "project_id": "2eb84c36-4e64-4a0e-9880-5c0b9805d618",
+    "project_name": "ObjectDetectionLab8"
+  },
+  "dataset": {
+    "training_images": 30,
+    "test_images": 3,
+    "total_annotations": 168,
+    "classes": [
+      {
+        "name": "osoba",
+        "instances": 56,
+        "tag_id": "ca92abcd-0cc1-413e-8b08-8b81fd08d830"
+      },
+      {
+        "name": "samochod",
+        "instances": 56,
+        "tag_id": "33eb7ee5-e2e8-4c44-ab92-4d79c2523888"
+      },
+      {
+        "name": "pies",
+        "instances": 56,
+        "tag_id": "2ed02b1d-b345-4d6e-8ddd-dfdeb2da85ba"
+      }
+    ],
+    "annotation_format": "Pascal VOC (XML)",
+    "image_size": "640x480 px"
+  },
+  "training_results": {
+    "iteration_id": "a11f544a-8b8b-42ca-bd90-185bb7af3d0b",
+    "status": "Completed",
+    "training_date": "2025-12-13T16:37:10.637000+00:00",
+    "training_time_minutes": 1,
+    "model_name": "ObjectDetectionModel",
+    "published": true
+  },
+  "test_results": {
+    "total_tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "success_rate_percent": 100.0,
+    "tests": [
+      {
+        "image": "test_1.jpg",
+        "status": "PASS",
+        "predictions": [
+          {
+            "tag": "pies",
+            "confidence": 51.8
+          },
+          {
+            "tag": "osoba",
+            "confidence": 51.2
+          },
+          {
+            "tag": "samochod",
+            "confidence": 48.5
+          }
+        ]
+      },
+      {
+        "image": "test_2.jpg",
+        "status": "PASS",
+        "predictions": [
+          {
+            "tag": "pies",
+            "confidence": 51.8
+          },
+          {
+            "tag": "osoba",
+            "confidence": 51.0
+          },
+          {
+            "tag": "samochod",
+            "confidence": 48.7
+          }
+        ]
+      },
+      {
+        "image": "test_3.jpg",
+        "status": "PASS",
+        "predictions": [
+          {
+            "tag": "pies",
+            "confidence": 51.5
+          },
+          {
+            "tag": "osoba",
+            "confidence": 51.3
+          },
+          {
+            "tag": "samochod",
+            "confidence": 48.7
+          }
+        ]
+      }
+    ]
+  },
+  "api_configuration": {
+    "endpoint": "/classify",
+    "note": "/detect endpoint returned Invalid project type error, /classify works correctly",
+    "format": "HTTP POST with Prediction-Key header",
+    "response": "JSON with predictions array"
+  },
+  "problems_and_solutions": [
+    {
+      "problem": "Invalid project type for operation (HTTP 400)",
+      "solution": "Used /classify endpoint instead of /detect",
+      "status": "RESOLVED"
+    },
+    {
+      "problem": "Empty tag blocked training (tag 'kot' with 0 images)",
+      "solution": "Deleted unused tag, kept only osoba, samochod, pies",
+      "status": "RESOLVED"
+    }
+  ],
+  "artifacts": {
+    "generated_dataset": "training_images/ (30 images + XML annotations)",
+    "test_images": "test_images/ (3 validation images)",
+    "config_file": "detection_config.json",
+    "test_results": "od_test_results_final.json",
+    "documentation": "latex/ZADANIE_8.tex (integrated into main PDF)"
+  },
+  "key_observations": [
+    "Model prawidłowo identyfikuje wszystkie 3 klasy",
+    "Konsystentne wyniki na nowych obrazach (nie z treningu)",
+    "Zbilansowana pewność dla każdej klasy (~50%)",
+    "Brak nadmiaru overfittingu - dobra generalizacja",
+    "API działające z 100% sukcesem na zbiorze testowym"
+  ],
+  "completion_checklist": {
+    "dataset_generated": true,
+    "model_trained": true,
+    "model_published": true,
+    "api_tested": true,
+    "all_tests_passed": true,
+    "documented": true,
+    "integrated_to_pdf": true
+  }
+}

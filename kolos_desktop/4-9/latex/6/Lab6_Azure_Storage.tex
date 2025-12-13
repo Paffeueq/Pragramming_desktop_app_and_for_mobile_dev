@@ -1,0 +1,662 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\geometry{left=2cm, right=2cm, top=2cm, bottom=2cm}
+
+\definecolor{azureblue}{RGB}{0,120,215}
+\definecolor{lightblue}{RGB}{230,240,250}
+\definecolor{darkblue}{RGB}{0,90,158}
+
+\newtcolorbox{infobox}[1]{
+    colback=lightblue,
+    colframe=azureblue,
+    fonttitle=\bfseries,
+    title=#1
+}
+
+\newtcolorbox{warnbox}{
+    colback=yellow! 10,
+    colframe=orange,
+    fonttitle=\bfseries,
+    title=Ważne!
+}
+
+\title{\textbf{\Huge Lab 6 - Azure Storage} \\ \Large Blob, Queue, Table Storage}
+\author{Materiały na kolokwium - Część 2}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Azure Storage Account}
+
+\subsection{Podstawy}
+
+\begin{infobox}{Co to jest Storage Account?}
+\textbf{Storage Account} to namespace dla wszystkich usług storage w Azure. 
+
+\textbf{Zawiera 4 usługi:}
+\begin{itemize}
+    \item \textbf{Blob Storage} - object storage (pliki binarne)
+    \item \textbf{Queue Storage} - message queue
+    \item \textbf{Table Storage} - NoSQL key-value store
+    \item \textbf{File Storage} - SMB file shares (network drives)
+\end{itemize}
+
+\textbf{Unikalna nazwa:}
+\begin{itemize}
+    \item Globalnie unikalna w całym Azure
+    \item 3-24 znaki
+    \item Tylko małe litery i cyfry
+    \item Przykład: \texttt{mystorageaccount123}
+\end{itemize}
+
+\textbf{Endpoints:}
+\begin{itemize}
+    \item Blob: \texttt{https://\{account\}.blob.core.windows.net}
+    \item Queue: \texttt{https://\{account\}.queue.core.windows.net}
+    \item Table: \texttt{https://\{account\}.table.core.windows. net}
+    \item File: \texttt{https://\{account\}.file.core.windows.net}
+\end{itemize}
+\end{infobox}
+
+\subsection{Typy Kont Storage}
+
+\begin{infobox}{General-purpose v2 (GPv2)}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Rekomendowany typ (current standard)
+    \item Obsługuje wszystkie usługi storage
+    \item Obsługuje wszystkie access tiers (Hot, Cool, Cold, Archive)
+    \item Lowest prices
+    \item Best dla większości scenariuszy
+\end{itemize}
+
+\textbf{Use case:} Default choice dla nowych projektów
+\end{infobox}
+
+\begin{infobox}{Premium Storage}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item SSD-based storage
+    \item Wyższa wydajność (niższa latencja)
+    \item Wyższe IOPS
+    \item Droższe
+\end{itemize}
+
+\textbf{3 typy Premium:}
+\begin{itemize}
+    \item \textbf{Premium Block Blobs} - dla block i append blobs
+    \item \textbf{Premium File Shares} - dla Azure Files
+    \item \textbf{Premium Page Blobs} - dla page blobs (VHD)
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item High-transaction workloads
+    \item Low-latency requirements
+    \item Database files
+    \item VMs (Premium Page Blobs)
+\end{itemize}
+\end{infobox}
+
+\subsection{Replication (Redundancja)}
+
+\begin{infobox}{LRS - Locally Redundant Storage}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item 3 synchroniczne kopie w jednym datacenter
+    \item Najtańsza opcja
+    \item 11 nines durability (99.999999999\% w roku)
+\end{itemize}
+
+\textbf{Ochrona przed:}
+\begin{itemize}
+    \item Disk failure
+    \item  Rack failure
+    \item  Hardware problems
+\end{itemize}
+
+\textbf{NIE chroni przed:}
+\begin{itemize}
+    \item  Datacenter failure (fire, flood, earthquake)
+    \item Regional disaster
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Dev/test environments
+    \item Dane które można odtworzyć
+    \item Gdy nie potrzebujesz high availability
+    \item Optymalizacja kosztów
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{ZRS - Zone Redundant Storage}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item 3 synchroniczne kopie w 3 różnych availability zones
+    \item 12 nines durability (99. 9999999999\%)
+    \item Wyższy koszt niż LRS
+\end{itemize}
+
+\textbf{Availability Zones:}
+\begin{itemize}
+    \item Fizycznie oddzielone datacenter w tym samym regionie
+    \item Niezależne zasilanie, chłodzenie, networking
+    \item Odległość: kilometry od siebie
+\end{itemize}
+
+\textbf{Ochrona przed:}
+\begin{itemize}
+    \item  Wszystko co LRS
+    \item Datacenter failure w regionie
+\end{itemize}
+
+\textbf{NIE chroni przed:}
+\begin{itemize}
+    \item Regional disaster (cały region down)
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Production workloads
+    \item High availability w regionie
+    \item Gdy potrzebujesz consistency i wysoką dostępność
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{GRS - Geo Redundant Storage}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item LRS w primary region + asynchroniczna kopia do secondary region
+    \item 16 nines durability (99. 99999999999999\%)
+    \item Secondary region: setki kilometrów od primary
+    \item Paired regions (z góry określone przez Azure)
+\end{itemize}
+
+\textbf{Asynchronous replication:}
+\begin{itemize}
+    \item Opóźnienie: zwykle < 15 minut
+    \item RPO (Recovery Point Objective): ~15 min data loss możliwy
+    \item Automatic replication
+\end{itemize}
+
+\textbf{Secondary region access:}
+\begin{itemize}
+    \item Default: read-only (nie możesz czytać)
+    \item Po failover: becomes primary (read-write)
+    \item RA-GRS: Read-Access GRS (możesz czytać ze secondary)
+\end{itemize}
+
+\textbf{Ochrona przed:}
+\begin{itemize}
+    \item  Wszystko co LRS
+    \item Regional disaster
+    \item  Catastrophic failure całego regionu
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Business-critical data
+    \item Disaster recovery requirements
+    \item Compliance (data residency in multiple regions)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{GZRS - Geo-Zone Redundant Storage}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item ZRS w primary region + GRS (async copy do secondary)
+    \item Najwyższa dostępność i durability
+    \item 16 nines durability
+    \item Najdroższe
+\end{itemize}
+
+\textbf{Kombinacja:}
+\begin{itemize}
+    \item ZRS protection w primary region
+    \item GRS protection dla disaster recovery
+    \item Best of both worlds
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Maximum consistency, availability, durability
+    \item Mission-critical applications
+    \item Financial services, healthcare
+    \item Gdy nie możesz stracić danych
+\end{itemize}
+\end{infobox}
+
+\begin{warnbox}
+\textbf{Paired Regions:}
+
+Azure ma z góry określone pary regionów dla GRS:
+\begin{itemize}
+    \item West Europe  North Europe
+    \item East US  West US
+    \item Southeast Asia  East Asia
+\end{itemize}
+
+NIE możesz wybrać custom secondary region! 
+
+\textbf{Failover:}
+\begin{itemize}
+    \item Automatic failover: NIE (musisz ręcznie zainicjować)
+    \item Manual failover: TAK (w Azure Portal)
+    \item Czas: ~1 godzina (RTO - Recovery Time Objective)
+\end{itemize}
+\end{warnbox}
+
+\section{Blob Storage}
+
+\subsection{Podstawy}
+
+\begin{infobox}{Blob Storage - Object Storage}
+\textbf{Definicja:} Massively scalable object storage dla unstructured data
+
+\textbf{Unstructured data:}
+\begin{itemize}
+    \item Dane bez określonego formatu/schematu
+    \item Binary data
+    \item Przykłady: obrazy, wideo, audio, dokumenty, logi
+\end{itemize}
+
+\textbf{Zastosowanie:}
+\begin{itemize}
+    \item Serving images/documents do przeglądarki
+    \item Storing files for distributed access
+    \item Streaming video i audio
+    \item Backup i disaster recovery
+    \item Archiwizacja danych
+    \item Data for analysis (big data)
+    \item Static website hosting
+\end{itemize}
+
+\textbf{Skala:}
+\begin{itemize}
+    \item Exabytes of data (praktycznie unlimited)
+    \item Miliony żądań na sekundę
+    \item Global distribution
+\end{itemize}
+\end{infobox}
+
+\subsection{Hierarchia Blob Storage}
+
+\begin{infobox}{Hierarchia}
+\textbf{3-poziomowa struktura:}
+\begin{center}
+\textbf{Storage Account} → \textbf{Container} → \textbf{Blob}
+\end{center}
+
+\textbf{Storage Account:}
+\begin{itemize}
+    \item Top-level namespace
+    \item Unikalna nazwa globalnie
+    \item Authentication i authorization level
+\end{itemize}
+
+\textbf{Container:}
+\begin{itemize}
+    \item Logiczne grupowanie blobów (jak folder, ale flat)
+    \item Nazwa: 3-63 znaki, lowercase, cyfry, dash
+    \item Public access level (Private / Blob / Container)
+    \item Unlimited liczba blobów
+    \item Unlimited liczba containerów w account
+\end{itemize}
+
+\textbf{Blob:}
+\begin{itemize}
+    \item Actual file/object
+    \item Max size zależy od typu (do 4. 75 TB dla block blobs)
+    \item Unique URL: \texttt{https://\{account\}.blob.core.windows.net/\{container\}/\{blob\}}
+\end{itemize}
+
+\textbf{Virtual directories:}
+\begin{itemize}
+    \item Blob Storage jest FLAT (nie ma prawdziwych folderów)
+    \item Możesz używać "/" w nazwie blobu: \texttt{folder1/folder2/file.txt}
+    \item Azure Portal pokazuje to jako foldery (wirtualne)
+\end{itemize}
+\end{infobox}
+
+\subsection{Typy Blobów}
+
+\begin{infobox}{Block Blobs}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Najbardziej popularny typ
+    \item Składa się z bloków (chunks)
+    \item Max 50,000 bloków
+    \item Max rozmiar bloku: 4000 MiB
+    \item Max total size: ~4.75 TB
+\end{itemize}
+
+\textbf{Uploading:}
+\begin{itemize}
+    \item Można uploadować bloki równolegle (paralelizacja)
+    \item Po upload wszystkich bloków → commit block list
+    \item Atomic operation (albo wszystkie bloki albo żadne)
+    \item Resumable uploads (jeśli fail, można wznowić)
+\end{itemize}
+
+\textbf{Optimized for:}
+\begin{itemize}
+    \item Uploading large files efficiently
+    \item Streaming scenarios
+    \item Sequential reading
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Obrazy, wideo, audio
+    \item Dokumenty (PDF, Word, Excel)
+    \item Backups
+    \item Application data files
+    \item 95\% przypadków użycia
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Append Blobs}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Zoptymalizowane pod operacje append (dopisywanie)
+    \item Składa się z bloków (append blocks)
+    \item Max 50,000 bloków
+    \item Max rozmiar bloku: 4 MiB
+    \item Max total size: ~195 GB
+\end{itemize}
+
+\textbf{Operations:}
+\begin{itemize}
+    \item Append - TAK (add data at the end)
+    \item Update existing blocks - NIE
+    \item Delete blocks - NIE
+    \item Read - TAK
+\end{itemize}
+
+\textbf{Optimized for:}
+\begin{itemize}
+    \item Append-only scenarios
+    \item Data nie jest modyfikowany po zapisie
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Application logs (ciągłe dopisywanie)
+    \item Audit logs
+    \item Streaming data capture
+    \item Event data
+    \item Telemetry data
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Page Blobs}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Collection of 512-byte pages
+    \item Zoptymalizowane pod random read/write
+    \item Max size: 8 TB
+    \item Efficient random access
+\end{itemize}
+
+\textbf{Operations:}
+\begin{itemize}
+    \item Read/write arbitrary 512-byte pages
+    \item Random access patterns
+    \item Low latency
+\end{itemize}
+
+\textbf{Optimized for:}
+\begin{itemize}
+    \item Frequent random read/write operations
+    \item Low-latency access
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Virtual Hard Disks (VHD) dla Azure VMs
+    \item Database files
+    \item Random access data
+    \item Azure Premium Storage disks
+\end{itemize}
+
+\begin{warnbox}
+Page Blobs są głównie używane wewnętrznie przez Azure dla VM disks. 
+
+Rzadko używane bezpośrednio przez developerów. 
+\end{warnbox}
+\end{infobox}
+
+\subsection{Access Tiers}
+
+\begin{infobox}{Hot Tier - Częsty Dostęp}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Dla aktywnie używanych danych
+    \item Najwyższe storage cost
+    \item Najniższe access cost (read/write)
+    \item Default tier dla nowych blobów
+    \item Lowest latency
+\end{itemize}
+
+\textbf{Pricing:}
+\begin{itemize}
+    \item Storage: najdroższe (\$\$/GB/month)
+    \item Access: najtańsze (operacje read/write)
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Active data w użyciu
+    \item Dane często odczytywane/modyfikowane
+    \item Staging area dla ETL
+    \item Production databases
+    \item Aplikacje wymagające low latency
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Dostęp do danych > 1 raz dziennie
+    \item Short-term storage
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Cool Tier - Rzadki Dostęp}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Dla rzadko używanych danych
+    \item Niższe storage cost niż Hot
+    \item Wyższe access cost niż Hot
+    \item Minimum storage duration: 30 dni
+    \item Early deletion fee (jeśli < 30 dni)
+\end{itemize}
+
+\textbf{Pricing trade-off:}
+\begin{itemize}
+    \item Płacisz mniej za storage
+    \item Płacisz więcej za każdy access (read/write/list)
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Short-term backup
+    \item Older data rarely accessed
+    \item Disaster recovery datasets
+    \item Media content (stare wideo)
+    \item Data analytics datasets (after processing)
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Dostęp do danych ~ 1 raz na miesiąc
+    \item Storage period > 30 dni
+\end{itemize}
+
+\begin{warnbox}
+Early deletion charge: jeśli usuniesz blob przed 30 dniami, płacisz jakbyś go trzymał przez pełne 30 dni! 
+\end{warnbox}
+\end{infobox}
+
+\begin{infobox}{Cold Tier - Bardzo Rzadki Dostęp}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Dla bardzo rzadko używanych danych
+    \item Jeszcze niższe storage cost
+    \item Jeszcze wyższe access cost
+    \item Minimum storage duration: 90 dni
+    \item Early deletion fee (jeśli < 90 dni)
+\end{itemize}
+
+\textbf{Pricing:}
+\begin{itemize}
+    \item Storage: tańsze niż Cool
+    \item Access: droższe niż Cool
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Long-term backup
+    \item Compliance data (must keep)
+    \item Archival data z occasional access
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Dostęp ~ raz na kwartał lub rzadziej
+    \item Storage period > 90 dni
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Archive Tier - Archiwum}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Offline storage (dane niedostępne bezpośrednio)
+    \item Najniższe storage cost
+    \item Najwyższe access cost + rehydration cost
+    \item Minimum storage duration: 180 dni
+    \item Early deletion fee (jeśli < 180 dni)
+    \item Rehydration required przed odczytem
+\end{itemize}
+
+\textbf{Rehydration:}
+\begin{itemize}
+    \item Proces przenoszenia blobu z Archive do Hot/Cool
+    \item Standard priority: do 15 godzin
+    \item High priority: < 1 godzina (dla blobów < 10 GB)
+    \item Koszt rehydration + destination tier storage
+\end{itemize}
+
+\textbf{2 metody rehydration:}
+\begin{enumerate}
+    \item \textbf{Copy to Hot/Cool} - oryginalny zostaje w Archive
+    \item \textbf{Change tier} - blob przechodzi do Hot/Cool
+\end{enumerate}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Long-term archival (lata)
+    \item Compliance data (legal requirements)
+    \item Tape replacement
+    \item Backups rarely/never restored
+    \item Historical data
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Dostęp bardzo rzadki (raz na rok lub nigdy)
+    \item Storage period > 180 dni
+    \item Można czekać godziny na dostęp
+\end{itemize}
+
+\begin{warnbox}
+Archive = OFFLINE storage! 
+
+NIE możesz bezpośrednio czytać/modyfikować archived blobs. 
+
+Musisz najpierw REHYDRATE (kopiować do Hot/Cool). 
+\end{warnbox}
+\end{infobox}
+
+\subsection{Zmiana Access Tier}
+
+\begin{infobox}{Tier Changes}
+\textbf{Lifecycle Management:}
+\begin{itemize}
+    \item Możesz ustawić automatyczne reguły
+    \item Przykład: po 30 dniach → Cool, po 90 dniach → Archive
+    \item Bazuje na last modified time lub creation time
+    \item Filters: prefix, blob type
+\end{itemize}
+
+\textbf{Manual tier change:}
+\begin{itemize}
+    \item Możesz zmienić tier ręcznie (Portal, API, CLI)
+    \item Hot  Cool  Cold: natychmiastowe
+    \item → Archive: natychmiastowe
+    \item Archive →: wymaga rehydration
+\end{itemize}
+
+\textbf{Account-level default tier:}
+\begin{itemize}
+    \item Hot lub Cool (nie może być Archive)
+    \item Wszystkie nowe blobs domyślnie w tym tier
+    \item Można override per-blob
+\end{itemize}
+\end{infobox}
+
+\section{Queue Storage}
+
+\subsection{Podstawy}
+
+\begin{infobox}{Queue Storage - Message Queue}
+\textbf{Definicja:} Simple, reliable message queue service dla asynchronous communication
+
+\textbf{Architektura:}
+\begin{center}
+Producer → Queue → Consumer
+\end{center}
+
+\textbf{Zastosowanie:}
+\begin{itemize}
+    \item Decoupling components
+    \item Asynchronous processing
+    \item Load leveling (buffering bursts)
+    \item Work distribution
+    \item Task scheduling
+\end{itemize}
+
+\textbf{Benefits:}
+\begin{itemize}
+    \item Resilience - jeśli consumer down, messages czekają
+    \item Scalability - multiple consumers
+    \item Flexibility - producer i consumer niezależne
+\end{itemize}
+\end{infobox}
+
+\subsection{Charakterystyka}
+
+\begin{infobox}{Queue Storage - Specyfikacja}
+\textbf{Message properties:}
+\begin{itemize}
+    \item Max message size: 64 KB
+    \item Base64 encoded (faktycznie ~48 KB użytecznego payloadu)
+    \item Text format (zwykle JSON)
+\end{itemize}
+\end{infobox}
+
+\end{document}

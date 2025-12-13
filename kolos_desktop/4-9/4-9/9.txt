@@ -1,0 +1,118 @@
+
+Home
+Research
+Teaching
+Contact
+Hosting aplikacji i wdrażanie na serwer
+Materiały
+Oficjalna dokumentacja
+IIS (Internet Information Services) – https://learn.microsoft.com/en-us/iis/
+Nginx – https://nginx.org/en/docs/
+Proxmox VE – https://www.proxmox.com/en/proxmox-ve
+Cloudflare Tunnel – https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/
+Azure App Service – https://learn.microsoft.com/en-us/azure/app-service/
+GitHub Pages – https://pages.github.com/
+Tematy do poruszenia
+1. Wprowadzenie do hostingu aplikacji
+Czym jest hosting aplikacji webowych.
+Różnice między hostingiem:
+lokalnym (np. IIS / Kestrel / Docker),
+wirtualnym (VPS, Azure, DigitalOcean),
+zarządzanym (Azure App Service, GitHub Pages).
+Pojęcia: reverse proxy, load balancing, SSL, public IP, DNS, port forwarding.
+2. Hosting na własnym serwerze
+Uruchamianie aplikacji .NET (Kestrel) na serwerze fizycznym lub lokalnym.
+Konfiguracja IIS:
+tworzenie witryny,
+przypisywanie portu i domeny,
+certyfikat SSL (np. z Let’s Encrypt).
+Konfiguracja firewalla i przekierowanie portów w routerze.
+Utrzymanie i aktualizacje aplikacji (restarty, monitoring, logi).
+3. Maszyny wirtualne i Proxmox VE
+Co to jest hypervisor i jak działa Proxmox VE.
+Tworzenie maszyny wirtualnej (Windows Server / Ubuntu).
+Instalacja środowiska .NET Runtime i hostowanie aplikacji.
+Snapshoty i kopie bezpieczeństwa.
+Sieć wirtualna w Proxmox — NAT, Bridge, VLAN.
+Udostępnienie aplikacji z VM w sieci lokalnej i zewnętrznej.
+4. Tunelowanie aplikacji do Internetu (Cloudflare Tunnel)
+Problem ekspozycji aplikacji lokalnej bez publicznego IP.
+Wprowadzenie do Cloudflare Tunnel (Cloudflare Zero Trust).
+Konfiguracja:
+zakładanie konta Cloudflare i dodanie domeny,
+instalacja cloudflared,
+tworzenie tunelu (cloudflared tunnel create),
+mapowanie portu lokalnego (np. 5000) na domenę publiczną.
+Automatyczne odnawianie certyfikatów SSL przez Cloudflare.
+5. Hosting aplikacji na VPS
+Co to jest VPS (Virtual Private Server).
+Popularne dostawcy:
+Oracle Cloud Free Tier – darmowy VPS (dożywotni limit).
+Google Cloud Free Tier – darmowa mikroinstancja VM.
+Konfiguracja VPS (Ubuntu / Windows Server).
+Deploy aplikacji .NET za pomocą SSH / WinSCP / GitHub Actions.
+Instalacja Nginx jako reverse proxy dla Kestrel.
+6. Hosting aplikacji w Microsoft Azure
+Przegląd usług hostingu:
+Azure App Service – hostowanie aplikacji webowych bez serwera.
+Azure Container Apps – wdrożenie kontenerów.
+Azure Virtual Machines – klasyczny model VPS.
+Publikacja z Visual Studio i GitHub Actions.
+Konfiguracja Application Settings (Environment Variables).
+Integracja z Azure SQL / Blob Storage / Key Vault.
+Monitoring i logowanie (Application Insights).
+7. Konfiguracja domeny i SSL
+Jak działa DNS i rekordy (A, CNAME, TXT, MX).
+Rejestracja darmowej domeny:
+Freenom – darmowe domeny (.tk, .ml, .ga, .cf, .gq).
+eu.org – darmowe subdomeny.
+DuckDNS / No-IP – darmowe dynamiczne DNS.
+Przypisywanie domeny do serwera / tunelu.
+Certyfikaty SSL – Let’s Encrypt, Cloudflare, Certbot.
+Automatyzacja odnawiania certyfikatów.
+8. Hosting statycznych stron – GitHub Pages
+Czym jest GitHub Pages i jak działa.
+Publikacja projektu statycznego (HTML/CSS/JS, dokumentacja, SPA).
+Tworzenie repozytorium i włączenie Pages w ustawieniach.
+Personalizacja domeny własnej.
+GitHub Actions do automatycznego wdrażania.
+Alternatywy: Netlify, Vercel, Cloudflare Pages.
+Ćwiczenia
+Ćwiczenie 1: Hosting lokalny
+Uruchom aplikację ASP.NET Core lokalnie przez dotnet run.
+Skonfiguruj IIS Express lub pełny IIS.
+Wystaw aplikację na sieć lokalną (adres IP komputera).
+Ćwiczenie 2: Maszyna wirtualna (Proxmox)
+Utwórz VM z Ubuntu Server.
+Zainstaluj .NET 9 i uruchom aplikację dotnet myapp.dll.
+Skonfiguruj dostęp z zewnątrz (bridge network).
+Dodaj reverse proxy w Nginx.
+Ćwiczenie 3: Cloudflare Tunnel
+Zainstaluj cloudflared.
+Utwórz tunel i podłącz lokalną aplikację (np. localhost:5000).
+Skonfiguruj domenę z Cloudflare DNS.
+Przetestuj dostęp z zewnątrz przez HTTPS.
+Ćwiczenie 4: VPS
+Utwórz darmową instancję Compute (Ubuntu).
+Skonfiguruj SSH, zainstaluj .NET i Nginx.
+Wdróż aplikację z GitHuba.
+Ćwiczenie 5: Hosting w Azure
+Stwórz App Service i wdroż aplikację z Visual Studio lub GitHub.
+Skonfiguruj Application Settings i Connection Strings.
+Włącz monitoring (Application Insights).
+Ćwiczenie 6: Domena i SSL
+Zarejestruj darmową domenę w Freenom.
+Skonfiguruj DNS na Cloudflare.
+Połącz domenę z serwerem lub tunelem.
+Włącz HTTPS (Cloudflare / Let’s Encrypt).
+Ćwiczenie 7: GitHub Pages
+Stwórz repozytorium moja-strona.
+Dodaj plik index.html i opublikuj przez GitHub Pages.
+Skonfiguruj domenę własną i sprawdź HTTPS.
+(Opcjonalnie) Dodaj workflow GitHub Actions do automatycznego wdrażania.
+← Powrót do planu zajęć
+
+💻
+💼
+📧
+© 2025 Tomasz Leś | Warsaw University of Technology

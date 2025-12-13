@@ -1,0 +1,397 @@
+\section{Teoria - Najważniejsze zagadnienia}
+
+\subsection{Czym jest Blazor . NET 8?}
+
+\begin{tcolorbox}[colback=blue!10! white,colframe=blue!75!black,title=Definicja]
+\textbf{Blazor} to framework do tworzenia interaktywnych aplikacji webowych z użyciem C\# zamiast JavaScript. 
+
+\textbf{. NET 8} wprowadza unified model - jeden szablon, wiele trybów renderowania. 
+\end{tcolorbox}
+
+\textbf{Kluczowe zalety:}
+\begin{itemize}
+    \item Jeden język (C\#) na froncie i backendzie
+    \item Możliwość wyboru trybu renderowania per komponent
+    \item SEO-friendly (dzięki SSR)
+    \item Progressive enhancement - dodawanie interaktywności stopniowo
+\end{itemize}
+
+\subsection{4 Tryby renderowania - KLUCZOWE! }
+
+\begin{tcolorbox}[colback=red!10!white,colframe=red!75!black,title=WAŻNE NA KOLOKWIUM]
+Musisz znać różnice między 4 trybami renderowania! 
+\end{tcolorbox}
+
+\subsubsection{1. Static SSR (bez @rendermode)}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Renderowanie tylko na serwerze
+    \item BRAK interaktywności (@onclick nie działa!)
+    \item Najszybsze ładowanie
+    \item Dobre dla stron statycznych
+\end{itemize}
+
+\textbf{Przykład:}
+\begin{lstlisting}
+@page "/about"
+
+<h3>O nas</h3>
+<p>Strona statyczna</p>
+<!-- @onclick tutaj NIE ZADZIAŁA -->
+\end{lstlisting}
+
+\subsubsection{2.  Interactive Server}
+
+\textbf{Składnia:} \texttt{@rendermode InteractiveServer}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Logika na serwerze, UI w przeglądarce
+    \item Komunikacja przez SignalR/WebSocket
+    \item Wymaga stałego połączenia
+    \item Każda interakcja = round-trip do serwera
+\end{itemize}
+
+\textbf{Zalety:} mały rozmiar, dostęp do DB, bezpieczny kod
+
+\textbf{Wady:} latencja, wymaga połączenia, nie działa offline
+
+\begin{lstlisting}
+@page "/counter"
+@rendermode InteractiveServer
+
+<button @onclick="Increment">Count: @count</button>
+
+@code {
+    private int count = 0;
+    void Increment() => count++;
+}
+\end{lstlisting}
+
+\subsubsection{3. Interactive WebAssembly}
+
+\textbf{Składnia:} \texttt{@rendermode InteractiveWebAssembly}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Cała logika w przeglądarce (Wasm)
+    \item Większy rozmiar (~2-3 MB)
+    \item Działa offline (PWA)
+    \item Brak latencji przy interakcjach
+\end{itemize}
+
+\textbf{Zalety:} offline, PWA, szybkie interakcje, skalowalność
+
+\textbf{Wady:} duży początkowy download, kod widoczny dla użytkownika
+
+\begin{lstlisting}
+@page "/wasm-counter"
+@rendermode InteractiveWebAssembly
+
+<button @onclick="Increment">Count: @count</button>
+
+@code {
+    private int count = 0;
+    void Increment() => count++;
+}
+\end{lstlisting}
+
+\subsubsection{4. Interactive Auto}
+
+\textbf{Składnia:} \texttt{@rendermode InteractiveAuto}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Pierwsze uruchomienie: Server
+    \item W tle pobiera WebAssembly
+    \item Kolejne wizyty: WebAssembly
+    \item "Best of both worlds"
+\end{itemize}
+
+\textbf{Zalety:} szybki start + potem offline
+
+\textbf{Wady:} większa złożoność, trudniejszy debugging
+
+\subsection{Porównanie trybów - TABELA DO ZAPAMIĘTANIA}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Cecha} & \textbf{Static SSR} & \textbf{Server} & \textbf{Wasm} & \textbf{Auto} \\
+\hline
+Interaktywność & ✗ & ✓ & ✓ & ✓ \\
+\hline
+Rozmiar startowy & Bardzo mały & Mały & Duży & Mały→Duży \\
+\hline
+Offline & ✗ & ✗ & ✓ & ✗→✓ \\
+\hline
+Latencja & - & Wysoka & Niska & Wysoka→Niska \\
+\hline
+SEO & ✓ & ✓ & ✗ & ✓ \\
+\hline
+Wymaga połączenia & ✗ & ✓ & ✗ & ✓→✗ \\
+\hline
+\end{tabular}
+\caption{Porównanie trybów renderowania}
+\end{table}
+
+\subsection{Stream Rendering}
+
+\begin{tcolorbox}[colback=green!10!white,colframe=green!75!black,title=Stream Rendering]
+Technika pokazania strony natychmiast + aktualizacja po załadowaniu danych
+\end{tcolorbox}
+
+\textbf{Składnia:}
+\begin{lstlisting}
+@attribute [StreamRendering(true)]
+
+@if (data == null)
+{
+    <p>Ładowanie...</p>
+}
+else
+{
+    <ul>@foreach(var item in data) { <li>@item</li> }</ul>
+}
+
+@code {
+    private List<string>? data;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(2000); // Symulacja wolnego API
+        data = await GetData();
+    }
+}
+\end{lstlisting}
+
+\textbf{Jak działa:}
+\begin{enumerate}
+    \item Serwer zwraca stronę z "Ładowanie..."
+    \item W tle pobiera dane
+    \item Streamuje zaktualizowaną treść
+    \item Przeglądarka podmienia zawartość
+\end{enumerate}
+
+\subsection{Formularze - EditForm}
+
+\begin{lstlisting}
+<EditForm Model="@person" OnValidSubmit="Save">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    
+    <InputText @bind-Value="person. Name" />
+    <ValidationMessage For="@(() => person. Name)" />
+    
+    <button type="submit">Zapisz</button>
+</EditForm>
+
+@code {
+    private Person person = new();
+    
+    private void Save()
+    {
+        // Zapisz dane
+    }
+}
+\end{lstlisting}
+
+\textbf{Model z walidacją:}
+\begin{lstlisting}
+using System. ComponentModel.DataAnnotations;
+
+public class Person
+{
+    [Required(ErrorMessage = "Imię jest wymagane")]
+    [StringLength(50, MinimumLength = 2)]
+    public string Name { get; set; } = "";
+    
+    [Range(18, 100, ErrorMessage = "Wiek 18-100")]
+    public int Age { get; set; }
+}
+\end{lstlisting}
+
+\subsection{Entity Framework Core w Blazor}
+
+\subsubsection{DbContext}
+
+\begin{lstlisting}
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options) { }
+    
+    public DbSet<Person> People { get; set; }
+}
+\end{lstlisting}
+
+\subsubsection{Rejestracja w Program.cs}
+
+\begin{lstlisting}
+builder.Services. AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=app.db"));
+\end{lstlisting}
+
+\subsubsection{Użycie w komponencie}
+
+\begin{lstlisting}
+@inject AppDbContext Db
+
+@code {
+    private List<Person> people = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        people = await Db. People.ToListAsync();
+    }
+}
+\end{lstlisting}
+
+\subsection{Dependency Injection (DI)}
+
+\textbf{Rejestracja serwisu:}
+\begin{lstlisting}
+// Program.cs
+builder.Services.AddScoped<IPersonService, PersonService>();
+\end{lstlisting}
+
+\textbf{Wstrzykiwanie w komponencie:}
+\begin{lstlisting}
+@inject IPersonService PersonService
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var data = await PersonService.GetAllAsync();
+    }
+}
+\end{lstlisting}
+
+\textbf{Typy rejestracji:}
+\begin{itemize}
+    \item \texttt{AddSingleton} - jedna instancja dla całej aplikacji
+    \item \texttt{AddScoped} - jedna instancja per request/połączenie
+    \item \texttt{AddTransient} - nowa instancja przy każdym wstrzyknięciu
+\end{itemize}
+
+\subsection{Nawigacja}
+
+\begin{lstlisting}
+@inject NavigationManager Navigation
+
+<button @onclick="GoToPage">Przejdź</button>
+
+@code {
+    private void GoToPage()
+    {
+        Navigation.NavigateTo("/other-page");
+    }
+}
+\end{lstlisting}
+
+\subsection{Parametry komponentów}
+
+\begin{lstlisting}
+// Komponent PersonCard. razor
+<div class="card">
+    <h3>@Name</h3>
+    <p>Wiek: @Age</p>
+</div>
+
+@code {
+    [Parameter]
+    public string Name { get; set; } = "";
+    
+    [Parameter]
+    public int Age { get; set; }
+}
+
+// Użycie
+<PersonCard Name="Jan" Age="25" />
+\end{lstlisting}
+
+\subsection{Lifecycle hooks}
+
+\begin{lstlisting}
+protected override void OnInitialized()
+{
+    // Pierwszy, synchroniczny
+}
+
+protected override async Task OnInitializedAsync()
+{
+    // Asynchroniczny, do pobierania danych
+}
+
+protected override void OnParametersSet()
+{
+    // Po ustawieniu parametrów
+}
+
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        // JS interop tutaj
+    }
+}
+\end{lstlisting}
+
+\subsection{Kiedy którego trybu użyć?}
+
+\begin{tcolorbox}[colback=yellow!10!white,colframe=yellow!75!black,title=Decyzja o trybie]
+
+\textbf{Static SSR:}
+\begin{itemize}
+    \item Strony "o nas", blog, dokumentacja
+    \item Treści statyczne bez interakcji
+\end{itemize}
+
+\textbf{Interactive Server:}
+\begin{itemize}
+    \item Dashboardy firmowe (zawsze online)
+    \item Aplikacje z dostępem do DB
+    \item Szybki prototyp
+\end{itemize}
+
+\textbf{Interactive WebAssembly:}
+\begin{itemize}
+    \item Aplikacje offline (PWA)
+    \item Gry, edytory
+    \item Aplikacje publiczne z dużym ruchem
+\end{itemize}
+
+\textbf{Interactive Auto:}
+\begin{itemize}
+    \item Aplikacje SaaS
+    \item Gdy chcesz "best of both"
+\end{itemize}
+
+\end{tcolorbox}
+
+\subsection{Struktura projektu}
+
+\begin{verbatim}
+MyBlazorApp/
+├── MyBlazorApp/              # Główny (Server + SSR)
+│   ├── Components/
+│   │   ├── Layout/
+│   │   │   ├── MainLayout.razor
+│   │   │   └── NavMenu.razor
+│   │   ├── Pages/
+│   │   │   ├── Home. razor
+│   │   │   └── Counter.razor
+│   │   └── App.razor
+│   ├── Data/
+│   │   └── AppDbContext.cs
+│   ├── wwwroot/
+│   └── Program.cs
+│
+└── MyBlazorApp.Client/       # WebAssembly
+    ├── Pages/
+    ├── wwwroot/
+    └── Program.cs
+\end{verbatim}

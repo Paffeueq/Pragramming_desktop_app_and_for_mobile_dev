@@ -1,0 +1,163 @@
+
+Home
+Research
+Teaching
+Contact
+Tworzenie aplikacji rozproszonych
+Materiały
+Wideo:
+
+Build Better Apps with .NET Aspire – https://www.youtube.com/watch?v=e36NEWqO7GQ
+What is .NET Aspire? – https://www.youtube.com/watch?v=fN3ufsIF7vs
+Redis, PostgreSQL, Messaging & More with .NET Aspire – https://www.youtube.com/watch?v=4t_-g4fwEG0
+Dokumentacja:
+
+.NET Aspire – https://learn.microsoft.com/dotnet/aspire
+Service discovery – https://learn.microsoft.com/dotnet/aspire/fundamentals/service-discovery
+Health checks (ASP.NET Core) – https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks
+OpenTelemetry (.NET) – https://learn.microsoft.com/dotnet/core/diagnostics/observability
+EF Core – https://learn.microsoft.com/ef/core
+Azure Developer CLI (azd) – https://learn.microsoft.com/azure/developer/azure-developer-cli/
+Aspire Dashboard (standalone) – https://aspiredashboard.com
+Projekt aspirate (Kubernetes) – https://github.com/batect/aspirate
+Repozytoria przykładowe:
+
+Aspire samples – https://github.com/dotnet/aspire-samples
+eShop + Aspire (przykład złożony) – https://github.com/dotnet/eShop
+Community components (NuGet search tag: Aspire)
+Dlaczego .NET Aspire?
+Problemy typowe przy wielu usługach:
+
+Wielokrotne uruchamianie projektów ręcznie / konfiguracje debug.
+Różne porty / zmienne środowiskowe (spójność u developerów).
+Brak spójnej obserwowalności (logi, metryki, ślady).
+Składanie connection stringów ręcznie.
+Ręczne odpalanie baz / cache / brokerów wiadomości (Docker).
+Rozjazd config: DEV ≠ PROD.
+Aspire zapewnia:
+
+Orchestrator (AppHost) – deklaratywny opis zasobów.
+Service Discovery – identyfikatory zamiast twardych URL.
+Smart defaults: OpenTelemetry (logs/traces/metrics), health checks, resiliency (Polly).
+Dashboard deweloperski (podgląd w czasie rzeczywistym).
+Integracje (Redis, PostgreSQL, Service Bus, Storage, Messaging, AI).
+Manifest → narzędzia (azd, aspirate) → wdrożenie (Azure Container Apps / Kubernetes).
+Elastyczność – możesz użyć tylko części (np. sam dashboard + OTel).
+Kluczowe pojęcia
+Pojęcie	Opis
+AppHost (Distributed App)	Projekt „sklejający” – definiuje zasoby i relacje.
+Service Defaults	Wspólne rozszerzenia: telemetry, health, resilience, discovery.
+Component / Hosting package	NuGet „Aspire.*” dla integracji (baza, cache, messaging).
+Service Discovery	Wzorzec: https+http://products zamiast https://localhost:5003.
+Resilience	Domyślnie retry / timeout / circuit breaker (konfigurowalne).
+Dashboard	UI (Blazor + Fluent) – logi, traces, metrics, health.
+Manifest	JSON generowany przez AppHost – wejście do narzędzi wdrożeniowych.
+Standalone Dashboard	Kontener do lokalnej obserwowalności istniejących aplikacji.
+Tematy do poruszenia
+Czym jest architektura rozproszona (usługi, granice, kontrakty).
+Evolucja: monolit → modularny → usługi / „wyspy” funkcjonalne.
+.NET Aspire – zakres vs pełny orchestrator (nie zastępuje K8s).
+AppHost i deklaratywne zasoby (projekty, kontenery, connection strings).
+Service Discovery (schematy https, fallback do http, identyfikatory).
+Telemetria:
+Logs (ustrukturyzowane),
+Distributed Traces,
+Metrics (HTTP, GC, własne).
+Health & Liveness:
+/health (zależności),
+/alive (samo-życie procesu).
+Resilience (Polly) – retry z jitterem, timeouts, circuit breaker.
+Komponenty:
+Redis (cache / output cache / distributed cache),
+PostgreSQL (EF Core),
+Messaging (Service Bus / RabbitMQ),
+Storage / AI / Key Vault (wzorzec rozszerzania).
+Dashboard – analiza „hot path”, wykrywanie błędów.
+Wersjonowanie schematu i manifestu.
+Deployment opcje:
+„Klasycznie” (publish pojedynczych projektów),
+Manifest + azd (Azure Container Apps),
+Manifest + aspirate (Kubernetes),
+CI/CD (GitHub Actions / Azure DevOps).
+Bezpieczeństwo:
+Zarządzane tożsamości / sekrety poza repo,
+Ograniczanie endpointów (external vs internal).
+Zamiana lokalnych endpointów → discovery (migration path).
+Standalone Dashboard dla istniejących mikroserwisów.
+Optymalizacja kosztów (skalowanie do zera, granularne usługi).
+Scenariusze architektoniczne (mały zespół / wzrost / enterprise).
+Przykładowe komponenty i rola
+Komponent	Zastosowanie	Wartość w Aspire
+Redis	Cache / Output cache	Automatyczna konfiguracja + health + telemetry
+PostgreSQL	Trwała baza danych	Connection string przez discovery
+Service Bus / RabbitMQ	Asynchroniczne komunikaty	Traces korelacyjne
+Key Vault / Secrets	Sekrety produkcyjne	Oddzielenie config od kodu
+OpenAI / AI klient	Enrichment / rekomendacje	Obserwowalność wywołań
+Dashboard	Diagnoza lokalna	Szybsze debugowanie
+Ćwiczenia
+1. Inicjalizacja projektu Aspire
+dotnet new aspire -n ShopPlatform (lub dotnet new aspire-starter).
+Uruchom AppHost – sprawdź Dashboard.
+Przeanalizuj wygenerowane ServiceDefaults.
+2. Dodanie istniejącego API i frontendu
+Do AppHost dodaj: builder.AddProject("Api","../Shop.Api/Shop.Api.csproj").
+Dodaj Blazor (lub MVC) frontend.
+Otwórz Dashboard → Resources (powinny być 2 projekty).
+3. Service discovery
+W API nazwij projekt w AppHost: "products".
+W kliencie zamień https://localhost:xxxxx na: https+http://products.
+Usuń twarde porty z appsettings.json.
+4. Redis jako cache
+var cache = builder.AddRedis("cache");
+Frontend: builder.AddRedisOutputCache("cache");
+Oznacz endpoint lub komponent: [OutputCache(Duration = 5)].
+Obserwuj w Dashboard: traces (cache hit / miss).
+5. Migracja SQLite → PostgreSQL
+AppHost: var db = builder.AddPostgres("postgres");
+var productsDb = db.AddDatabase("productsdb"); + reference do API.
+API: builder.AddNpgsqlDbContext<ProductsContext>("productsdb");
+dotnet ef migrations add Init && dotnet ef database update.
+Sprawdź PGAdmin (opcjonalnie WithPgAdmin()).
+6. Health / Alive
+Odpal /health i /alive.
+Zatrzymaj kontener Redis (docker stop ...).
+/alive = Healthy, /health = Unhealthy (dependency fail).
+7. Resilience (retry)
+W API dodaj losowy if(Random.Shared.Next(0,4)==0) throw ....
+W kliencie wywołaj serię zapytań.
+W traces zobacz retry (Polly) – czasy odstępów.
+8. Dostosowanie polityk
+ServiceDefaults: builder.Services.AddStandardResilienceHandler().Configure(o => o.Retry.MaxRetryAttempts = 2);
+Porównaj zachowanie (mniej prób).
+9. Wdrożenie z Azure Developer CLI
+azd init (wewnątrz AppHost).
+azd up → wybierz subskrypcję + region.
+Otwórz zdalny Dashboard (Managed Identity).
+Zweryfikuj environment variables (sekcja details).
+10. Wariant Kubernetes (opcjonalnie)
+Zainstaluj aspirate.
+aspirate generate --manifest manifest.json --output k8s.
+Przejrzyj wygenerowane YAML.
+Strategia migracji istniejącej aplikacji
+Etap	Cel	Działania
+1	Obserwowalność	Dodaj ServiceDefaults + OpenTelemetry
+2	Discovery	Zamień twarde URL na identyfikatory
+3	Komponenty	Redis / Postgres / Message Bus
+4	Resilience	Dostosuj polityki retry / timeout
+5	Deployment	Manifest + azd / aspirate
+6	Optymalizacja	Profiling traces + redukcja cold paths
+Pytania kontrolne
+Różnica /health vs /alive?
+Co daje service discovery vs twarde URL?
+Jak dodać nową bazę w AppHost i użyć w EF Core?
+Gdzie zmienić retry attempts?
+Jak wystawić tylko frontend publicznie?
+Jak uruchomić Dashboard standalone?
+Co zawiera manifest i kto go konsumuje?
+Kiedy NIE używać mikroserwisów?
+← Powrót do planu zajęć
+
+💻
+💼
+📧
+© 2025 Tomasz Leś | Warsaw University of Technology

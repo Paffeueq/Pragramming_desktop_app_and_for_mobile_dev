@@ -1,0 +1,906 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\geometry{left=2cm, right=2cm, top=2cm, bottom=2cm}
+
+\definecolor{azureblue}{RGB}{0,120,215}
+\definecolor{lightblue}{RGB}{230,240,250}
+\definecolor{darkblue}{RGB}{0,90,158}
+
+\newtcolorbox{infobox}[1]{
+    colback=lightblue,
+    colframe=azureblue,
+    fonttitle=\bfseries,
+    title=#1
+}
+
+\newtcolorbox{warnbox}{
+    colback=yellow! 10,
+    colframe=orange,
+    fonttitle=\bfseries,
+    title=Ważne!
+}
+
+\title{\textbf{\Huge Lab 6 - Azure Functions} \\ \Large Model Chmurowy i Serverless}
+\author{Materiały na kolokwium - Część 1}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Model Chmurowy Azure}
+
+\subsection{Typy Usług Chmurowych}
+
+\begin{infobox}{IaaS - Infrastructure as a Service}
+\textbf{Definicja:} Wynajmujesz infrastrukturę (VM, sieci, storage)
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Pełna kontrola nad systemem operacyjnym
+    \item Zarządzasz aktualizacjami i konfiguracją
+    \item Odpowiedzialność za security patches
+    \item Elastyczne skalowanie zasobów
+    \item Maksymalna elastyczność i kontrola
+\end{itemize}
+
+\textbf{Przykłady w Azure:}
+\begin{itemize}
+    \item Azure Virtual Machines
+    \item Azure Virtual Network
+    \item Azure Storage (raw)
+    \item Azure Disk Storage
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Migracja legacy aplikacji (lift-and-shift)
+    \item Potrzebujesz pełnej kontroli nad OS
+    \item Specyficzne wymagania konfiguracyjne
+    \item Aplikacje wymagające custom software
+\end{itemize}
+
+\textbf{Odpowiedzialność:}
+\begin{itemize}
+    \item TY: OS, middleware, runtime, aplikacje, dane
+    \item AZURE: hardware, networking, datacenter
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{PaaS - Platform as a Service}
+\textbf{Definicja:} Platforma do deploymentu aplikacji bez zarządzania infrastrukturą
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Azure zarządza infrastrukturą
+    \item Automatyczne aktualizacje i patche
+    \item Built-in high availability
+    \item Focus na kod aplikacji
+    \item Szybsze time-to-market
+\end{itemize}
+
+\textbf{Przykłady w Azure:}
+\begin{itemize}
+    \item Azure App Service
+    \item Azure Functions
+    \item Azure SQL Database
+    \item Azure Cosmos DB
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Standardowe web aplikacje
+    \item Chcesz szybko deployować
+    \item Nie chcesz zarządzać infrastrukturą
+    \item Modern cloud-native apps
+\end{itemize}
+
+\textbf{Odpowiedzialność:}
+\begin{itemize}
+    \item TY: aplikacje, dane
+    \item AZURE: wszystko inne (OS, runtime, networking, storage)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{SaaS - Software as a Service}
+\textbf{Definicja:} Gotowe aplikacje dostępne przez internet
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Kompletne rozwiązanie software
+    \item Dostęp przez przeglądarkę
+    \item Zero maintenance
+    \item Subscription model
+\end{itemize}
+
+\textbf{Przykłady:}
+\begin{itemize}
+    \item Microsoft 365 (Word, Excel, Outlook)
+    \item Dynamics 365
+    \item Azure DevOps
+    \item GitHub
+\end{itemize}
+
+\textbf{Odpowiedzialność:}
+\begin{itemize}
+    \item TY: dane i dostęp użytkowników
+    \item AZURE: wszystko inne
+\end{itemize}
+\end{infobox}
+
+\subsection{Serverless Computing}
+
+\begin{warnbox}
+\textbf{Serverless} NIE oznacza "bez serwera"! 
+
+Serwery istnieją, ale:
+\begin{itemize}
+    \item Nie zarządzasz nimi
+    \item Automatyczne skalowanie (od 0 do nieskończoności)
+    \item Płacisz tylko za rzeczywiste użycie
+    \item Event-driven execution
+    \item Abstrakcja infrastruktury
+\end{itemize}
+\end{warnbox}
+
+\begin{infobox}{Charakterystyka Serverless}
+\textbf{Event-driven:}
+\begin{itemize}
+    \item Kod uruchamia się w odpowiedzi na zdarzenia
+    \item HTTP request, timer, message w kolejce, nowy plik
+\end{itemize}
+
+\textbf{Stateless:}
+\begin{itemize}
+    \item Każde wykonanie jest niezależne
+    \item Stan trzeba przechowywać zewnętrznie (database, storage)
+    \item Brak shared memory między wykonaniami
+\end{itemize}
+
+\textbf{Ephemeral:}
+\begin{itemize}
+    \item Krótkotrwałe wykonania
+    \item Instancje powstają i giną dynamicznie
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Zalety Serverless}
+\begin{itemize}
+    \item \textbf{Zero server management} - Azure zarządza wszystkim
+    \item \textbf{Automatic scaling} - od 0 do tysięcy instancji automatycznie
+    \item \textbf{Pay-per-execution} - nie płacisz za idle time
+    \item \textbf{Built-in availability} - automatyczna redundancja i failover
+    \item \textbf{Faster time to market} - focus na logikę biznesową
+    \item \textbf{Reduced operational costs} - brak kosztów utrzymania infrastruktury
+    \item \textbf{Infinite scalability} - teoretycznie unlimited
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Wady Serverless}
+\begin{itemize}
+    \item \textbf{Cold start} - pierwsze uruchomienie trwa dłużej (kilka sekund)
+    \item \textbf{Execution time limits} - max 10 min (Consumption Plan)
+    \item \textbf{Stateless} - trzeba przechowywać stan zewnętrznie
+    \item \textbf{Vendor lock-in} - trudniejsza migracja między cloud providerami
+    \item \textbf{Debugging complexity} - trudniejsze debugowanie distributed system
+    \item \textbf{Testing} - trudniejsze testowanie lokalnie
+    \item \textbf{Monitoring} - wymaga dobrych narzędzi do observability
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Cold Start Problem}
+\textbf{Co to jest Cold Start? }
+\begin{itemize}
+    \item Opóźnienie przy pierwszym uruchomieniu funkcji
+    \item Azure musi: przydzielić kontener, załadować runtime, załadować kod
+    \item Czas: zwykle 1-5 sekund, może być dłużej dla dużych aplikacji
+\end{itemize}
+
+\textbf{Kiedy występuje:}
+\begin{itemize}
+    \item Pierwsza próba wywołania funkcji
+    \item Funkcja nie była używana przez kilka minut (idle)
+    \item Scaling out - nowe instancje potrzebują warm-up
+\end{itemize}
+
+\textbf{Jak zminimalizować:}
+\begin{itemize}
+    \item Premium Plan - pre-warmed instances (zawsze gotowe)
+    \item Zmniejsz rozmiar deployment package
+    \item Użyj języka z szybkim startem (C\# compiled, nie Python)
+    \item Warming techniques (keep-alive requests)
+\end{itemize}
+\end{infobox}
+
+\section{Azure Functions}
+
+\subsection{Podstawowe Koncepcje}
+
+\begin{infobox}{Czym są Azure Functions? }
+\textbf{Azure Functions} to serverless compute service do uruchamiania event-driven kodu. 
+
+\textbf{Definicja komponentów:}
+\begin{itemize}
+    \item \textbf{Function} - jednostka kodu wykonująca konkretne zadanie
+    \item \textbf{Trigger} - zdarzenie uruchamiające funkcję (tylko 1 trigger na funkcję)
+    \item \textbf{Binding} - deklaratywne połączenie z zasobami (input/output)
+    \item \textbf{Function App} - kontener dla wielu funkcji (shared context)
+\end{itemize}
+
+\textbf{Function App jako jednostka:}
+\begin{itemize}
+    \item Grupuje powiązane funkcje
+    \item Shared configuration (app settings)
+    \item Shared resources (memory, CPU)
+    \item Deploy razem
+    \item Scale razem
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Supported Languages}
+\textbf{GA (Generally Available):}
+\begin{itemize}
+    \item C\# (. NET 6, .NET 7, . NET 8)
+    \item JavaScript/TypeScript (Node.js)
+    \item Python (3.7, 3.8, 3. 9, 3.10, 3.11)
+    \item Java (8, 11, 17)
+    \item PowerShell (7. 2)
+\end{itemize}
+
+\textbf{Preview:}
+\begin{itemize}
+    \item Custom handlers (any language)
+\end{itemize}
+\end{infobox}
+
+\subsection{Plany Hostingowe}
+
+\begin{infobox}{Consumption Plan (Serverless)}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Dynamiczne skalowanie (automatyczne od 0)
+    \item Płatność za: liczbę wykonań + czas wykonania + pamięć użyta
+    \item 1 milion wykonań FREE miesięcznie
+    \item 400,000 GB-seconds FREE miesięcznie
+    \item Max czas wykonania: 10 minut (default 5 min, configurable)
+    \item Max instancji: 200 (domyślnie)
+    \item Cold start występuje
+\end{itemize}
+
+\textbf{Pricing model:}
+\begin{itemize}
+    \item \$0.20 per milion executions
+    \item \$0.000016 per GB-s
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Nieregularne/nieprzewidywalne obciążenie
+    \item Krótkie, szybkie operacje (< 5 min idealnie)
+    \item Optymalizacja kosztów (pay only for what you use)
+    \item Proof of concept / development
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Premium Plan (Elastic Premium)}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Pre-warmed instances - zawsze gotowe (NO cold start)
+    \item Unlimited execution time (no timeout)
+    \item VNET connectivity (private networking)
+    \item Większa moc obliczeniowa (premium hardware)
+    \item Faster scaling
+    \item Płatność za: uptime instancji (vCore-seconds)
+\end{itemize}
+
+\textbf{Instance sizes:}
+\begin{itemize}
+    \item EP1: 1 vCore, 3. 5 GB RAM
+    \item EP2: 2 vCore, 7 GB RAM
+    \item EP3: 4 vCore, 14 GB RAM
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Aplikacje wymagające stałej wydajności
+    \item Potrzebujesz VNET integration (private endpoints)
+    \item Długie operacje (> 10 min)
+    \item Wysokie wymagania wydajnościowe
+    \item Production workloads gdzie cold start niedopuszczalny
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Dedicated (App Service) Plan}
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Funkcje działają na dedykowanych VM App Service
+    \item Przewidywalne koszty (stała miesięczna opłata)
+    \item Shared z innymi App Services (można współdzielić plan)
+    \item Pełna kontrola nad skalowaniem (manual lub auto-scale rules)
+    \item Brak limitów wykonania
+    \item Brak cold start (jeśli always on enabled)
+\end{itemize}
+
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Już masz App Service Plan (optimization)
+    \item Stałe, przewidywalne obciążenie 24/7
+    \item Potrzebujesz pełnej kontroli
+    \item Existing underutilized VM
+    \item Long-running functions
+\end{itemize}
+
+\textbf{Always On:}
+\begin{itemize}
+    \item Ustawienie App Service Plan
+    \item Funkcje pozostają załadowane w pamięci
+    \item Eliminuje cold start
+    \item WYMAGANE dla non-HTTP triggers na Dedicated Plan
+\end{itemize}
+\end{infobox}
+
+\begin{warnbox}
+\textbf{Porównanie planów - koszty:}
+\begin{itemize}
+    \item Consumption: najtańszy dla sporadycznego użycia
+    \item Premium: przewidywalne koszty, no cold start
+    \item Dedicated: najlepszy gdy już masz App Service
+\end{itemize}
+
+\textbf{Cold start:}
+\begin{itemize}
+    \item Consumption: TAK (zawsze)
+    \item Premium: NIE (pre-warmed)
+    \item Dedicated: NIE (z Always On)
+\end{itemize}
+\end{warnbox}
+
+\section{Triggersy Azure Functions}
+
+\subsection{HTTP Trigger}
+
+\begin{infobox}{HTTP Trigger - Podstawy}
+\textbf{Definicja:} Funkcja wywoływana przez żądanie HTTP/HTTPS
+
+\textbf{Zastosowanie:}
+\begin{itemize}
+    \item RESTful API endpoints
+    \item Webhooks (GitHub, Stripe, external services)
+    \item Integracje z zewnętrznymi systemami
+    \item Serverless web applications
+    \item Microservices architecture
+\end{itemize}
+
+\textbf{Supported HTTP Methods:}
+\begin{itemize}
+    \item GET - pobieranie danych
+    \item POST - tworzenie zasobów
+    \item PUT - aktualizacja zasobów (full update)
+    \item PATCH - częściowa aktualizacja
+    \item DELETE - usuwanie zasobów
+    \item HEAD, OPTIONS - metadata
+\end{itemize}
+
+\textbf{Routing:}
+\begin{itemize}
+    \item Default: \texttt{https://\{app\}.azurewebsites.net/api/\{function\}}
+    \item Custom route: można zmienić \texttt{/api/} prefix
+    \item Route parameters: \texttt{/users/\{id\}}
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Authorization Levels}
+\textbf{Anonymous:}
+\begin{itemize}
+    \item Brak autentykacji
+    \item Publiczny dostęp
+    \item Każdy może wywołać funkcję
+    \item Use case: publiczne API, webhooks bez auth
+\end{itemize}
+
+\textbf{Function:}
+\begin{itemize}
+    \item Wymaga function-specific key
+    \item Key w query string: \texttt{?code=<KEY>}
+    \item Lub w header: \texttt{x-functions-key: <KEY>}
+    \item Każda funkcja ma swój unikalny klucz
+    \item Use case: standard API security
+\end{itemize}
+
+\textbf{Admin:}
+\begin{itemize}
+    \item Wymaga master key (host key)
+    \item Dostęp do WSZYSTKICH funkcji w Function App
+    \item Najwyższy poziom uprawnień
+    \item Use case: administrative operations
+\end{itemize}
+\end{infobox}
+
+\begin{warnbox}
+\textbf{Best practices:}
+\begin{itemize}
+    \item NIE używaj Anonymous dla production API (chyba że public)
+    \item Function keys powinny być rotowane regularnie
+    \item Przechowuj keys w Key Vault
+    \item Rozważ Azure AD authentication dla enterprise apps
+\end{itemize}
+\end{warnbox}
+
+\begin{infobox}{HTTP Request i Response}
+\textbf{Request components:}
+\begin{itemize}
+    \item Method (GET, POST, etc.)
+    \item Headers (Content-Type, Authorization, etc.)
+    \item Query parameters (? param=value)
+    \item Route parameters (/users/123)
+    \item Body (JSON, XML, form data)
+\end{itemize}
+
+\textbf{Response:}
+\begin{itemize}
+    \item Status code (200, 404, 500, etc.)
+    \item Headers
+    \item Body (JSON najpopularniejsze)
+\end{itemize}
+
+\textbf{Content negotiation:}
+\begin{itemize}
+    \item JSON - \texttt{Content-Type: application/json}
+    \item XML - \texttt{Content-Type: application/xml}
+    \item Plain text - \texttt{Content-Type: text/plain}
+\end{itemize}
+\end{infobox}
+
+\subsection{Timer Trigger}
+
+\begin{infobox}{Timer Trigger - Podstawy}
+\textbf{Definicja:} Funkcja uruchamiana według harmonogramu (scheduled execution)
+
+\textbf{Zastosowanie:}
+\begin{itemize}
+    \item Scheduled jobs (cron jobs replacement)
+    \item Okresowe przetwarzanie danych (batches)
+    \item Cleanup tasks (usuwanie starych danych)
+    \item Generowanie raportów (daily, weekly)
+    \item Monitoring i health checks
+    \item Backup operations
+    \item Data synchronization
+    \item Sending periodic notifications
+\end{itemize}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Singleton execution - tylko jedna instancja w danym momencie
+    \item UTC timezone (default, można zmienić)
+    \item Może się opóźnić przy cold start (pierwsze uruchomienie)
+    \item Nie wymaga żadnych external dependencies
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{CRON Expression}
+\textbf{Format Azure Functions CRON:}
+\begin{center}
+\texttt{\{second\} \{minute\} \{hour\} \{day\} \{month\} \{day-of-week\}}
+\end{center}
+
+\textbf{6 pól (w Azure), nie 5 jak w Linux! }
+
+\textbf{Wildcards i operatory:}
+\begin{itemize}
+    \item \texttt{*} - any value (każda wartość)
+    \item \texttt{,} - value list separator (0,30 = 0 i 30)
+    \item \texttt{-} - range (1-5 = od 1 do 5)
+    \item \texttt{/} - increment (*/5 = co 5)
+\end{itemize}
+
+\textbf{Day of week:}
+\begin{itemize}
+    \item 0 lub 7 = Sunday
+    \item 1 = Monday
+    \item 6 = Saturday
+    \item Można też: MON, TUE, WED, THU, FRI, SAT, SUN
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{CRON Expression - Przykłady}
+\textbf{Co 5 minut:}
+\begin{center}
+\texttt{0 */5 * * * *}
+\end{center}
+
+\textbf{Co godzinę (na początku godziny):}
+\begin{center}
+\texttt{0 0 * * * *}
+\end{center}
+
+\textbf{Codziennie o 9:00:}
+\begin{center}
+\texttt{0 0 9 * * *}
+\end{center}
+
+\textbf{W dni robocze o 9:00:}
+\begin{center}
+\texttt{0 0 9 * * MON-FRI}
+\end{center}
+
+\textbf{Pierwszego dnia miesiąca o północy:}
+\begin{center}
+\texttt{0 0 0 1 * *}
+\end{center}
+
+\textbf{Co 30 sekund:}
+\begin{center}
+\texttt{*/30 * * * * *}
+\end{center}
+
+\textbf{Każdego poniedziałku i piątku o 14:30:}
+\begin{center}
+\texttt{0 30 14 * * MON,FRI}
+\end{center}
+
+\textbf{Co 6 godzin:}
+\begin{center}
+\texttt{0 0 */6 * * *}
+\end{center}
+\end{infobox}
+
+\begin{warnbox}
+\textbf{Timezone:}
+\begin{itemize}
+    \item Default: UTC
+    \item Zmiana timezone: app setting \texttt{WEBSITE\_TIME\_ZONE}
+    \item Wartości: "Central European Standard Time", "US Eastern", etc.
+    \item Lista: Microsoft time zone index values
+\end{itemize}
+
+\textbf{Uwagi:}
+\begin{itemize}
+    \item Timer trigger może się opóźnić przy scale-down
+    \item W Consumption Plan możliwe opóźnienia przy cold start
+    \item Dla critical timing użyj Premium Plan
+\end{itemize}
+\end{warnbox}
+
+\subsection{Blob Trigger}
+
+\begin{infobox}{Blob Trigger - Podstawy}
+\textbf{Definicja:} Funkcja uruchamiana gdy blob jest dodany lub zaktualizowany
+
+\textbf{Zastosowanie:}
+\begin{itemize}
+    \item Przetwarzanie uploadowanych plików
+    \item Generowanie thumbnails obrazów
+    \item Analiza dokumentów (PDF, Word parsing)
+    \item ETL pipelines (Extract, Transform, Load)
+    \item Video/audio transcoding
+    \item Virus scanning nowych plików
+    \item Image recognition (AI/ML)
+    \item File format conversion
+\end{itemize}
+
+\textbf{Triggering events:}
+\begin{itemize}
+    \item New blob created
+    \item Existing blob updated (overwritten)
+    \item NIE triggeruje na: delete, metadata changes
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Blob Trigger - Monitoring Mechanism}
+\textbf{Jak działa detection:}
+\begin{enumerate}
+    \item Azure Functions skanuje logi Blob Storage
+    \item Wykrywa zmiany w kontenerze
+    \item Uruchamia funkcję dla nowych/zmodyfikowanych blobów
+\end{enumerate}
+
+\textbf{Latency (opóźnienie):}
+\begin{itemize}
+    \item Consumption Plan: może być opóźnienie do kilku minut
+    \item Szczególnie dla rzadko używanych Function Apps
+    \item Cold start dodatkowo wydłuża czas reakcji
+\end{itemize}
+
+\textbf{Premium/Dedicated Plan:}
+\begin{itemize}
+    \item Może używać Event Grid (szybsze)
+    \item Real-time lub near-real-time detection
+    \item Lepsza wydajność dla high-volume scenarios
+\end{itemize}
+\end{infobox}
+
+\begin{warnbox}
+\textbf{Dla real-time processing:}
+
+Zamiast Blob Trigger użyj \textbf{Event Grid Trigger}! 
+
+\textbf{Event Grid advantages:}
+\begin{itemize}
+    \item Near-instant reaction (milisekundy)
+    \item Brak polling overhead
+    \item Lepsze dla high-throughput scenarios
+    \item Events dla: create, delete, rename
+\end{itemize}
+\end{warnbox}
+
+\begin{infobox}{Path Pattern}
+\textbf{Blob path format:}
+\begin{center}
+\texttt{container-name/\{blob-name\}}
+\end{center}
+
+\textbf{Przykłady:}
+
+\textbf{Wszystkie blobs w kontenerze:}
+\begin{center}
+\texttt{samples-workitems/\{name\}}
+\end{center}
+
+\textbf{W określonym folderze:}
+\begin{center}
+\texttt{samples-workitems/uploads/\{name\}}
+\end{center}
+
+\textbf{Tylko pliki JPG:}
+\begin{center}
+\texttt{images/\{name\}.jpg}
+\end{center}
+
+\textbf{Binding expression - extract metadata:}
+\begin{center}
+\texttt{images/\{date\}/\{category\}/\{filename\}. jpg}
+\end{center}
+Możesz potem użyć: date, category, filename jako parametry! 
+\end{infobox}
+
+\begin{infobox}{Blob Metadata}
+\textbf{Informacje dostępne w funkcji:}
+\begin{itemize}
+    \item Blob name (nazwa pliku)
+    \item Blob URI (pełna ścieżka)
+    \item Content type (MIME type)
+    \item Size (rozmiar w bajtach)
+    \item Last modified timestamp
+    \item ETag (version identifier)
+\end{itemize}
+
+\textbf{Możesz też:}
+\begin{itemize}
+    \item Czytać content blobu (binary data)
+    \item Czytać metadata (custom properties)
+    \item Stream duże pliki (nie ładuj wszystkiego do pamięci)
+\end{itemize}
+\end{infobox}
+
+\subsection{Queue Trigger}
+
+\begin{infobox}{Queue Trigger - Podstawy}
+\textbf{Definicja:} Funkcja uruchamiana gdy pojawi się wiadomość w Azure Queue Storage
+
+\textbf{Zastosowanie:}
+\begin{itemize}
+    \item Asynchroniczne przetwarzanie zadań
+    \item Load leveling - wyrównywanie obciążenia (buffering)
+    \item Decoupling komponentów aplikacji
+    \item Background processing
+    \item Order processing workflows
+    \item Email/notification sending
+    \item Batch data processing
+    \item Integration patterns
+\end{itemize}
+
+\textbf{Architektura:}
+\begin{enumerate}
+    \item Producer → dodaje message do queue
+    \item Queue → przechowuje message
+    \item Consumer (Function) → przetwarza message
+    \item Delete → usunięcie po sukcesie
+\end{enumerate}
+\end{infobox}
+
+\begin{infobox}{Queue Trigger - Polling Mechanism}
+\textbf{Jak działa:}
+\begin{itemize}
+    \item Azure Functions automatycznie polluje kolejkę
+    \item Adaptive polling algorithm:
+    \begin{itemize}
+        \item Szybkie polling gdy są wiadomości
+        \item Wolniejsze gdy kolejka pusta (save costs)
+    \end{itemize}
+    \item Batch dequeue - może pobrać wiele wiadomości naraz
+    \item Parallel processing - wiele instancji funkcji równolegle
+\end{itemize}
+
+\textbf{Scaling:}
+\begin{itemize}
+    \item Azure automatycznie skaluje liczbę instancji
+    \item Bazuje na queue depth (ile wiadomości w kolejce)
+    \item Więcej messages → więcej instances
+    \item Max instancji zależy od planu (Consumption: 200)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Visibility Timeout}
+\textbf{Co to jest Visibility Timeout? }
+\begin{itemize}
+    \item Gdy message jest dequeued → staje się invisible dla innych
+    \item Default: 30 sekund
+    \item Daje czas na przetworzenie message
+    \item Inne consumery nie widzą tej wiadomości
+\end{itemize}
+
+\textbf{Scenariusze:}
+
+\textbf{Success:}
+\begin{enumerate}
+    \item Dequeue message (invisible 30s)
+    \item Process message (np. 10s)
+    \item Delete message przed timeout
+    \item  Success - message gone
+\end{enumerate}
+
+\textbf{Failure:}
+\begin{enumerate}
+    \item Dequeue message (invisible 30s)
+    \item Process crashes (exception thrown)
+    \item Timeout expires (30s)
+    \item Message wraca do queue
+    \item Retry (dequeue count++)
+\end{enumerate}
+\end{infobox}
+
+\begin{infobox}{Poison Messages}
+\textbf{Co to jest Poison Message?}
+\begin{itemize}
+    \item Wiadomość która powoduje błąd podczas przetwarzania
+    \item Repeatedly fails (wielokrotne błędy)
+    \item Może zablokować kolejkę
+\end{itemize}
+
+\textbf{Azure Automatic Handling:}
+\begin{enumerate}
+    \item Każdy dequeue zwiększa \texttt{DequeueCount}
+    \item Po 5 nieudanych próbach (default)
+    \item Azure automatycznie przenosi do poison queue
+    \item Poison queue name: \texttt{\{originalqueue\}-poison}
+\end{enumerate}
+
+\textbf{Poison queue handling:}
+\begin{itemize}
+    \item Wymaga ręcznej obsługi (monitoring)
+    \item Można napisać osobną funkcję do analizy
+    \item Investigate: dlaczego message failed?
+    \item Fix: napraw dane lub kod
+    \item Requeue lub discard
+\end{itemize}
+
+\textbf{Configurable:}
+\begin{itemize}
+    \item Można zmienić max retry count (default 5)
+    \item W host.json: \texttt{maxDequeueCount}
+\end{itemize}
+\end{infobox}
+
+\begin{warnbox}
+\textbf{Best practices dla Queue Trigger:}
+\begin{itemize}
+    \item Idempotency - funkcja powinna być idempotentna (można uruchomić wielokrotnie bezpiecznie)
+    \item Message size - max 64 KB (dla większych użyj Service Bus)
+    \item TTL - ustaw sensowny Time-To-Live
+    \item Monitoring - monitoruj poison queue
+    \item Error handling - proper try-catch i logging
+\end{itemize}
+\end{warnbox}
+
+\section{Bindingi}
+
+\subsection{Podstawy Bindingów}
+
+\begin{infobox}{Co to są Bindings?}
+\textbf{Definicja:} Deklaratywny sposób połączenia funkcji z zasobami Azure
+
+\textbf{Zalety:}
+\begin{itemize}
+    \item Brak kodu connection management
+    \item Mniej boilerplate code
+    \item Automatic retry logic
+    \item Connection pooling (optymalizacja)
+    \item Credentials z App Settings (security)
+    \item Separation of concerns
+\end{itemize}
+
+\textbf{Typy:}
+\begin{itemize}
+    \item \textbf{Input Binding} - czytanie danych
+    \item \textbf{Output Binding} - zapisywanie danych
+    \item \textbf{Trigger} - specjalny typ input binding (uruchamia funkcję)
+\end{itemize}
+
+\textbf{Konfiguracja:}
+\begin{itemize}
+    \item function.json (JavaScript, Python)
+    \item Attributes (C\#)
+    \item Annotations (Java)
+\end{itemize}
+\end{infobox}
+
+\subsection{Input Bindings}
+
+\begin{infobox}{Input Bindings - Charakterystyka}
+\textbf{Definicja:} Pobieranie danych z external sources do funkcji
+
+\textbf{Dostępne źródła:}
+\begin{itemize}
+    \item Blob Storage - odczyt pliku
+    \item Queue Storage - peek message (bez usuwania)
+    \item Table Storage - pobranie entity/entities
+    \item Cosmos DB - query dokumentów
+    \item SQL Database - SELECT query
+    \item SignalR - connection info
+\end{itemize}
+
+\textbf{Przykład użycia:}
+\begin{itemize}
+    \item HTTP Trigger otrzymuje ID
+    \item Input Binding pobiera dane z Cosmos DB dla tego ID
+    \item Funkcja przetwarza i zwraca
+\end{itemize}
+\end{infobox}
+
+\subsection{Output Bindings}
+
+\begin{infobox}{Output Bindings - Charakterystyka}
+\textbf{Definicja:} Zapisywanie danych do external destinations z funkcji
+
+\textbf{Dostępne destinations:}
+\begin{itemize}
+    \item Blob Storage - zapis pliku
+    \item Queue Storage - wysłanie wiadomości
+    \item Table Storage - insert/update entity
+    \item Cosmos DB - create/update document
+    \item Event Hub - publish events
+    \item Event Grid - publish events
+    \item SignalR - broadcast messages
+    \item SendGrid - wysyłanie emaili
+    \item Twilio - wysyłanie SMS
+\end{itemize}
+
+\textbf{Multiple output bindings:}
+\begin{itemize}
+    \item Jedna funkcja może mieć wiele output bindings
+    \item Przykład: zapisz do Blob + wyślij do Queue + update Table
+\end{itemize}
+\end{infobox}
+
+\begin{warnbox}
+\textbf{Trigger vs Input Binding:}
+
+\textbf{Trigger:}
+\begin{itemize}
+    \item Uruchamia funkcję
+    \item Tylko 1 trigger na funkcję
+    \item Event-driven
+\end{itemize}
+
+\textbf{Input Binding:}
+\begin{itemize}
+    \item Dostarcza dane do funkcji
+    \item Wiele input bindings możliwe
+    \item Data retrieval
+\end{itemize}
+\end{warnbox}
+
+\end{document}

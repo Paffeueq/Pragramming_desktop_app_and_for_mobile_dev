@@ -351,9 +351,8 @@ Response:
   ]
 }
 
-✓ Wiadomość przetworzona pomyślnie
-✓ Dane zapisane w bazie danych
-✓ Timestamp przetworzenia zarejestrowany
+Wiadomość przetworzona pomyślnie a dane zostały zaspiane do db.
+
 \end{verbatim}
 
 \subsubsection{Test 4: Sprawdzenie stanu kolejki}
@@ -369,84 +368,5 @@ Response:
   "status": "Queue is empty"
 }
 
-✓ Wszystkie wiadomości przetworzone
-✓ Nie ma zalegających wiadomości
+Wszystkie wiadomości przetworzone
 \end{verbatim}
-
-\subsection{Porównanie: SQLite vs Azure Storage Queue}
-
-\begin{center}
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{Aspekt} & \textbf{Lokalne rozwiązanie} & \textbf{Azure Storage Queue} \\
-\hline
-Przechowywanie & Plik lokalny lub w pamięci & Cloud (z6storage) \\
-\hline
-Trwałość & Efemeryczna & Persystentna (replikowana) \\
-\hline
-Skalowanie & Ograniczone & Automatyczne \\
-\hline
-Dostępność & Lokalna & 24/7 w chmurze \\
-\hline
-Poison queue & Brak wsparcia & Auto-tworzona \\
-\hline
-Monitoring & Brak & Azure Portal + Application Insights \\
-\hline
-Cost & Darmowe & \$0.01 za milion operacji \\
-\hline
-\end{tabular}
-\end{center}
-
-\subsection{Architektura – Diagram przepływu}
-
-\begin{verbatim}
-┌─────────────────┐
-│  HTTP Client    │
-└────────┬────────┘
-         │ POST /api/SendToQueue
-         ▼
-┌──────────────────────────────┐
-│  SendToQueue Endpoint        │
-│  - Walidacja wiadomości      │
-│  - Generacja UUID            │
-└────────┬─────────────────────┘
-         │
-         │ json.dumps(message)
-         ▼
-┌──────────────────────────────┐
-│ Azure Storage Queue          │
-│ (z7-tasks)                   │
-│ Storage: z6storage           │
-└────────┬─────────────────────┘
-         │ Azure Functions Runtime
-         │ (monitoring queue)
-         ▼
-┌──────────────────────────────┐
-│ QueueTrigger                 │
-│ process_queue_message()      │
-│ - Auto-triggered             │
-│ - Asynchronous               │
-└────────┬─────────────────────┘
-         │ INSERT INTO queue_tasks
-         ▼
-┌──────────────────────────────┐
-│ SQLite DB (queue_tasks)      │
-│ - Audit trail                │
-│ - Timestamps                 │
-│ - Status tracking            │
-└──────────────────────────────┘
-\end{verbatim}
-
-\subsection{Wnioski}
-
-\begin{itemize}
-	\item \textbf{Azure Storage Queue} zapewnia niezawodne, skalowalne przetwarzanie asynchroniczne
-	\item \textbf{QueueTrigger} automatycznie odbiera i przetwarza wiadomości bez interwencji
-	\item \textbf{Persistence} -- wiadomości przechowywane w chmurze Azure, dostępne 24/7
-	\item \textbf{Audit trail} -- każda wiadomość rejestrowana w bazie danych z timestampem
-	\item \textbf{Poison queue} -- automatyczna obsługa wiadomości błędnych
-	\item \textbf{Skalowanie} -- brak obaw o wydajność przy wzroście liczby wiadomości
-	\item \textbf{Dane rzeczywiste} -- system wdrożony na faktycznym Azure Storage Account (\texttt{z6storage})
-\end{itemize}
-
-\end{document}

@@ -1,0 +1,396 @@
+\section{Teoria}
+
+\subsection{Dlaczego Blazor (.NET 8 "Blazor Web App")? }
+
+\begin{tcolorbox}[colback=yellow!10!white,colframe=yellow! 75!black,title=Kluczowe zalety]
+\textbf{Jeden szablon = wiele trybów renderowania}
+
+Blazor .NET 8 wprowadza koncepcję \textit{progressive enhancement}, która pozwala na:
+\begin{itemize}
+    \item Używanie jednego szablonu projektu dla różnych scenariuszy
+    \item Elastyczny wybór trybu renderowania na poziomie komponentu
+    \item Stopniowe dodawanie interaktywności tam, gdzie jest potrzebna
+\end{itemize}
+\end{tcolorbox}
+
+\subsubsection{Zalety podejścia}
+
+\begin{enumerate}
+    \item \textbf{SEO + szybkość pierwszego ładowania (SSR)} \\
+    Server-Side Rendering zapewnia:
+    \begin{itemize}
+        \item Szybkie wyświetlenie treści (First Contentful Paint)
+        \item Indeksowanie przez wyszukiwarki bez JavaScript
+        \item Lepsze wskaźniki Core Web Vitals
+    \end{itemize}
+    
+    \item \textbf{Możliwość przejścia do interaktywności} \\
+    Nie trzeba przepisywać całej aplikacji - można:
+    \begin{itemize}
+        \item Zacząć od statycznego SSR
+        \item Dodać interaktywność tylko tam, gdzie potrzebna
+        \item Mieszać różne tryby w jednej aplikacji
+    \end{itemize}
+    
+    \item \textbf{Wspólny kod .NET} \\
+    Model, walidacja, logika biznesowa:
+    \begin{itemize}
+        \item Dzielone między serwerem a klientem
+        \item Jedna baza kodu w C\#
+        \item Możliwość reużycia bibliotek . NET
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Tryby renderowania (@rendermode)}
+
+\begin{tcolorbox}[colback=cyan!10!white,colframe=cyan!75!black,title=Cztery tryby renderowania]
+Blazor . NET 8 oferuje cztery główne tryby renderowania, które można mieszać w jednej aplikacji. 
+\end{tcolorbox}
+
+\subsubsection{1. Static SSR (brak interaktywności)}
+
+\textbf{Oznaczenie:} brak atrybutu \texttt{@rendermode} lub \texttt{@rendermode="InteractiveServer" @(false)}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Renderowanie tylko po stronie serwera
+    \item Brak możliwości obsługi zdarzeń (onClick, onChange, etc.)
+    \item Minimalny rozmiar przesyłanych danych
+    \item Idealny dla stron statycznych, treści, formularzy bez walidacji
+\end{itemize}
+
+\textbf{Przykład:}
+\begin{lstlisting}[language={[Sharp]C}]
+@page "/about"
+
+<h3>O nas</h3>
+<p>Strona statyczna bez interaktywności</p>
+\end{lstlisting}
+
+\subsubsection{2. Interactive Server}
+
+\textbf{Oznaczenie:} \texttt{@rendermode="InteractiveServer"}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Logika wykonywana po stronie serwera
+    \item Komunikacja przez SignalR/WebSocket
+    \item Mały rozmiar początkowego ładowania
+    \item Każde zdarzenie wymaga round-trip do serwera
+    \item Wymaga stałego połączenia
+\end{itemize}
+
+\textbf{Zalety:}
+\begin{itemize}
+    \item Dostęp do zasobów serwera (baza danych, pliki)
+    \item Bezpieczny kod (nie widoczny dla klienta)
+    \item Szybkie uruchomienie aplikacji
+\end{itemize}
+
+\textbf{Wady:}
+\begin{itemize}
+    \item Latencja sieci przy każdej interakcji
+    \item Wymagane stałe połączenie
+    \item Większe obciążenie serwera
+    \item Nie działa offline
+\end{itemize}
+
+\textbf{Przykład:}
+\begin{lstlisting}[language={[Sharp]C}]
+@page "/counter"
+@rendermode InteractiveServer
+
+<h3>Counter</h3>
+<p>Current count: @currentCount</p>
+<button @onclick="IncrementCount">Click me</button>
+
+@code {
+    private int currentCount = 0;
+    
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
+\end{lstlisting}
+
+\subsubsection{3.  Interactive WebAssembly}
+
+\textbf{Oznaczenie:} \texttt{@rendermode="InteractiveWebAssembly"}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Logika wykonywana w przeglądarce
+    \item Aplikacja działa po stronie klienta
+    \item Większy rozmiar początkowego pobierania
+    \item Brak latencji przy interakcjach
+    \item Możliwość pracy offline (PWA)
+\end{itemize}
+
+\textbf{Zalety:}
+\begin{itemize}
+    \item Natychmiastowa reakcja na interakcje
+    \item Lepsza skalowalność (mniej obciążenia serwera)
+    \item Możliwość pracy offline
+    \item Możliwość tworzenia PWA
+\end{itemize}
+
+\textbf{Wady:}
+\begin{itemize}
+    \item Większy rozmiar początkowego pobierania (~2-3 MB)
+    \item Dłuższy czas pierwszego uruchomienia
+    \item Kod widoczny dla klienta
+    \item Ograniczony dostęp do zasobów systemowych
+\end{itemize}
+
+\textbf{Przykład:}
+\begin{lstlisting}[language={[Sharp]C}]
+@page "/wasm-counter"
+@rendermode InteractiveWebAssembly
+
+<h3>WebAssembly Counter</h3>
+<p>Current count: @currentCount</p>
+<button @onclick="IncrementCount">Click me</button>
+
+@code {
+    private int currentCount = 0;
+    
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
+\end{lstlisting}
+
+\subsubsection{4. Interactive Auto}
+
+\textbf{Oznaczenie:} \texttt{@rendermode="InteractiveAuto"}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Pierwszy raz: Interactive Server
+    \item W tle pobiera WebAssembly
+    \item Kolejne wizyty: Interactive WebAssembly
+    \item Best of both worlds
+\end{itemize}
+
+\textbf{Zalety:}
+\begin{itemize}
+    \item Szybkie pierwsze uruchomienie
+    \item Późniejsza praca bez latencji
+    \item Automatyczne przełączanie
+\end{itemize}
+
+\textbf{Wady:}
+\begin{itemize}
+    \item Większa złożoność
+    \item Trudniejszy debugging
+    \item Kod musi być kompatybilny z oboma trybami
+\end{itemize}
+
+\subsubsection{Wybór trybu renderowania}
+
+Tryb można wybrać na trzech poziomach:
+
+\begin{enumerate}
+    \item \textbf{Globalnie} - w \texttt{App.razor}:
+\begin{lstlisting}[language={[Sharp]C}]
+<Routes @rendermode="InteractiveServer" />
+\end{lstlisting}
+
+    \item \textbf{Per strona} - w komponencie strony:
+\begin{lstlisting}[language={[Sharp]C}]
+@page "/mypage"
+@rendermode InteractiveServer
+\end{lstlisting}
+
+    \item \textbf{Per komponent} - przy użyciu komponentu:
+\begin{lstlisting}[language={[Sharp]C}]
+<MyComponent @rendermode="InteractiveServer" />
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Koszt i trade-offy}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Tryb} & \textbf{Zalety (+)} & \textbf{Wady (-)} \\
+\hline
+\textbf{Static SSR} & 
+\begin{tabular}[t]{@{}l@{}}
+Minimalny rozmiar \\
+Szybkie ładowanie \\
+Dobre SEO
+\end{tabular} & 
+\begin{tabular}[t]{@{}l@{}}
+Brak interaktywności \\
+Tylko proste formularze
+\end{tabular} \\
+\hline
+\textbf{Server} & 
+\begin{tabular}[t]{@{}l@{}}
+Mały rozmiar startowy \\
+Dostęp do serwera \\
+Bezpieczny kod
+\end{tabular} & 
+\begin{tabular}[t]{@{}l@{}}
+Stałe połączenia \\
+Latency roundtrip \\
+Nie działa offline
+\end{tabular} \\
+\hline
+\textbf{WebAssembly} & 
+\begin{tabular}[t]{@{}l@{}}
+Skalowalność \\
+Praca offline \\
+PWA możliwe \\
+Brak latencji
+\end{tabular} & 
+\begin{tabular}[t]{@{}l@{}}
+Większy download \\
+Dłuższe uruchomienie \\
+Kod widoczny
+\end{tabular} \\
+\hline
+\textbf{Auto} & 
+\begin{tabular}[t]{@{}l@{}}
+Szybki start \\
+Potem bez latencji \\
+Lepsze UX
+\end{tabular} & 
+\begin{tabular}[t]{@{}l@{}}
+Większa złożoność \\
+Trudniejszy debug
+\end{tabular} \\
+\hline
+\end{tabular}
+\caption{Porównanie trybów renderowania}
+\end{table}
+
+\subsection{Stream Rendering \& Enhanced Navigation}
+
+\subsubsection{Stream Rendering}
+
+\textbf{Stream Rendering} pozwala na wyświetlenie części strony natychmiast, a następnie zaktualizowanie jej po załadowaniu wolnych danych.
+
+\textbf{Przykład:}
+\begin{lstlisting}[language={[Sharp]C}]
+@attribute [StreamRendering(true)]
+
+@if (forecasts == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table>
+        @foreach (var forecast in forecasts)
+        {
+            <tr><td>@forecast.Date</td></tr>
+        }
+    </table>
+}
+
+@code {
+    private WeatherForecast[]? forecasts;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // Symulacja wolnego zapytania
+        await Task.Delay(2000);
+        forecasts = await GetForecasts();
+    }
+}
+\end{lstlisting}
+
+\textbf{Działanie:}
+\begin{enumerate}
+    \item Serwer natychmiast zwraca HTML z "Loading..."
+    \item W tle wykonuje się \texttt{OnInitializedAsync()}
+    \item Po zakończeniu serwer streamuje zaktualizowany HTML
+    \item Przeglądarka podmienia zawartość
+\end{enumerate}
+
+\subsubsection{Enhanced Navigation}
+
+\textbf{Enhanced Navigation} przyspiesza nawigację między stronami statycznymi SSR poprzez:
+\begin{itemize}
+    \item Pobieranie tylko zmienionych części strony (nie cały dokument)
+    \item Zachowanie JavaScript state
+    \item Szybsze przejścia (podobne do SPA)
+\end{itemize}
+
+Włączane domyślnie w \texttt{App.razor}:
+\begin{lstlisting}[language={[Sharp]C}]
+<head>
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+\end{lstlisting}
+
+\subsection{Struktura projektu ``Blazor Web App''}  % Use LaTeX quotes instead
+
+
+Typowy projekt Blazor Web App (. NET 8) ma następującą strukturę:
+
+\begin{verbatim}
+MyBlazorApp/
+├── MyBlazorApp/              # Projekt główny (Server)
+│   ├── Components/
+│   │   ├── Layout/
+│   │   ├── Pages/
+│   │   └── App.razor
+│   ├── wwwroot/
+│   ├── appsettings.json
+│   └── Program.cs
+│
+└── MyBlazorApp.Client/       # Projekt WebAssembly
+    ├── Pages/
+    ├── wwwroot/
+    └── Program.cs
+\end{verbatim}
+
+\textbf{Wyjaśnienie:}
+\begin{itemize}
+    \item \textbf{MyBlazorApp} - projekt główny, renderuje SSR i Server
+    \item \textbf{MyBlazorApp.Client} - projekt dla WebAssembly
+    \item Komponenty mogą być współdzielone przez oba projekty
+\end{itemize}
+
+\subsection{Formularze w Blazor}
+
+\subsubsection{EditForm}
+
+Podstawowy komponent do tworzenia formularzy z walidacją:
+
+\begin{lstlisting}[language={[Sharp]C}]
+<EditForm Model="@model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    
+    <div>
+        <label>Nazwa:</label>
+        <InputText @bind-Value="model. Name" />
+        <ValidationMessage For="@(() => model.Name)" />
+    </div>
+    
+    <button type="submit">Zapisz</button>
+</EditForm>
+
+@code {
+    private PersonModel model = new();
+    
+    private void HandleValidSubmit()
+    {
+        // Zapisz dane
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Model z walidacją}
+
+\begin{lstlisting}[language={[Sharp]C}]
+using System
+
+\end{lstlisting}

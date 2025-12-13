@@ -1,0 +1,892 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\geometry{left=2cm, right=2cm, top=2cm, bottom=2cm}
+
+\definecolor{azureblue}{RGB}{0,120,215}
+\definecolor{lightblue}{RGB}{230,240,250}
+\definecolor{aigreen}{RGB}{16,124,16}
+
+\newtcolorbox{infobox}[1]{
+    colback=lightblue,
+    colframe=azureblue,
+    fonttitle=\bfseries,
+    title=#1
+}
+
+\newtcolorbox{warnbox}{
+    colback=yellow!10,
+    colframe=orange,
+    fonttitle=\bfseries,
+    title=Ważne! 
+}
+
+\title{\textbf{\Huge Lab 7: Programowanie AI z Azure} \\ \Large Speech, Vision, Document Intelligence}
+\author{Materiały na kolokwium}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Azure AI Speech}
+
+\subsection{Podstawy i Zasoby}
+
+\begin{infobox}{Azure AI Speech - Konfiguracja}
+\textbf{Tworzenie zasobu:}
+\begin{itemize}
+    \item Resource Group → Azure AI Speech
+    \item \textbf{Region} - wybór wpływa na latency i dostępne języki
+    \item \textbf{Endpoint} - URL do API
+    \item \textbf{Keys} - primary/secondary (authentication)
+    \item Best practice: przechowywanie w Key Vault
+\end{itemize}
+
+\textbf{Pricing tiers:}
+\begin{itemize}
+    \item \textbf{Free (F0):} 5 audio hours/month STT, 0.  5M characters/month TTS
+    \item \textbf{Standard (S0):} pay-as-you-go, unlimited, \$1/hour STT, \$4/1M chars TTS
+\end{itemize}
+\end{infobox}
+
+\subsection{Speech-to-Text (STT)}
+
+\begin{infobox}{STT - Transkrypcja Mowy → Tekst}
+\textbf{Realtime STT:}
+\begin{itemize}
+    \item Live transcription (mikrofon, streaming audio)
+    \item Low latency (milisekundy)
+    \item Partial results (intermediate recognition podczas mówienia)
+    \item Use case: live captions, voice commands, dyktowanie
+\end{itemize}
+
+\textbf{Batch STT:}
+\begin{itemize}
+    \item Asynchroniczne przetwarzanie plików audio
+    \item Duże pliki (do kilku godzin)
+    \item Higher accuracy (więcej czasu na processing)
+    \item Use case: call center analytics, meeting transcripts, podcasts
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Formaty Audio i Jakość}
+\textbf{Formaty wspierane:}
+\begin{itemize}
+    \item \textbf{WAV} - PCM 16 kHz mono (RECOMMENDED - best quality)
+    \item MP3, OGG, FLAC, OPUS
+\end{itemize}
+
+\textbf{Sample rate:}
+\begin{itemize}
+    \item 8 kHz - telefonia (niższa jakość)
+    \item 16 kHz - standard (recommended)
+    \item 24 kHz, 48 kHz - higher quality
+\end{itemize}
+
+\textbf{Mikrofony:}
+\begin{itemize}
+    \item Mono preferred (stereo może być używany, ale mono lepszy)
+    \item Odległość 15-30 cm od ust
+    \item Redukcja szumów tła (noise cancellation)
+\end{itemize}
+
+\textbf{Modele jakości:}
+\begin{itemize}
+    \item \textbf{Neural} - najlepsza jakość (deep learning models)
+    \item \textbf{Enhanced} - poprawiona akustyka dla specific scenarios
+    \item Multilingual support - 100+ języków
+    \item Automatic language detection
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Speech Studio - Testowanie}
+\textbf{Workflow:}
+\begin{enumerate}
+    \item Speech Studio → Transcribe
+    \item Nagraj z mikrofonu LUB upload WAV file (16 kHz mono)
+    \item Wybierz język rozpoznawania
+    \item Analyze - otrzymasz transkrypcję + confidence scores
+\end{enumerate}
+
+\textbf{SDK Integration (C\#):}
+\begin{itemize}
+    \item NuGet: \texttt{Microsoft.  CognitiveServices. Speech}
+    \item SpeechConfig (endpoint, key, region)
+    \item SpeechRecognizer (from mic / from file)
+    \item RecognizeOnceAsync() - single utterance
+    \item StartContinuousRecognitionAsync() - streaming
+\end{itemize}
+\end{infobox}
+
+\subsection{Text-to-Speech (TTS)}
+
+\begin{infobox}{TTS - Synteza Mowy}
+\textbf{Neural TTS:}
+\begin{itemize}
+    \item Naturalne brzmienie (deep neural networks)
+    \item Human-like prosody (intonacja, rytm, akcent)
+    \item Wiele głosów: męskie, żeńskie, dzieci
+    \item Multilingual - 100+ języków
+    \item Emocje: neutral, cheerful, sad, angry, excited, friendly
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Virtual assistants (Alexa-like)
+    \item Accessibility - czytniki ekranu dla niewidomych
+    \item IVR systems (Interactive Voice Response - call centers)
+    \item E-learning platforms
+    \item Audiobooks
+    \item Navigation systems
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{SSML - Speech Synthesis Markup Language}
+\textbf{XML-based język do kontroli TTS}
+
+\textbf{Kluczowe tagi:}
+\begin{itemize}
+    \item \texttt{<speak>} - root element
+    \item \texttt{<voice name="en-US-JennyNeural">} - wybór głosu
+    \item \texttt{<prosody rate="fast">} - prędkość (slow/medium/fast lub \%)
+    \item \texttt{<prosody pitch="high">} - wysokość głosu
+    \item \texttt{<break time="500ms"/>} - pauza
+    \item \texttt{<emphasis level="strong">} - nacisk na słowo
+    \item \texttt{<phoneme ph="...  ">} - custom wymowa
+    \item \texttt{<mstts:express-as style="cheerful">} - emocje
+\end{itemize}
+
+\textbf{Output formats:}
+\begin{itemize}
+    \item RAW PCM, WAV
+    \item MP3 (różne bitrate: 48k, 128k, 192k)
+    \item OGG Opus
+\end{itemize}
+\end{infobox}
+
+\subsection{Speech Translation}
+
+\begin{infobox}{Tłumaczenie Mowy Real-time}
+\textbf{Funkcjonalność:}
+\begin{itemize}
+    \item Mowa (język A) → tekst (język B)
+    \item Mowa (język A) → mowa (język B)
+    \item Multi-language support (tłumaczenie na kilka języków jednocześnie)
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item International meetings/conferences
+    \item Customer support (wielojęzyczny)
+    \item Travel apps
+    \item Real-time interpretation
+\end{itemize}
+
+\textbf{Latency:}
+\begin{itemize}
+    \item Near real-time (1-2 sekundy opóźnienia)
+    \item Partial translation results during speaking
+\end{itemize}
+\end{infobox}
+
+\subsection{Customizacja}
+
+\begin{infobox}{Custom Speech}
+\textbf{Dostosowanie modelu STT do specific scenarios}
+
+\textbf{Custom Acoustic Model:}
+\begin{itemize}
+    \item Adaptacja do środowiska (hałas, echo, akcent)
+    \item Training data: audio recordings + transkrypcje
+    \item Minimum kilka godzin nagrań
+    \item Use case: call centers z hałasem tła, nietypowe akcenty
+\end{itemize}
+
+\textbf{Custom Language Model:}
+\begin{itemize}
+    \item Specjalistyczne słownictwo (medyczne, techniczne, prawnicze)
+    \item Training data: teksty z domenową terminologią
+    \item Improve recognition of domain-specific terms
+\end{itemize}
+
+\textbf{Proces:}
+\begin{enumerate}
+    \item Upload training data (audio + transcripts / text)
+    \item Train custom model (kilka godzin)
+    \item Evaluate accuracy
+    \item Deploy custom endpoint
+\end{enumerate}
+\end{infobox}
+
+\begin{infobox}{Custom Neural Voice}
+\textbf{Własny głos syntezowany (TTS)}
+
+\textbf{Wymagania:}
+\begin{itemize}
+    \item \textbf{Limited Access} - wymaga zatwierdzenia przez Microsoft
+    \item Ethical use case approval (zapobieganie deepfake abuse)
+    \item Training data: 300-2000 utterances (~10-30 min nagrań)
+    \item Professional recording environment
+\end{itemize}
+
+\textbf{Proces aplikacji:}
+\begin{enumerate}
+    \item Submit use case description
+    \item Microsoft review (compliance, ethical use)
+    \item Approval (może zająć tygodnie)
+    \item Training z professional recordings
+\end{enumerate}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Brand voice (company assistant)
+    \item Celebrity voice (za zgodą)
+    \item Personalization (custom voice dla accessibility)
+\end{itemize}
+\end{infobox}
+
+\section{Azure AI Document Intelligence}
+
+\subsection{Podstawy}
+
+\begin{infobox}{Document Intelligence (Form Recognizer)}
+\textbf{AI-powered extraction z dokumentów}
+
+\textbf{Funkcje:}
+\begin{itemize}
+    \item \textbf{OCR} - Optical Character Recognition (tekst z obrazów)
+    \item \textbf{Layout analysis} - struktura dokumentu (paragraphs, tables)
+    \item \textbf{Key-value pairs} - pola formularzy
+    \item \textbf{Table extraction} - dane tabelaryczne
+    \item \textbf{Prebuilt models} - gotowe modele dla common documents
+    \item \textbf{Custom models} - trenowanie własnych
+\end{itemize}
+
+\textbf{Wspierane formaty:}
+\begin{itemize}
+    \item PDF, JPG, PNG, TIFF, BMP
+    \item Handwriting i print text
+\end{itemize}
+\end{infobox}
+
+\subsection{Prebuilt Models}
+
+\begin{infobox}{Gotowe Modele w Studio}
+\textbf{Invoices (Faktury):}
+\begin{itemize}
+    \item Vendor name, date, invoice number
+    \item Total amount, tax, line items
+    \item Currency detection
+    \item Confidence scores dla każdego pola
+\end{itemize}
+
+\textbf{Receipts (Paragony):}
+\begin{itemize}
+    \item Merchant name, transaction date, total
+    \item Line items (products, prices)
+    \item Payment method, tip amount
+\end{itemize}
+
+\textbf{ID/Passport:}
+\begin{itemize}
+    \item Full name, date of birth, document number
+    \item Expiration date, nationality, address
+    \item Face detection (photo location)
+\end{itemize}
+
+\textbf{Business Cards:}
+\begin{itemize}
+    \item Name, job title, company
+    \item Phone, email, address, website
+\end{itemize}
+
+\textbf{W-2 (US tax form):}
+\begin{itemize}
+    \item Employee/employer info
+    \item Wages, tax withheld, social security
+\end{itemize}
+
+\textbf{Read (OCR):}
+\begin{itemize}
+    \item Plain text extraction
+    \item Line-by-line output
+    \item Handwriting recognition
+    \item Language detection
+\end{itemize}
+
+\textbf{Layout:}
+\begin{itemize}
+    \item Document structure (headers, paragraphs, tables)
+    \item Bounding boxes dla text regions
+    \item Reading order detection
+    \item Selection marks (checkboxes)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Document Intelligence Studio}
+\textbf{Testowanie prebuilt models:}
+\begin{enumerate}
+    \item Document Intelligence Studio → Prebuilt models
+    \item Wybierz model (np. Invoices)
+    \item Upload 2-3 sample documents (PDF/JPG)
+    \item Analyze - otrzymasz JSON output
+    \item Przejrzyj extracted fields:
+    \begin{itemize}
+        \item Pola (vendor, date, total)
+        \item Tabele (line items)
+        \item Confidence scores (0. 0-1.0)
+        \item Bounding boxes (locations)
+    \end{itemize}
+\end{enumerate}
+
+\textbf{JSON output structure:}
+\begin{itemize}
+    \item \texttt{analyzeResult. documents[]} - extracted data
+    \item \texttt{fields} - key-value pairs z confidence
+    \item \texttt{tables} - row/column structure
+    \item \texttt{pages} - page-level info
+\end{itemize}
+\end{infobox}
+
+\subsection{Custom Extraction}
+
+\begin{infobox}{Custom Model - Trenowanie}
+\textbf{Kiedy używać:}
+\begin{itemize}
+    \item Własny format dokumentu (nie covered by prebuilt)
+    \item Specific fields potrzebne
+    \item Multiple variants tego samego formularza
+\end{itemize}
+
+\textbf{Proces:}
+\begin{enumerate}
+    \item \textbf{Przygotuj dane} - 5-15 dokumentów jednego typu (ideally 15-50)
+    \item \textbf{Upload do Blob Storage} - Store w Azure Storage
+    \item \textbf{Label fields w Studio}:
+    \begin{itemize}
+        \item Draw bounding boxes wokół pól
+        \item Assign labels (np. "InvoiceDate", "Total")
+        \item Label tables (rows/columns)
+    \end{itemize}
+    \item \textbf{Train model} - kilka minut do godziny
+    \item \textbf{Evaluate metrics} - Precision, Recall, F1 score
+    \item \textbf{Test on new documents}
+    \item \textbf{Deploy} - use przez REST API / SDK
+\end{enumerate}
+\end{infobox}
+
+\begin{infobox}{Compose - Łączenie Modeli}
+\textbf{Problem:} Różne warianty tego samego typu formularza
+
+\textbf{Rozwiązanie:} Compose
+
+\textbf{Jak działa:}
+\begin{itemize}
+    \item Trenuj osobny model dla każdego variantu
+    \item Combine models w jeden composed model
+    \item Single endpoint - Azure automatycznie wybiera właściwy model
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Faktury od różnych vendorów (różne layouts)
+    \item Formularze w różnych językach
+    \item Historical vs nowe wersje formularza
+\end{itemize}
+
+\textbf{Max:} 100 models w jednym composed model
+\end{infobox}
+
+\begin{infobox}{Metryki Oceny}
+\textbf{Precision (Dokładność):}
+\begin{itemize}
+    \item \% poprawnie wyekstraktowanych wartości spośród wszystkich extracted
+    \item High precision = mało false positives
+\end{itemize}
+
+\textbf{Recall (Pokrycie):}
+\begin{itemize}
+    \item \% znalezionych pól spośród wszystkich możliwych
+    \item High recall = mało false negatives
+\end{itemize}
+
+\textbf{F1 Score:}
+\begin{itemize}
+    \item Harmonic mean Precision i Recall
+    \item Balansuje obie metryki
+    \item F1 = 2 * (Precision * Recall) / (Precision + Recall)
+\end{itemize}
+
+\textbf{Target:}
+\begin{itemize}
+    \item Precision > 0.90 (90\%)
+    \item Recall > 0.  90
+    \item F1 > 0.90
+\end{itemize}
+\end{infobox}
+
+\section{Azure AI Vision}
+
+\subsection{Image Analysis}
+
+\begin{infobox}{Computer Vision - Analiza Obrazów}
+\textbf{Funkcje:}
+\begin{itemize}
+    \item \textbf{Tags} - słowa kluczowe opisujące obraz
+    \item \textbf{Descriptions} - pełne zdania opisujące scenę
+    \item \textbf{Dense Captions} - szczegółowe opisy różnych regionów obrazu
+    \item \textbf{OCR (Read API)} - ekstrakcja tekstu z obrazów
+    \item \textbf{Object Detection} - lokalizacja obiektów (bounding boxes)
+    \item \textbf{Face Detection} - wykrywanie twarzy, wiek, emocje
+    \item \textbf{Adult Content Detection} - klasyfikacja treści (adult/racy/gory)
+    \item \textbf{Color Analysis} - dominujące kolory, accent color
+    \item \textbf{Image Type} - clipart vs photo, line drawing
+\end{itemize}
+
+\textbf{Wspierane formaty:}
+\begin{itemize}
+    \item JPG, PNG, GIF, BMP
+    \item Max size: 4 MB (lub 50 MB dla Read API)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Tags vs Descriptions vs Dense Captions}
+\textbf{Tags (pojedyncze słowa):}
+\begin{itemize}
+    \item Lista keywords: "dog", "outdoor", "grass", "playing"
+    \item Confidence score dla każdego tagu
+    \item Use case: search indexing, kategoryzacja
+\end{itemize}
+
+\textbf{Descriptions (całe zdania):}
+\begin{itemize}
+    \item Pełne zdanie: "A dog playing with a ball in a grassy field"
+    \item 1-3 candidate descriptions z confidence
+    \item Use case: alt text, accessibility
+\end{itemize}
+
+\textbf{Dense Captions (regionalne):}
+\begin{itemize}
+    \item Szczegółowe opisy różnych części obrazu
+    \item Bounding box + opis dla każdego regionu
+    \item Przykład: "a red car" (bbox: left door), "blue sky" (bbox: upper part)
+    \item Use case: detailed image understanding, scene composition
+\end{itemize}
+
+\textbf{Multilingual support:}
+\begin{itemize}
+    \item English (default), Polish, Spanish, French, German, etc.
+    \item Language parameter w API call
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{OCR - Read API}
+\textbf{Ekstrakcja tekstu z obrazów}
+
+\textbf{Charakterystyka:}
+\begin{itemize}
+    \item Printed i handwriting recognition
+    \item Multi-language support (140+ języków)
+    \item Orientation detection (auto-rotation)
+    \item Bounding boxes dla words i lines
+    \item Confidence scores
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item Document digitization
+    \item Receipt/invoice scanning
+    \item License plate recognition
+    \item Street sign reading
+    \item Handwritten notes extraction
+\end{itemize}
+
+\textbf{Output structure:}
+\begin{itemize}
+    \item Pages → Lines → Words
+    \item Każdy element ma: text, bbox, confidence
+    \item Preserves layout structure
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Vision Studio - Testowanie}
+\textbf{Workflow:}
+\begin{enumerate}
+    \item Vision Studio → Image Analysis
+    \item Upload images (różne jakości - test robustness)
+    \item Przejrzyj results:
+    \begin{itemize}
+        \item Tags (keywords)
+        \item Descriptions (sentences)
+        \item Dense Captions (regional descriptions)
+        \item OCR output (extracted text)
+    \end{itemize}
+    \item Zmień język opisu - compare quality
+    \item Test różne typy obrazów (outdoor, indoor, people, objects)
+\end{enumerate}
+\end{infobox}
+
+\subsection{Integracja z .  NET}
+
+\begin{infobox}{REST API vs SDK}
+\textbf{REST API:}
+\begin{itemize}
+    \item HttpClient do wywołania endpoint
+    \item POST request z obrazem (binary lub URL)
+    \item Headers: Ocp-Apim-Subscription-Key
+    \item JSON response z results
+\end{itemize}
+
+\textbf{SDK (NuGet):}
+\begin{itemize}
+    \item \texttt{Azure.AI.Vision.ImageAnalysis}
+    \item ImageAnalysisClient (endpoint, credential)
+    \item Strongly-typed methods
+    \item Easier error handling
+\end{itemize}
+
+\textbf{Batch vs Single:}
+\begin{itemize}
+    \item Single - analyze jeden obraz na raz
+    \item Batch - multiple images (async processing, lower cost per image)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Minimal API Example - .  NET 9}
+\textbf{Endpoint:} \texttt{POST /analyze-image}
+
+\textbf{Configuration:}
+\begin{itemize}
+    \item IOptions<VisionSettings> - endpoint, key z appsettings
+    \item Key Vault integration dla production
+\end{itemize}
+
+\textbf{Flow:}
+\begin{enumerate}
+    \item Client uploads image (multipart/form-data)
+    \item API wywołuje Vision REST endpoint
+    \item Przetwarza JSON response
+    \item Zwraca formatted result (tags, descriptions, OCR)
+\end{enumerate}
+
+\textbf{Error handling:}
+\begin{itemize}
+    \item Invalid image format → 400 Bad Request
+    \item API quota exceeded → 429 Too Many Requests
+    \item Unauthorized → 401 (check key)
+\end{itemize}
+\end{infobox}
+
+\section{Custom Vision}
+
+\subsection{Podstawy}
+
+\begin{infobox}{Custom Vision Service}
+\textbf{Trenowanie własnych modeli computer vision}
+
+\textbf{2 typy projektów:}
+\begin{itemize}
+    \item \textbf{Classification} - klasyfikacja obrazu (jedna lub wiele etykiet)
+    \item \textbf{Object Detection} - lokalizacja i klasyfikacja obiektów
+\end{itemize}
+
+\textbf{Portal:} customvision.ai
+
+\textbf{Zasoby Azure:}
+\begin{itemize}
+    \item Custom Vision Training - do trenowania modeli
+    \item Custom Vision Prediction - do wdrożenia i inference
+    \item Możliwe combined resource (training + prediction)
+\end{itemize}
+\end{infobox}
+
+\subsection{Classification}
+
+\begin{infobox}{Klasyfikacja Obrazów}
+\textbf{Multiclass:}
+\begin{itemize}
+    \item Jedna etykieta na obraz
+    \item Przykład: "dog" LUB "cat" LUB "bird" (nie może być kilka jednocześnie)
+    \item Model wybiera najbardziej prawdopodobną klasę
+\end{itemize}
+
+\textbf{Multilabel:}
+\begin{itemize}
+    \item Wiele etykiet na obraz
+    \item Przykład: "beach" + "sunset" + "people" (wszystkie mogą być true)
+    \item Independent probability dla każdego tagu
+\end{itemize}
+
+\textbf{Kiedy który:}
+\begin{itemize}
+    \item Multiclass - mutually exclusive categories
+    \item Multilabel - multiple attributes możliwe jednocześnie
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Training Data - Classification}
+\textbf{Minimum:}
+\begin{itemize}
+    \item 5 obrazów na tag (absolute minimum)
+    \item Recommended: 30-50 obrazów na tag
+    \item Ideally: 100+ obrazów na tag dla production
+\end{itemize}
+
+\textbf{Balans klas:}
+\begin{itemize}
+    \item Podobna liczba obrazów dla każdego tagu
+    \item Imbalance prowadzi do bias (model preferuje częstsze klasy)
+    \item Jeśli imbalance nieunikniony: use class weights
+\end{itemize}
+
+\textbf{Różnorodność:}
+\begin{itemize}
+    \item Różne kąty (front, side, top views)
+    \item Różne oświetlenie (day, night, indoor, outdoor)
+    \item Różne tła (isolated vs cluttered)
+    \item Różne odległości (close-up, far away)
+\end{itemize}
+
+\textbf{Augmentacje:}
+\begin{itemize}
+    \item Custom Vision automatycznie augmentuje
+    \item Rotation, flip, color adjustments, zoom
+    \item Zwiększa robustness bez dodatkowych obrazów
+\end{itemize}
+\end{infobox}
+
+\subsection{Object Detection}
+
+\begin{infobox}{Detekcja Obiektów}
+\textbf{Lokalizacja + klasyfikacja obiektów}
+
+\textbf{Proces tagowania:}
+\begin{itemize}
+    \item Rysuj bounding boxes wokół obiektów
+    \item Assign tag do każdego boxa
+    \item Możliwe wiele obiektów tego samego typu na jednym obrazie
+    \item Tight bounding boxes (bez zbędnego marginesu)
+\end{itemize}
+
+\textbf{Training data:}
+\begin{itemize}
+    \item Minimum: 15 obrazów na tag (z labeled objects)
+    \item Recommended: 50+ obrazów
+    \item Ideally: 200+ obrazów dla production
+\end{itemize}
+
+\textbf{Różnorodność:}
+\begin{itemize}
+    \item Różne rozmiary obiektów (small, medium, large)
+    \item Occlusion scenarios (częściowo zakryte)
+    \item Overlapping objects
+    \item Cluttered backgrounds
+\end{itemize}
+\end{infobox}
+
+\subsection{Trening}
+
+\begin{infobox}{Quick Training vs Advanced Training}
+\textbf{Quick Training:}
+\begin{itemize}
+    \item Czas: kilka minut
+    \item Mniejsza dokładność
+    \item Fewer epochs
+    \item Use case: prototyping, testing data quality, iteracja szybka
+\end{itemize}
+
+\textbf{Advanced Training:}
+\begin{itemize}
+    \item Czas: do godziny (zależnie od data size)
+    \item Wyższa dokładność
+    \item More epochs, hyperparameter tuning
+    \item Use case: production models, final deployment
+\end{itemize}
+
+\textbf{Iteracje:}
+\begin{itemize}
+    \item Każdy trening tworzy nową iterację
+    \item Wersjonowanie modeli (iteration 1, 2, 3...)
+    \item Możesz compare performance między iteracjami
+    \item Możesz revert do previous iteration
+    \item Publish konkretną iterację do prediction endpoint
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Metryki - Classification}
+\textbf{Precision (Dokładność):}
+\begin{itemize}
+    \item \% poprawnych positive predictions
+    \item Precision = TP / (TP + FP)
+    \item High precision = few false positives
+\end{itemize}
+
+\textbf{Recall (Pokrycie):}
+\begin{itemize}
+    \item \% znalezionych positive cases
+    \item Recall = TP / (TP + FN)
+    \item High recall = few false negatives
+\end{itemize}
+
+\textbf{Trade-off:}
+\begin{itemize}
+    \item Increasing precision często decreases recall
+    \item Adjust threshold aby balansować
+\end{itemize}
+
+\textbf{Target values:}
+\begin{itemize}
+    \item Precision > 0.85 (85\%)
+    \item Recall > 0.85
+    \item Depends on use case (medical = high recall, spam = high precision)
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Metryki - Object Detection}
+\textbf{mAP (mean Average Precision):}
+\begin{itemize}
+    \item Primary metric dla object detection
+    \item Combines precision i recall across all classes
+    \item IoU threshold (Intersection over Union) - typically 0.  5
+\end{itemize}
+
+\textbf{IoU (Intersection over Union):}
+\begin{itemize}
+    \item Miara overlap between predicted i ground truth bbox
+    \item IoU = Area of Overlap / Area of Union
+    \item IoU > 0. 5 = good detection (często used threshold)
+    \item IoU > 0.75 = excellent detection
+\end{itemize}
+
+\textbf{Target:}
+\begin{itemize}
+    \item mAP > 0.70 (70\%) - good model
+    \item mAP > 0.85 - excellent model
+    \item Depends on complexity (simple objects easier than complex)
+\end{itemize}
+\end{infobox}
+
+\subsection{Wdrożenie}
+
+\begin{infobox}{Prediction Endpoint (SaaS)}
+\textbf{Cloud-hosted inference:}
+\begin{itemize}
+    \item Publish iteration → creates REST endpoint
+    \item Automatic scaling
+    \item Pay per prediction
+    \item Easy updates (deploy new iteration)
+\end{itemize}
+
+\textbf{API calls:}
+\begin{itemize}
+    \item POST request z obrazem (binary lub URL)
+    \item Headers: Prediction-Key
+    \item JSON response: predictions z probabilities
+\end{itemize}
+
+\textbf{Threshold adjustment:}
+\begin{itemize}
+    \item Default: 0.5 (50\% confidence)
+    \item Higher threshold → more precision, less recall
+    \item Lower threshold → more recall, less precision
+    \item Adjust based on use case requirements
+\end{itemize}
+\end{infobox}
+
+\begin{infobox}{Export "On-Edge"}
+\textbf{Offline inference (bez cloud connectivity)}
+
+\textbf{Supported formats:}
+\begin{itemize}
+    \item \textbf{ONNX} - Open Neural Network Exchange (universal)
+    \item \textbf{TensorFlow} - pełny model
+    \item \textbf{TensorFlow Lite} - mobilne (Android/iOS, optimized)
+    \item \textbf{CoreML} - iOS/macOS native
+    \item \textbf{NCNN} - Android optimized (bardzo szybki)
+\end{itemize}
+
+\textbf{Use case:}
+\begin{itemize}
+    \item IoT devices (offline capability)
+    \item Mobile apps (MAUI, native iOS/Android)
+    \item Edge computing (low latency critical)
+    \item Privacy concerns (data stays on device)
+    \item Cost optimization (no per-prediction charge)
+\end{itemize}
+
+\textbf{Trade-offs:}
+\begin{itemize}
+    \item (+) Offline, low latency, no recurring cost
+    \item (-) Manual model updates, limited device resources
+\end{itemize}
+\end{infobox}
+
+\subsection{Operacje i Maintenance}
+
+\begin{infobox}{Zarządzanie Modelem}
+\textbf{Iteracje:}
+\begin{itemize}
+    \item Train new iteration gdy dodajesz więcej danych
+    \item Compare metrics między iteracjami
+    \item Unpublish old iteration, publish new
+    \item Keep historical iterations (for rollback)
+\end{itemize}
+
+\textbf{Threshold tuning:}
+\begin{itemize}
+    \item Test różne progi confidence
+    \item Monitor false positives vs false negatives
+    \item A/B testing w production (compare thresholds)
+\end{itemize}
+
+\textbf{Data drift:}
+\begin{itemize}
+    \item Zmiana danych w czasie (nowe scenariusze, oświetlenie, obiekty)
+    \item Performance degradation
+    \item Rozwiązanie: regularny retraining z nowymi danymi
+    \item Monitoring: track prediction confidence over time
+\end{itemize}
+
+\textbf{Adding new data:}
+\begin{itemize}
+    \item Upload nowe obrazy (especially edge cases)
+    \item Retrain model (Quick Training dla fast iteration)
+    \item Evaluate improvement
+    \item Deploy jeśli better performance
+\end{itemize}
+\end{infobox}
+
+\section{Pytania kontrolne}
+
+\begin{enumerate}
+    \item Czym różni się Realtime STT od Batch STT?
+    \item Jaki format audio jest recommended dla STT i dlaczego?
+    \item Co to jest Neural TTS i jakie ma zastosowania?
+    \item Wymień 3 tagi SSML i ich funkcje. 
+    \item Co to jest Custom Speech i kiedy go używać?
+    \item Wymień 5 prebuilt models w Document Intelligence.
+    \item Co to jest Compose w Document Intelligence?
+    \item Czym różnią się Tags, Descriptions i Dense Captions?
+    \item Co to jest Read API i do czego służy?
+    \item Czym różni się Classification Multiclass od Multilabel?
+    \item Ile minimum obrazów potrzeba do treningu Classification?
+    \item Co to jest mAP w Object Detection?
+    \item Czym różni się Quick Training od Advanced Training?
+    \item Jakie formaty eksportu są dostępne w Custom Vision?
+    \item Co to jest data drift i jak sobie z nim radzić?
+\end{enumerate}
+
+\end{document}

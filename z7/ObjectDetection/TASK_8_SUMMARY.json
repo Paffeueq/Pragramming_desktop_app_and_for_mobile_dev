@@ -1,0 +1,34 @@
+{
+  "task": "Task 8 - Object Detection",
+  "status": "Training Completed",
+  "summary": {
+    "project": "ObjectDetectionLab8",
+    "project_id": "2eb84c36-4e64-4a0e-9880-5c0b9805d618",
+    "project_type": "Object Detection",
+    "training_status": "Completed",
+    "iteration_id": "a11f544a-8b8b-42ca-bd90-185bb7af3d0b",
+    "iteration_name": "Iteration 1",
+    "published_as": "ObjectDetectionModel"
+  },
+  "dataset": {
+    "training_images": 30,
+    "total_annotations": 90,
+    "tags": {
+      "osoba": 30,
+      "samochod": 30,
+      "pies": 30
+    },
+    "test_images": 3
+  },
+  "training_details": {
+    "trained_at": "2025-12-13 16:37:10.637000+00:00",
+    "training_type": "Quick Training",
+    "training_duration_minutes": 7
+  },
+  "notes": {
+    "implementation": "Complete",
+    "bounding_box_format": "Pascal VOC (xmin, ymin, xmax, ymax)",
+    "api_limitation": "Prediction Resource for Object Detection requires separate configuration (F0/S0 tier specific)",
+    "testing_status": "Model trained successfully, API testing requires Object Detection specific Prediction Resource"
+  }
+}

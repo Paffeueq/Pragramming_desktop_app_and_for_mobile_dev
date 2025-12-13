@@ -1,0 +1,47 @@
+
+Home
+Research
+Teaching
+Contact
+Tworzenie agentów AI MCP
+Materiały
+Model Context Protocol (MCP) – specyfikacja: https://modelcontextprotocol.io/
+MCP SDK dla .NET: https://github.com/modelcontextprotocol/dotnet-sdk
+Przykłady serwerów MCP: https://github.com/modelcontextprotocol/servers
+Dokumentacja VS Code MCP: https://code.visualstudio.com/docs/copilot/chat-mcp
+OpenAI .NET SDK: https://github.com/openai/openai-dotnet
+Semantic Kernel (Microsoft): https://learn.microsoft.com/semantic-kernel/overview/
+Tematy do poruszenia
+Czym jest Model Context Protocol (MCP)
+
+Protokół komunikacji między aplikacjami AI a źródłami danych/narzędziami.
+Architektura: serwer MCP, klient MCP, transport (stdio, HTTP, SSE).
+Zastosowania: rozszerzanie możliwości LLM o dostęp do danych, API, baz danych.
+Porównanie z innymi podejściami (Function Calling, Plugins).
+Serwer MCP – podstawy
+
+Rola serwera: udostępnianie narzędzi (tools), zasobów (resources) i promptów.
+Implementacja w C# (.NET 9) z użyciem SDK.
+Kontrakt: lista dostępnych narzędzi, ich parametry, typy zwracane.
+Transport stdio vs HTTP – kiedy który.
+Klient MCP – integracja z aplikacją
+
+Rola klienta: łączenie się z serwerem MCP i wywoływanie narzędzi.
+Implementacja w C# – HttpClient, JSON-RPC.
+Obsługa błędów, retry, timeout.
+Narzędzia (Tools) w MCP
+
+Definicja narzędzia: nazwa, opis, parametry wejściowe, wyjściowe.
+Przykłady: wyszukiwanie w bazie danych, pobieranie danych z API, operacje na plikach.
+JSON Schema dla walidacji parametrów.
+Ćwiczenia
+1. Stworzenie prostego serwera MCP w C#
+2. Klient MCP – wywołanie narzędzia MCP przez LLM z kodu C#
+3. Rozszerzenie serwera MCP – dostęp do bazy danych
+4. Deployment na Azure
+← Powrót do planu zajęć
+
+💻
+💼
+📧
+© 2025 Tomasz Leś | Warsaw University of Technology

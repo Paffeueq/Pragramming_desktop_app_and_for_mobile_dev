@@ -1,0 +1,79 @@
+{
+  "task": 8,
+  "type": "Object Detection",
+  "project": {
+    "name": "ObjectDetectionLab8",
+    "id": "2eb84c36-4e64-4a0e-9880-5c0b9805d618",
+    "domain": "Object Detection"
+  },
+  "model": {
+    "name": "ObjectDetectionModel",
+    "endpoint": "/classify",
+    "note": "/detect endpoint returned 'Invalid project type for operation' error"
+  },
+  "test_results": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "predictions": [
+    {
+      "image": "test_1.jpg",
+      "status": "PASS",
+      "predictions_count": 3,
+      "predictions": [
+        {
+          "tag": "pies",
+          "confidence": 51.75
+        },
+        {
+          "tag": "osoba",
+          "confidence": 51.15
+        },
+        {
+          "tag": "samochod",
+          "confidence": 48.52
+        }
+      ]
+    },
+    {
+      "image": "test_2.jpg",
+      "status": "PASS",
+      "predictions_count": 3,
+      "predictions": [
+        {
+          "tag": "pies",
+          "confidence": 51.81
+        },
+        {
+          "tag": "osoba",
+          "confidence": 50.97
+        },
+        {
+          "tag": "samochod",
+          "confidence": 48.7
+        }
+      ]
+    },
+    {
+      "image": "test_3.jpg",
+      "status": "PASS",
+      "predictions_count": 3,
+      "predictions": [
+        {
+          "tag": "pies",
+          "confidence": 51.49
+        },
+        {
+          "tag": "osoba",
+          "confidence": 51.34
+        },
+        {
+          "tag": "samochod",
+          "confidence": 48.67
+        }
+      ]
+    }
+  ]
+}

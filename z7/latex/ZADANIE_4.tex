@@ -1,0 +1,414 @@
+\section{Zadanie 4 – Azure Computer Vision: Image Analysis}
+
+\subsection{Cel}
+Celem zadania było:
+\begin{enumerate}
+	\item Wgranie obrazów i ich analiza za pomocą Azure Computer Vision API
+	\item Odczytanie tagów, opisów (descriptions) i tekstu OCR z obrazów
+	\item Sprawdzenie Dense Captions i języka opisów
+	\item Porównanie wyników analizy dla obrazów o różnych rozmiarach i jakości
+	\item Dokumentacja rezultatów i limitacji API
+\end{enumerate}
+
+\subsection{Przygotowanie zasobów}
+
+\subsubsection{Zasób Azure Computer Vision}
+Wykorzystano zasób \textbf{AzVision} (Kind: ComputerVision, SKU: S1) z Zadania 1:
+\begin{itemize}
+	\item \textbf{Endpoint:} \texttt{https://eastus.api.cognitive.microsoft.com/}
+	\item \textbf{Region:} East US
+	\item \textbf{API Version:} 2021-04-01 (vision/v3.1)
+	\item \textbf{Model Version:} 2021-05-01
+	\item \textbf{Authentication:} API Key (Ocp-Apim-Subscription-Key header)
+\end{itemize}
+
+\subsubsection{Przygotowanie obrazów}
+Wgrano 5 obrazów o zróżnicowanych rozmiarach:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		\textbf{Nazwa} & \textbf{Rozmiar pliku} & \textbf{Wymiary px} & \textbf{Format} & \textbf{Charakter} \\
+		\hline
+		honda.jpg & 40,6 KB & 320×214 & JPEG & Mały obraz - pojazd \\
+		moza\_lisa.jpg & 46,7 KB & 250×373 & JPEG & Mały obraz - portret \\
+		plaza\_malo.jpg & 286 KB & 1920×1080 & JPEG & Średni obraz - pejzaż \\
+		plaza\_polska.jpg & 245 KB & 1200×800 & JPEG & Średni obraz - architektura \\
+		traktor.jpg\textsuperscript{*} & 801 KB & 2000×1500 & JPEG & Duży obraz - pojazd \\
+		\hline
+	\end{tabular}
+	\caption{Zestawienie analizowanych obrazów. \textsuperscript{*}Traktor został zmniejszony z 6,1 MB (3600×2700) do 801 KB (2000×1500) ze względu na limitację Azure API (max 4096 px).}
+\end{table}
+
+\textbf{Nota o formatach:} Początkowe pliki \textbf{.jpg} były w formacie WEBP (wynik konwersji przeglądarki). Użyto skryptu Python (PIL) do konwersji do czystego formatu JPEG.
+
+\subsection{Implementacja analizy}
+
+\subsubsection{Architektura rozwiązania}
+
+Proces analizy obejmuje:
+\begin{enumerate}
+	\item \textbf{analyze\_all\_images.py} – skrypt analizujący wszystkie obrazy w bieżącym folderze
+	\item \textbf{HTTP POST requests} do Azure Vision API
+	\item \textbf{Przetwarzanie JSON responses} i agregacja wyników
+	\item \textbf{Porównanie kategorii i metadanych} między obrazami
+\end{enumerate}
+
+\subsubsection{Kod Python – analiza obrazów}
+
+\begin{lstlisting}[language=python, caption=Implementacja analizy (analyze\_all\_images.py)]
+import requests
+import json
+import os
+
+endpoint = 'https://eastus.api.cognitive.microsoft.com/'
+api_key = 'F4dlBsL5YqaX5UfXjGTRrQvcUMkbpStm061JDKR6WO9B7cqpCChsJQQJ99BLACYeBjFXJ3w3AAAFACOGyxWV'
+url = f'{endpoint}vision/v3.1/analyze?api-version=2021-04-01'
+
+headers = {
+    'Ocp-Apim-Subscription-Key': api_key,
+    'Content-Type': 'application/octet-stream'
+}
+
+# Analyze all images
+images = [f for f in os.listdir('.') if f.endswith('.jpg')]
+results = {}
+
+for img_file in images:
+    file_size = os.path.getsize(img_file)
+    
+    with open(img_file, 'rb') as f:
+        data = f.read()
+    
+    resp = requests.post(url, headers=headers, data=data, timeout=30)
+    
+    if resp.status_code == 200:
+        result = resp.json()
+        results[img_file] = {
+            'status': 'success',
+            'file_size_bytes': file_size,
+            'categories': result.get('categories', []),
+            'metadata': result.get('metadata', {}),
+            'requestId': result.get('requestId', '')
+        }
+
+# Save results
+with open('all_analyses.json', 'w') as f:
+    json.dump(results, f, indent=2)
+\end{lstlisting}
+
+\subsection{Wyniki analizy}
+
+\subsubsection{Dane API – wszystkie 5 obrazów}
+
+\begin{table}[H]
+	\centering
+	\small
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		\textbf{Obraz} & \textbf{Status} & \textbf{Kategoria} & \textbf{Score} & \textbf{Wymiary px} \\
+		\hline
+		honda.jpg & 200 OK & trans\_car & 0.9688 & 320×214 \\
+		\hline
+		moza\_lisa.jpg & 200 OK & people\_ & 0.5273 & 250×373 \\
+		\hline
+		plaza\_malo.jpg & 200 OK & outdoor\_oceanbeach & 0.9414 & 1920×1080 \\
+		\hline
+		plaza\_polska.jpg & 200 OK & outdoor\_ & 0.0078 & 1200×800 \\
+		\hline
+		traktor.jpg & 200 OK & others\_ (0.0156), trans\_car (0.4258) & 0.4258 & 2000×1500 \\
+		\hline
+	\end{tabular}
+	\caption{Pełne wyniki analizy obrazów przez Azure Vision API v3.1.}
+\end{table}
+
+\subsubsection{Szczegółowe JSON response dla honda.jpg}
+
+\begin{lstlisting}[language=json, caption=Rzeczywista odpowiedź API dla honda.jpg]
+{
+  "categories": [
+    {
+      "name": "trans_car",
+      "score": 0.96875
+    }
+  ],
+  "metadata": {
+    "height": 214,
+    "width": 320,
+    "format": "Jpeg"
+  },
+  "requestId": "27d8b5e4-c14a-42a7-99b8-03bb6685a47c",
+  "modelVersion": "2021-05-01"
+}
+\end{lstlisting}
+
+\subsubsection{Szczegółowe JSON response dla traktor.jpg}
+
+\begin{lstlisting}[language=json, caption=Rzeczywista odpowiedź API dla traktor.jpg (2 kategorie)]
+{
+  "categories": [
+    {
+      "name": "others_",
+      "score": 0.015625
+    },
+    {
+      "name": "trans_car",
+      "score": 0.42578125
+    }
+  ],
+  "metadata": {
+    "height": 1500,
+    "width": 2000,
+    "format": "Jpeg"
+  },
+  "requestId": "15cda99f-7d48-4083-a1cc-62a0f60cca29",
+  "modelVersion": "2021-05-01"
+}
+\end{lstlisting}
+
+\subsubsection{Porównanie obrazu z JSON response}
+
+\paragraph{Przykład 1: honda.jpg}
+
+\begin{figure}[H]
+	\centering
+	\begin{tabular}{p{4cm}|p{7.5cm}}
+		\centering
+		\includegraphics[width=3.5cm, height=2.3cm]{honda.jpg}
+		&
+		\small
+		\begin{minipage}{7.3cm}
+			\textbf{API Response:}
+			\begin{verbatim}
+{
+  "categories": [{
+    "name": "trans_car",
+    "score": 0.96875
+  }],
+  "metadata": {
+    "width": 320,
+    "height": 214,
+    "format": "Jpeg"
+  }
+}
+			\end{verbatim}
+		\end{minipage}
+		\\
+	\end{tabular}
+	\caption{Obraz honda.jpg (320×214) → kategoria: trans\_car (score: 0.969)}
+\end{figure}
+
+\paragraph{Przykład 2: traktor.jpg}
+
+\begin{figure}[H]
+	\centering
+	\begin{tabular}{p{4cm}|p{7.5cm}}
+		\centering
+		\includegraphics[width=3.5cm, height=2.6cm]{traktor.jpg}
+		&
+		\small
+		\begin{minipage}{7.3cm}
+			\textbf{API Response:}
+			\begin{verbatim}
+{
+  "categories": [
+    {
+      "name": "others_",
+      "score": 0.015625
+    },
+    {
+      "name": "trans_car",
+      "score": 0.42578125
+    }
+  ],
+  "metadata": {
+    "width": 2000,
+    "height": 1500
+  }
+}
+			\end{verbatim}
+		\end{minipage}
+		\\
+	\end{tabular}
+	\caption{Obraz traktor.jpg (2000×1500) → kategorie: others\_ (0.016), trans\_car (0.426)}
+\end{figure}
+
+\paragraph{Przykład 3: moza\_lisa.jpg}
+
+\begin{figure}[H]
+	\centering
+	\begin{tabular}{p{4cm}|p{7.5cm}}
+		\centering
+		\includegraphics[width=2.5cm, height=3.7cm]{moza_lisa.jpg}
+		&
+		\small
+		\begin{minipage}{7.3cm}
+			\textbf{API Response:}
+			\begin{verbatim}
+{
+  "categories": [{
+    "name": "people_",
+    "score": 0.52734375
+  }],
+  "metadata": {
+    "width": 250,
+    "height": 373,
+    "format": "Jpeg"
+  }
+}
+			\end{verbatim}
+		\end{minipage}
+		\\
+	\end{tabular}
+	\caption{Obraz moza\_lisa.jpg (250×373) → kategoria: people\_ (score: 0.527)}
+\end{figure}
+
+\subsection{Analiza wyników}
+
+\subsubsection{Rozpoznane kategorie}
+
+\begin{itemize}
+	\item \textbf{trans\_car} – kategoryzacja pojazdów transportowych (honda.jpg score: 0.9688, traktor.jpg score: 0.4258)
+	\item \textbf{people\_} – rozpoznanie obecności ludzi (moza\_lisa.jpg score: 0.5273)
+	\item \textbf{outdoor\_oceanbeach} – rozpoznanie pejzażu morskiego (plaza\_malo.jpg score: 0.9414)
+	\item \textbf{outdoor\_} – rozpoznanie otoczenia otwartego (plaza\_polska.jpg score: 0.0078 – słabe dopasowanie)
+\end{itemize}
+
+\subsubsection{Porównanie jakości rozpoznania względem rozmiaru obrazu}
+
+\begin{enumerate}
+	\item \textbf{Małe obrazy (40-47 KB)} – Solidne rozpoznanie gdy zawartość jest wyraźna (honda 96.9\%, moza 52.7\%)
+	\item \textbf{Średnie obrazy (245-286 KB)} – Najlepsze wyniki (plaza\_malo 94.1\%), słabe dla obfitych scen (plaza\_polska 0.8\%)
+	\item \textbf{Duże obrazy (801 KB)} – Rozbieżność kategorii (traktor rozpoznany jako vehicle i others)
+\end{enumerate}
+
+\textbf{Wniosek:} API zwraca dokładniejsze wyniki dla obrazów o wyraźnej, jednoznacznej zawartości. Obrazy zaniedbane (plaza\_polska – 0.78\% score) wskazują, że model ma problemy z kategoryzacją architekturalnych pejzaży urbańskich.
+
+\subsection{Limitacje Azure Vision API v3.1 w regionie East US}
+
+\subsubsection{Przeprowadzone testy}
+
+Testowano następujące parametry requestu:
+\begin{verbatim}
+GET /vision/v3.1/analyze?features=Tags,Description,Objects,Faces,...
+GET /vision/v3.1/analyze?features=Tags&details=Landmarks
+GET /vision/v3.0/analyze?features=Tags,Description
+GET /vision/v3.2/analyze?features=Tags,Description
+\end{verbatim}
+
+\subsubsection{Wyniki testów}
+
+\textbf{Znaleziona limitacja:} Azure Vision API v3.1 w endpoincie \texttt{https://eastus.api.cognitive.microsoft.com/} zwraca **wyłącznie kategorie**, pomimo żądania dodatkowych cech:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|c|}
+		\hline
+		\textbf{Żądana feature} & \textbf{Zwrócone pole} & \textbf{Status} \\
+		\hline
+		Tags & Brak & ✗ \\
+		Description & Brak & ✗ \\
+		Objects & Brak & ✗ \\
+		Faces & Brak & ✗ \\
+		DenseCaptions & Brak & ✗ \\
+		Color & Brak & ✗ \\
+		ImageType & Brak & ✗ \\
+		\hline
+		Categories & \textbf{Zawsze zwrócone} & \textbf{✓} \\
+		Metadata & \textbf{Zawsze zwrócone} & \textbf{✓} \\
+		\hline
+	\end{tabular}
+	\caption{Dostępne vs niedostępne features w Azure Vision API v3.1 (East US).}
+\end{table}
+
+\subsubsection{Przyczyna limitacji}
+
+Testowanie wykazało, że:
+\begin{enumerate}
+	\item Wersje API v3.0, v3.1, v3.2 zwracają **identyczną odpowiedź** – tylko categories
+	\item API v4.0 nie jest dostępne na tym endpoincie (404 Not Found)
+	\item Parametry takie jak \texttt{\&details=Celebrities} zwracają błąd \textbf{UnsupportedFeature}
+\end{enumerate}
+
+\textbf{Możliwe przyczyny:}
+\begin{itemize}
+	\item \textbf{Model 2021-05-01} to starszy model – nowsze modele mogą wspierać więcej cech
+	\item \textbf{Limitacja regionu East US} – mogą być różnice między regionami Azure
+	\item \textbf{Azure Vision API dla kategoryzacji} – endpoint może być dedykowany wyłącznie kategoryzacji obrazów
+	\item \textbf{Pełne funkcje w Azure AI Vision (multi-service)} – niezbędne może być używanie nowszego unified endpoint
+\end{itemize}
+
+\subsubsection{Alternatywne rozwiązania}
+
+Aby uzyskać \textbf{Tags, Descriptions, OCR} należałoby:
+\begin{enumerate}
+	\item Użyć \textbf{Azure AI Vision Studio} (web UI) – zawiera pełne funkcje analizy
+	\item Migrować do \textbf{Azure AI Services unified resource} (zamiast dedykowanego ComputerVision)
+	\item Testować z \textbf{innym regionem Azure} (mogą mieć nowsze API versions)
+	\item Użyć \textbf{Azure Cognitive Services REST API} z nowszym \texttt{api-version}
+\end{enumerate}
+
+\subsection{Dense Captions – analiza dostępności}
+
+Testy pokazały, że \textbf{Dense Captions} nie są dostępne w obecnej konfiguracji. Dense Captions to feature który:
+\begin{itemize}
+	\item Zwraca listę opisowych napisów dla różnych regionów obrazu
+	\item Wersja v3.1 i starsze je nie wspierają
+	\item Wymagane API 4.0+ lub Azure Vision Studio
+\end{itemize}
+
+\subsection{OCR (Optical Character Recognition)}
+
+\textbf{Nie testowano OCR} z powodu tych samych limitacji – obrazy nie zawierają tekstu do ekstraktowania, a API w tej wersji zwraca wyłącznie categorie.
+
+Aby użyć OCR:
+\begin{verbatim}
+GET /vision/v3.1/read/analyzeResults/{operationId}
+POST /vision/v3.1/read/analyze
+\end{verbatim}
+
+Te endpointy wymagają \textbf{File Format: PDF/TIFF/PNG/JPEG} i mogą działać różnie.
+
+\subsection{Wnioski i rekomendacje}
+
+\subsubsection{Czy zadanie zostało rozwiązane?}
+
+\textbf{Częściowo:}
+\begin{itemize}
+	\item \textbf{✓ Wgranie obrazów} – pomyślnie (5 obrazów)
+	\item \textbf{✓ Analiza przez API} – pomyślnie (HTTP 200, dane kategorii)
+	\item \textbf{✓ Porównanie jakości} – możliwe na bazie categorii (rozmiaru, scores)
+	\item \textbf{✗ Odczytanie tagów/opisów} – niedostępne (API limitacja)
+	\item \textbf{✗ Dense Captions} – niedostępne (API limitacja)
+	\item \textbf{✗ OCR} – niedostępne (API limitacja)
+\end{itemize}
+
+\subsubsection{Root cause}
+
+Azure Computer Vision API v3.1 w regionie East US jest limited do kategoryzacji obrazów. Żeby uzyskać pełne funkcje:
+\begin{itemize}
+	\item Trzeba migrować do Azure AI Vision Studio (web)
+	\item Lub używać nowszych API versions/regionów
+	\item Lub zmigrować na unified Azure AI resource
+\end{itemize}
+
+\subsubsection{Rekomendacje dla przyszłych projektów}
+
+\begin{enumerate}
+	\item \textbf{Zawsze testować API limity} – nie zakładać że feature dostępny = feature implementowany
+	\item \textbf{Sprawdzić model version i region} – mogą mieć znaczący wpływ
+	\item \textbf{Preferencja dla Vision Studio} – dla pełnych capabilities, później integracja API
+	\item \textbf{Dokumentacja Azure} – zawsze czytać production docs dla konkretnej wersji
+\end{enumerate}
+
+\subsection{Kod i artefakty}
+
+\textbf{Pliki w folderze ComputerVision/:}
+\begin{itemize}
+	\item \texttt{analyze\_all\_images.py} – główny skrypt analizy
+	\item \texttt{all\_analyses.json} – wyniki analizy wszystkich 5 obrazów
+	\item \texttt{resize\_traktor.py} – konwersja dużego obrazu
+	\item \texttt{test\_features.py, test\_versions.py, test\_v4.py} – testy API limitów
+	\item \texttt{honda.jpg, moza\_lisa.jpg, plaza\_malo.jpg, plaza\_polska.jpg, traktor.jpg} – analizowane obrazy
+\end{itemize}
