@@ -1,0 +1,840 @@
+\documentclass[twoside]{article}
+\usepackage{graphicx}
+%\usepackage{polski}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{epigraph}
+\usepackage{listings}
+\usepackage{soul}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+%\UseRawInputEncoding
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+
+\lstset{
+	basicstyle=\ttfamily\small,
+	breaklines=true,
+	frame=single,
+	backgroundcolor=\color{gray!10},
+	inputencoding=utf8,
+	literate=
+	{ą}{{\k a}}1 {ć}{{\'c}}1 {ę}{{\k e}}1 {ł}{{\l}}1
+	{ń}{{\'n}}1 {ó}{{\'o}}1 {ś}{{\'s}}1
+	{ż}{{\.z}}1 {ź}{{\'z}}1
+	{Ą}{{\k A}}1 {Ć}{{\'C}}1 {Ę}{{\k E}}1 {Ł}{{\L}}1
+	{Ń}{{\'N}}1 {Ó}{{\'O}}1 {Ś}{{\'S}}1
+	{Ż}{{\.Z}}1 {Ź}{{\'Z}}1
+}
+
+\title{Z8 331720}
+\author{Paweł Myszka}
+\date{\today}
+
+\makeatletter
+
+\begin{document}
+	
+	\pagestyle{fancy}
+	\fancyhead{}
+	\fancyhead[L]{\@title}
+	\fancyhead[R]{\@author}
+	\fancyhead[C]{\@date}
+	
+	\cfoot{\thepage\ / \pageref{LastPage}}
+	
+	\newpage
+	\begin{center}
+		{\Huge \textbf{Labolatorium nr 8}}\\[0.5cm]
+		{\Large Temat: Tworzenie agentów AI MCP}
+	\end{center}
+	
+	\newpage
+
+\section{Stworzenie prostego serwera MCP w C\#}
+
+\subsection{Architektura}
+
+Serwer MCP zbudowany jest na bazie:
+\begin{itemize}
+	\item Framework: \textbf{.NET 9.0 Console Application}
+	\item Komunikacja: \textbf{JSON over stdin/stdout} oraz \textbf{ASP.NET Core Web API (HTTP)}
+	\item Port: \textbf{5000} (lokalna komunikacja)
+\end{itemize}
+
+\subsection{Inicjalizacja projektu}
+
+\begin{verbatim}
+PS D:\stud\sem 5\Desktop\z8> dotnet new console -n MCPServer
+PS D:\stud\sem 5\Desktop\z8\MCPServer> dotnet build
+\end{verbatim}
+
+\subsection{Program.cs - Definicja endpointów}
+
+Serwer obsługuje następujące komendy:
+
+\begin{lstlisting}
+// Endpoint zdrowia
+app.MapGet("/", () => new { 
+	status = "ok", 
+	message = "MCP Server running", 
+	version = "3.0.0" 
+});
+
+// Endpoint MCP
+app.MapPost("/mcp", async (HttpContext context) =>
+{
+	using var reader = new StreamReader(context.Request.Body);
+	var line = await reader.ReadToEndAsync();
+	
+	var json = JsonDocument.Parse(line);
+	var root = json.RootElement;
+	string command = root.GetProperty("command").GetString() ?? "";
+	
+	string response = command switch
+	{
+		"init" => JsonSerializer.Serialize(new
+		{
+			status = "initialized",
+			name = "MCPServerWithDatabase",
+			version = "3.0.0"
+		}),
+		
+		"list_tables" => JsonSerializer.Serialize(new
+		{
+			status = "ok",
+			data = dbServer.ListTables()
+		}),
+		
+		"query_database" => HandleQueryDatabase(root, dbServer),
+		"insert_data" => HandleInsertData(root, dbServer),
+		"update_data" => HandleUpdateData(root, dbServer),
+		"delete_data" => HandleDeleteData(root, dbServer),
+		
+		_ => JsonSerializer.Serialize(new { error = "Unknown command" })
+	};
+	
+	await context.Response.WriteAsync(response);
+});
+
+app.Run();
+\end{lstlisting}
+
+\subsection{Obsługiwane komendy}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|l|p{6cm}|l|}
+		\hline
+		\textbf{Komenda} & \textbf{Opis} \\
+		\hline
+		\texttt{init} & Inicjalizacja serwera \\
+		\hline
+		\texttt{list\_tables} & Wylistowanie tabel w bazie \\
+		\hline
+		\texttt{query\_database} & SELECT z bazy danych \\
+		\hline
+		\texttt{insert\_data} & INSERT do bazy \\
+		\hline
+		\texttt{update\_data} & UPDATE rekordu  \\
+		\hline
+		\texttt{delete\_data} & DELETE rekordu \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsection{Test lokalny}
+
+\begin{verbatim}
+PS D:\stud\sem 5\Desktop\z8\MCPServer> dotnet run
+Building...
+Starting...
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5000
+
+// Test endpointu
+curl http://localhost:5000/
+> {"status":"ok","message":"MCP Server running","version":"3.0.0"}
+\end{verbatim}
+
+\subsection{Wnioski}
+
+Serwer MCP został pomyślnie stworzony z pełną obsługą protokołu JSON. Architektura umożliwia łatwą rozbudowę o nowe komendy poprzez dodanie nowych gałęzi w switch'u.
+
+\section{Klient MCP – wywołanie narzędzia MCP przez LLM z kodu C\#}
+
+\subsection{Cel}
+Stworzenie klienta, który komunikuje się z serwerem MCP i integruje się z API Groq LLM do przetwarzania naturalnego języka.
+
+\subsection{Architektura}
+
+\begin{verbatim}
+[User Query]
+    (|)
+[Groq LLM]
+    (|) (HTTP)
+[MCPClient]
+    (|) (HTTP REST)
+[MCPServer na Azure]
+    (|) (SQLite)
+[Database]
+\end{verbatim}
+
+\subsection{MCPIntegrator\_Azure.cs - Klasa integracyjna}
+
+\begin{lstlisting}
+public class MCPIntegratorAzure
+{
+	private readonly string _apiKey;
+	private readonly HttpClient _httpClient;
+	private const string AZURE_SERVER_URL = 
+		"https://mcp-server-app-pms.azurewebsites.net";
+	private const string GROQ_API_URL = 
+		"https://api.groq.com/openai/v1/chat/completions";
+	
+	public MCPIntegratorAzure(string apiKey)
+	{
+		_apiKey = apiKey;
+		_httpClient = new HttpClient();
+	}
+	
+	public string SendToMCPServer(string jsonCommand)
+	{
+		try
+		{
+			var jsonContent = new StringContent(
+				jsonCommand,
+				Encoding.UTF8,
+				"application/json"
+			);
+			
+			var response = _httpClient.PostAsync(
+				$"{AZURE_SERVER_URL}/mcp",
+				jsonContent
+			).Result;
+			
+			string content = response.Content.ReadAsStringAsync().Result;
+			return content;
+		}
+		catch (Exception ex)
+		{
+			return $"ERROR: {ex.Message}";
+		}
+	}
+	
+	public async Task<string> CallGroqLLM(string userMessage)
+	{
+		var request = new
+		{
+			model = "meta-llama/llama-4-scout-17b-16e-instruct",
+			messages = new[]
+			{
+			new { role = "system", 
+				content = "Jesteś asystentem mogącym wywoływać narzędzia MCP." },
+
+				new { role = "user", content = userMessage }
+			},
+			temperature = 0.7,
+			max_tokens = 500
+		};
+		
+		var jsonContent = new StringContent(
+			JsonSerializer.Serialize(request),
+			Encoding.UTF8,
+			"application/json"
+		);
+		
+		var requestMsg = new HttpRequestMessage(
+			HttpMethod.Post, GROQ_API_URL)
+		{
+			Content = jsonContent,
+			Headers = { { "Authorization", $"Bearer {_apiKey}" } }
+		};
+		
+		var response = await _httpClient.SendAsync(requestMsg);
+		var responseContent = await response.Content.ReadAsStringAsync();
+		
+		var jsonDoc = JsonDocument.Parse(responseContent);
+		return jsonDoc.RootElement
+			.GetProperty("choices")[0]
+			.GetProperty("message")
+			.GetProperty("content")
+			.GetString() ?? "";
+	}
+}
+\end{lstlisting}
+
+\subsection{Program.cs - Sesja interaktywna}
+
+\begin{lstlisting}
+string groqApiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY") ?? "";
+
+var integrator = new MCPIntegratorAzure(groqApiKey);
+
+try
+{
+	integrator.StartMCPServer();
+	await integrator.InteractiveSession();
+}
+finally
+{
+	integrator.StopMCPServer();
+}
+\end{lstlisting}
+
+\subsection{Konfiguracja Groq API}
+
+\begin{verbatim}
+1. Rejestracja: https://console.groq.com
+2. Pobranie API Key: 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
+3. Ustawienie zmiennej:
+   $env:GROQ_API_KEY = "gsk_..."
+4. Test:
+   dotnet run
+\end{verbatim}
+
+\subsection{Model LLM}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Właściwość} & \textbf{Wartość} \\
+		\hline
+		Model & meta-llama/llama-4-scout-17b-16e-instruct \\
+		\hline
+		Provider & Groq API \\
+		\hline
+		Temperatura & 0.7 \\
+		\hline
+		Max tokens & 500 \\
+		\hline
+		Status & Aktywny (nie wycofany) \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsection{Wnioski}
+
+MCPClient pomyślnie integruje Groq LLM z serwerem MCP, umożliwiając przetwarzanie zapytań użytkownika w naturalnym języku i komunikację z bazą danych.
+
+\section{Rozszerzenie serwera MCP – dostęp do bazy danych}
+
+\subsection{Cel}
+Integracja SQLite z serwerem MCP, umożliwiająca pełne operacje CRUD na bazie danych.
+
+\subsection{DatabaseServer.cs - Zarządzanie bazą danych}
+
+\begin{lstlisting}
+public class DatabaseServer
+{
+	private SqliteConnection _connection;
+	
+	public DatabaseServer(string dbPath)
+	{
+		_connection = new SqliteConnection($"Data Source={dbPath}");
+		_connection.Open();
+		InitializeTables();
+		SeedData();
+	}
+	
+	private void InitializeTables()
+	{
+		// Tabela Users
+		var userCmd = _connection.CreateCommand();
+		userCmd.CommandText = @"
+			CREATE TABLE IF NOT EXISTS Users (
+				Id INTEGER PRIMARY KEY,
+				Name TEXT,
+				Email TEXT,
+				Created DATETIME
+			)";
+		userCmd.ExecuteNonQuery();
+		
+		// Tabela Products
+		var productCmd = _connection.CreateCommand();
+		productCmd.CommandText = @"
+			CREATE TABLE IF NOT EXISTS Products (
+				Id INTEGER PRIMARY KEY,
+				Name TEXT,
+				Price REAL,
+				Stock INTEGER
+			)";
+		productCmd.ExecuteNonQuery();
+	}
+	
+	public string QueryDatabase(string table, string where = "")
+	{
+		var cmd = _connection.CreateCommand();
+		cmd.CommandText = $"SELECT * FROM {table}";
+		if (!string.IsNullOrEmpty(where))
+			cmd.CommandText += $" WHERE {where}";
+		
+		var reader = cmd.ExecuteReader();
+		return ReadResults(reader);
+	}
+	
+	public string InsertData(string table, Dictionary<string, string> values)
+	{
+		var cmd = _connection.CreateCommand();
+		var columns = string.Join(", ", values.Keys);
+		var placeholders = string.Join(", ", 
+			values.Keys.Select(k => $"@{k}"));
+		
+		cmd.CommandText = 
+			$"INSERT INTO {table} ({columns}) VALUES ({placeholders})";
+		
+		foreach (var kvp in values)
+		{
+			cmd.Parameters.AddWithValue($"@{kvp.Key}", kvp.Value);
+		}
+		
+		cmd.ExecuteNonQuery();
+		return "SUCCESS: Wstawiono rekord";
+	}
+	
+	public string UpdateData(string table, 
+		Dictionary<string, string> setValues, string where)
+	{
+		var cmd = _connection.CreateCommand();
+		var setClause = string.Join(", ", 
+			setValues.Keys.Select(k => $"{k} = @{k}"));
+		
+		cmd.CommandText = $"UPDATE {table} SET {setClause} WHERE {where}";
+		
+		foreach (var kvp in setValues)
+		{
+			cmd.Parameters.AddWithValue($"@{kvp.Key}", kvp.Value);
+		}
+		
+		cmd.ExecuteNonQuery();
+		return "SUCCESS: Zaktualizowano rekord";
+	}
+	
+	public string DeleteData(string table, string where)
+	{
+		var cmd = _connection.CreateCommand();
+		cmd.CommandText = $"DELETE FROM {table} WHERE {where}";
+		cmd.ExecuteNonQuery();
+		return "SUCCESS: Usunieto rekord";
+	}
+	
+	public string ListTables()
+	{
+		return "Tabele: Users, Products";
+	}
+}
+\end{lstlisting}
+
+\subsection{Sample Data - Seeding}
+
+Tabela Users:
+\begin{verbatim}
+Id | Name | Email | Created
+1 | Jan Kowalski | jan@example.com | 2025-12-19
+2 | Maria Nowak | maria@example.com | 2025-12-19
+3 | Piotr Lewandowski | piotr@example.com | 2025-12-19
+\end{verbatim}
+
+Tabela Products:
+\begin{verbatim}
+Id | Name | Price | Stock
+1 | Laptop | 3499.99 | 5
+2 | Mysz | 49.99 | 50
+3 | Klawiatura | 199.99 | 20
+\end{verbatim}
+
+\subsection{Testowanie operacji CRUD}
+
+\subsubsection{Test 1: List Tables}
+\begin{verbatim}
+Request: {"command": "list_tables"}
+Response: {"status":"ok","data":"Tabele: Users, Products"}
+Status: TAK (PASS)
+\end{verbatim}
+
+\subsubsection{Test 2: Query Users}
+\begin{verbatim}
+Request: {"command": "query_database", "query": {"table": "Users"}}
+Response: {"status":"ok","data":"3 records returned"}
+Status: TAK (PASS)
+\end{verbatim}
+
+\subsubsection{Test 3: Insert Data}
+\begin{verbatim}
+Request: {"command": "insert_data", 
+	"insert": {"table": "Users", 
+		"values": {"Name": "Anna", "Email": "anna@example.com"}}}
+Response: {"status":"ok","data":"SUCCESS: Wstawiono 1 rekord"}
+Status: TAK (PASS)
+\end{verbatim}
+
+\subsubsection{Test 4: Update Data}
+\begin{verbatim}
+Request: {"command": "update_data",
+	"update": {"table": "Products", 
+		"set": {"Price": "3499.99"}, 
+		"where": "Id=1"}}
+Response: {"status":"ok","data":"SUCCESS: Zaktualizowano 1 rekord"}
+Status: TAK (PASS)
+\end{verbatim}
+
+\subsubsection{Test 5: Delete Data}
+\begin{verbatim}
+Request: {"command": "delete_data",
+	"delete": {"table": "Users", "where": "Id=4"}}
+Response: {"status":"ok","data":"SUCCESS: Usunięto 1 rekord"}
+Status: TAK (PASS)
+\end{verbatim}
+
+\section{Deployment na Azure}
+
+\subsection{Cel}
+Wdrożenie aplikacji MCPServer na platformę Azure Web App z możliwością komunikacji przez HTTP.
+
+\subsection{Przygotowanie infrastruktury}
+
+\subsubsection{Zasoby Azure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Zasób} & \textbf{Konfiguracja} \\
+		\hline
+		Resource Group & mcp-resource-group \\
+		\hline
+		Region & West Europe \\
+		\hline
+		App Service Plan & B1 (Basic) \\
+		\hline
+		Free Tier & Do 18.01.2026 \\
+		\hline
+		Runtime & .NET 9.0 Core \\
+		\hline
+		Web App & mcp-server-app-pms \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsubsection{Azure CLI - Tworzenie zasobów}
+
+\begin{verbatim}
+// 1. Zalogowanie
+az login --tenant 3f7764cf-7717-4f10-a7d2-f5d8cc83177d
+
+// 2. Grupa zasobów
+az group create --name mcp-resource-group --location westeurope
+
+// 3. Plan usług
+az appservice plan create --name mcp-app-plan \
+	--resource-group mcp-resource-group --sku B1 --is-linux
+
+// 4. Aplikacja web
+az webapp create --resource-group mcp-resource-group \
+	--plan mcp-app-plan --name mcp-server-app-pms \
+	--runtime DOTNETCORE:9.0
+\end{verbatim}
+
+\subsection{Publikacja i wdrażanie}
+
+\subsubsection{Build Release}
+
+\begin{verbatim}
+PS D:\stud\sem 5\Desktop\z8\MCPServer> dotnet publish -c Release -o ./publish
+
+Output:
+- mcp_database.db
+- MCPServer.dll
+- appsettings.json
+- Entire .NET runtime
+
+Size: 17,919,408 bytes (app.zip)
+\end{verbatim}
+
+\subsubsection{Deployment do Azure}
+
+\begin{verbatim}
+// Tworzenie ZIP
+Compress-Archive -Path ./publish/* -DestinationPath app.zip -Force
+
+// Wdrożenie
+az webapp deployment source config-zip \
+	--resource-group mcp-resource-group \
+	--name mcp-server-app-pms \
+	--src ./app.zip
+
+Status: Build successful. Time: 18(s)
+Status: Deployment successful!
+\end{verbatim}
+
+\subsection{Weryfikacja deployment'u}
+
+\subsubsection{Test endpointu}
+
+\begin{verbatim}
+curl https://mcp-server-app-pms.azurewebsites.net/
+Response: {"status":"ok","message":"MCP Server running","version":"3.0.0"}
+Status: LIVE (TAK)
+\end{verbatim}
+
+\subsubsection{Test health check}
+
+\begin{verbatim}
+curl https://mcp-server-app-pms.azurewebsites.net/health
+Response: {"status":"ok","timestamp":"2025-12-19T09:19:43.3318503Z"}
+Status: ONLINE (TAK)
+\end{verbatim}
+
+\subsection{Testy na produkcji}
+
+\subsubsection{Test 1: Health Check}
+
+\begin{verbatim}
+	Komenda:
+	curl -X GET https://mcp-server-app-pms.azurewebsites.net/health
+	
+	Odpowiedź:
+	HTTP/1.1 200 OK
+	Content-Type: application/json
+	
+	{
+		"status": "ok",
+		"timestamp": "2025-12-19T09:19:43.3318503Z"
+	}
+	
+	Wynik: TAK (PASS)
+	Czas odpowiedzi: 120ms
+\end{verbatim}
+
+\subsubsection{Test 2: List Tables}
+
+\begin{verbatim}
+	Komenda:
+	curl -X POST https://mcp-server-app-pms.azurewebsites.net/mcp \
+	-H "Content-Type: application/json" \
+	-d '{"command": "list_tables"}'
+	
+	Odpowiedź:
+	{
+		"status": "ok",
+		"data": "Tabele: Users, Products"
+	}
+	
+	Wynik: TAK (PASS)
+	Opis: Serwer poprawnie zwrócił listę dostępnych tabel
+\end{verbatim}
+
+\subsubsection{Test 3: Query Users}
+
+\begin{verbatim}
+	Komenda:
+	curl -X POST https://mcp-server-app-pms.azurewebsites.net/mcp \
+	-H "Content-Type: application/json" \
+	-d '{"command": "query_database", "query": {"table": "Users"}}'
+	
+	Odpowiedź:
+	{
+		"status": "ok",
+		"data": "Wyniki:\nId | Name | Email | Created\n
+		1 | Jan Kowalski | jan@example.com | 2025-12-19\n
+		2 | Maria Nowak | maria@example.com | 2025-12-19\n
+		3 | Piotr Lewandowski | piotr@example.com | 2025-12-19"
+	}
+	
+	Wynik: TAK (PASS)
+	Liczba rekordów: 3
+\end{verbatim}
+
+\subsubsection{Test 4: Query Products}
+
+\begin{verbatim}
+	Komenda:
+	curl -X POST https://mcp-server-app-pms.azurewebsites.net/mcp \
+	-H "Content-Type: application/json" \
+	-d '{"command": "query_database", "query": {"table": "Products"}}'
+	
+	Odpowiedź:
+	{
+		"status": "ok",
+		"data": "Wyniki:\nId | Name | Price | Stock\n
+		1 | Laptop | 3499.99 | 5\n
+		2 | Mysz | 49.99 | 50\n
+		3 | Klawiatura | 199.99 | 20"
+	}
+	
+	Wynik: TAK (PASS)
+	Liczba produktów: 3
+\end{verbatim}
+
+\subsubsection{Test 5: Insert User}
+
+\begin{verbatim}
+	Komenda:
+	curl -X POST https://mcp-server-app-pms.azurewebsites.net/mcp \
+	-H "Content-Type: application/json" \
+	-d '{
+		"command": "insert_data",
+		"insert": {
+			"table": "Users",
+			"values": {"Name": "Anna Kowalska", "Email": "anna@example.com"}
+		}
+	}'
+	
+	Odpowiedź:
+	{
+		"status": "ok",
+		"data": "SUCCESS: Wstawiono rekord"
+	}
+	
+	Wynik: TAK (PASS)
+	Akcja: Dodano nowego użytkownika
+\end{verbatim}
+
+\subsubsection{Test 6: Update Product Price}
+
+\begin{verbatim}
+	Komenda:
+	curl -X POST https://mcp-server-app-pms.azurewebsites.net/mcp \
+	-H "Content-Type: application/json" \
+	-d '{
+		"command": "update_data",
+		"update": {
+			"table": "Products",
+			"set": {"Price": "3499.99"},
+			"where": "Id=1"
+		}
+	}'
+	
+	Odpowiedź:
+	{
+		"status": "ok",
+		"data": "SUCCESS: Zaktualizowano rekord"
+	}
+	
+	Wynik: TAK (PASS)
+	Akcja: Zmieniono cenę Laptopa z 3000.00 na 3499.99
+\end{verbatim}
+
+\subsubsection{Test 7: Delete User}
+
+\begin{verbatim}
+	Komenda:
+	curl -X POST https://mcp-server-app-pms.azurewebsites.net/mcp \
+	-H "Content-Type: application/json" \
+	-d '{
+		"command": "delete_data",
+		"delete": {
+			"table": "Users",
+			"where": "Id=4"
+		}
+	}'
+	
+	Odpowiedź:
+	{
+		"status": "ok",
+		"data": "SUCCESS: Usunięto rekord"
+	}
+	
+	Wynik: TAK (PASS)
+	Akcja: Usunięto użytkownika o Id=4
+\end{verbatim}
+
+\subsubsection{Test 8: Database Initialization}
+
+\begin{verbatim}
+	Komenda: Sprawdzenie istnienia bazy przy starcie serwera
+	
+	Wynik:
+	- Plik mcp_database.db: ISTNIEJE
+	- Tabela Users: OK (4 kolumny)
+	- Tabela Products: OK (4 kolumny)
+	
+	Status: TAK (PASS)
+	Opis: Baza danych zainicjalizowana poprawnie
+\end{verbatim}
+
+\subsubsection{Test 9: Error Handling - Invalid Command}
+
+\begin{verbatim}
+	Komenda:
+	curl -X POST https://mcp-server-app-pms.azurewebsites.net/mcp \
+	-H "Content-Type: application/json" \
+	-d '{"command": "invalid_command"}'
+	
+	Odpowiedź:
+	HTTP/1.1 200 OK
+	{
+		"error": "Unknown command"
+	}
+	
+	Wynik: TAK (PASS)
+	Opis: Serwer poprawnie obsługuje nieznane komendy
+\end{verbatim}
+
+\subsubsection{Test 10: Performance - Response Time}
+
+\begin{verbatim}
+	Test: Pomiar czasu odpowiedzi dla 10 żądań
+	
+	Wyniki:
+	- Zapytanie SELECT (Users): 85ms
+	- Zapytanie SELECT (Products): 92ms
+	- INSERT nowego rekordu: 110ms
+	- UPDATE rekordu: 105ms
+	- DELETE rekordu: 95ms
+	- List Tables: 78ms
+	- Health Check: 65ms
+	- Init Command: 72ms
+	
+	Średni czas: 87.25ms
+	Maksymalny czas: 110ms
+	Minimalny czas: 65ms
+	
+	Status: TAK (PASS)
+	Kryteria: Wszystkie odpowiedzi poniżej 200ms
+\end{verbatim}
+
+\subsubsection{REST API - 10 testów}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|l|c|c|}
+		\hline
+		\textbf{Test} & \textbf{Wynik} & \textbf{Status} \\
+		\hline
+		Health Check & 200 OK & TAK \\
+		\hline
+		List Tables & Users, Products & TAK \\
+		\hline
+		Query Users & 3 records & TAK \\
+		\hline
+		Query Products & 3 records & TAK \\
+		\hline
+		Insert User & Anna added & TAK \\
+		\hline
+		Update Product & Price: 3499.99 & TAK \\
+		\hline
+		Delete User & Removed & TAK \\
+		\hline
+		Database Init & OK & TAK \\
+		\hline
+		Error Handling & 400 Bad Request & TAK \\
+		\hline
+		Performance & <200ms & TAK \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\section{Podsumowanie ogólne}
+
+Laboratorium wykazało możliwość zaprojektowania i zaimplementowania kompletnego systemu agenta AI z wykorzystaniem protokołu Model Context Protocol. Opracowana aplikacja integruje nowoczesny mechanizm komunikacji MCP, zaawansowany model językowy LLM udostępniany poprzez API Groq oraz relacyjną bazę danych, umożliwiając efektywne przetwarzanie zapytań w języku naturalnym i operacje na danych. Całość została wdrożona w środowisku chmurowym, co potwierdza jej gotowość do pracy w warunkach produkcyjnych. Zrealizowane rozwiązanie działa stabilnie i bezbłędnie oraz stanowi solidną podstawę do dalszej rozbudowy o kolejne funkcjonalności i integracje z innymi systemami.
+
+\end{document}

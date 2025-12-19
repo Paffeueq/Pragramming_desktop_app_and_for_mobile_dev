@@ -1,0 +1,57 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+Console.WriteLine("╔═══════════════════════════════════════════════╗");
+Console.WriteLine("║    Prosty Serwer MCP (Model Context Protocol)║");
+Console.WriteLine("║             Wersja 1.0.0                     ║");
+Console.WriteLine("╚═══════════════════════════════════════════════╝\n");
+
+// Konfiguracja serwera
+var serverName = "SimpleMCPServer";
+var serverVersion = "1.0.0";
+
+Console.WriteLine($"[INFO] Nazwa serwera: {serverName}");
+Console.WriteLine($"[INFO] Wersja: {serverVersion}");
+Console.WriteLine("[INFO] Serwer nasłuchuje na stdin/stdout\n");
+
+// Główna pętla serwera
+Console.WriteLine("[STATUS] Serwer uruchomiony i gotowy do przyjmowania wiadomości");
+Console.WriteLine("[INSTRUKCJE] Aby zatrzymać serwer, naciśnij Ctrl+C\n");
+
+// Obsługa wiadomości z klienta
+try
+{
+    string? line;
+    while ((line = Console.ReadLine()) != null)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+            continue;
+
+        Console.WriteLine($"[SERVER] Otrzymano: {line}");
+        
+        // Odpowiedź na wiadomość
+        if (line.Contains("init", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine("[RESPONSE] {{\"status\": \"initialized\", \"name\": \"SimpleMCPServer\", \"version\": \"1.0.0\"}}");
+        }
+        else if (line.Contains("info", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine("[RESPONSE] {{\"capabilities\": [\"tools\", \"resources\", \"prompts\"]}}");
+        }
+        else if (line.Contains("list_tools", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine("[RESPONSE] {{\"tools\": [{{\"name\": \"calculator\", \"description\": \"Prosty kalkulator\"}}]}}");
+        }
+        else
+        {
+            Console.WriteLine("[RESPONSE] {{\"status\": \"ok\", \"message\": \"Wiadomość otrzymana\"}}");
+        }
+    }
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("\n[INFO] Serwer zatrzymywany...");
+}
+
+Console.WriteLine("[STATUS] Serwer zatrzymany.");

@@ -1,0 +1,15 @@
+D:\stud\sem 5\Desktop\z8\MCPClient\bin\Release\net9.0\MCPClient.exe
+D:\stud\sem 5\Desktop\z8\MCPClient\bin\Release\net9.0\MCPClient.deps.json
+D:\stud\sem 5\Desktop\z8\MCPClient\bin\Release\net9.0\MCPClient.runtimeconfig.json
+D:\stud\sem 5\Desktop\z8\MCPClient\bin\Release\net9.0\MCPClient.dll
+D:\stud\sem 5\Desktop\z8\MCPClient\bin\Release\net9.0\MCPClient.pdb
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\MCPClient.GeneratedMSBuildEditorConfig.editorconfig
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\MCPClient.AssemblyInfoInputs.cache
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\MCPClient.AssemblyInfo.cs
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\MCPClient.csproj.CoreCompileInputs.cache
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\MCPClient.sourcelink.json
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\MCPClient.dll
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\refint\MCPClient.dll
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\MCPClient.pdb
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\MCPClient.genruntimeconfig.cache
+D:\stud\sem 5\Desktop\z8\MCPClient\obj\Release\net9.0\ref\MCPClient.dll
