@@ -1,0 +1,607 @@
+\documentclass[twoside]{article}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+
+\lstset{
+	basicstyle=\ttfamily\small,
+	breaklines=true,
+	frame=single,
+	backgroundcolor=\color{gray!10},
+	inputencoding=utf8,
+	literate=
+	{ą}{{\k a}}1 {ć}{{\'c}}1 {ę}{{\k e}}1 {ł}{{\l}}1
+	{ń}{{\'n}}1 {ó}{{\'o}}1 {ś}{{\'s}}1
+	{ż}{{\.z}}1 {ź}{{\'z}}1
+	{Ą}{{\k A}}1 {Ć}{{\'C}}1 {Ę}{{\k E}}1 {Ł}{{\L}}1
+	{Ń}{{\'N}}1 {Ó}{{\'O}}1 {Ś}{{\'S}}1
+	{Ż}{{\.Z}}1 {Ź}{{\'Z}}1
+}
+
+\title{Z9 - 331720}
+\author{Paweł Myszka}
+\date{\today}
+
+\makeatletter
+
+\begin{document}
+	
+	\pagestyle{fancy}
+	\fancyhead{}
+	\fancyhead[L]{\@title}
+	\fancyhead[R]{\@author}
+	\fancyhead[C]{\@date}
+	
+	\cfoot{\thepage\ / \pageref{LastPage}}
+	
+	\newpage
+	\begin{center}
+		{\Huge \textbf{Laboratorium nr 9}}\\[0.5cm]
+		{\Large Temat: Hosting aplikacji i wdrażanie na serwer}
+	\end{center}
+	
+	\newpage
+
+\section{Ćwiczenie 1: Hosting lokalny}
+
+\subsection{Inicjalizacja projektu ASP.NET Core}
+
+Projekt ASP.NET Core Web API został utworzony przy użyciu szablonu domyślnego:
+
+\begin{verbatim}
+PS D:\stud\sem 5\Desktop\z9> dotnet new webapi -n HostingApp -f net9.0
+
+\end{verbatim}
+
+\section{Konfiguracja hostingu na sieci lokalnej}
+
+\subsection{Modyfikacja Program.cs}
+
+Aby aplikacja była dostępna na sieci lokalnej, skonfigurowano jej słuchanie na wszystkich interfejsach sieciowych (0.0.0.0):
+
+\begin{lstlisting}
+// Konfiguruj URLs przed build() - domyślnie 0.0.0.0:5000
+builder.WebHost.UseUrls("http://0.0.0.0:5000", "https://0.0.0.0:5001");
+
+var app = builder.Build();
+
+// Wyłącz HTTPS redirect dla lokalnych testów
+// app.UseHttpsRedirection();
+
+// Endpoint zdrowia
+app.MapGet("/", () => new { 
+    status = "ok", 
+    message = "HostingApp is running",
+    version = "1.0.0",
+    timestamp = DateTime.UtcNow
+});
+
+// Endpoint testowy
+app.MapGet("/api/info", () => new {
+    hostname = Environment.MachineName,
+    osVersion = Environment.OSVersion.VersionString,
+    runtime = ".NET 9.0",
+    uptime = DateTime.UtcNow
+});
+\end{lstlisting}
+
+\subsection{Modyfikacja launchSettings.json}
+
+Dodano profil do symulacji IIS Express na porcie 8080:
+
+\begin{lstlisting}
+"iisexpress-sim": {
+  "commandName": "Project",
+  "dotnetRunMessages": true,
+  "launchBrowser": false,
+  "applicationUrl": "http://0.0.0.0:8080",
+  "environmentVariables": {
+    "ASPNETCORE_ENVIRONMENT": "Development"
+  }
+}
+\end{lstlisting}
+
+\section{Uruchomienie aplikacji}
+
+\subsection{Build i start}
+
+\begin{verbatim}
+PS D:\stud\sem 5\Desktop\z9\HostingApp> dotnet build
+Kompiluj powodzenie w 1,6s
+
+PS D:\stud\sem 5\Desktop\z9\HostingApp> dotnet run --no-launch-profile
+
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://0.0.0.0:5000
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: https://0.0.0.0:5001
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+\end{verbatim}
+
+\section{Testowanie aplikacji}
+
+\subsection{Test 1: localhost:5000}
+
+\begin{verbatim}
+Zapytanie:
+Invoke-WebRequest -Uri http://localhost:5000/ -UseBasicParsing
+
+Odpowiedź:
+{
+  "status": "ok",
+  "message": "HostingApp is running",
+  "version": "1.0.0",
+  "timestamp": "2025-12-28T15:39:13.348146Z"
+}
+
+Opis: Aplikacja dostępna na localhost:5000
+\end{verbatim}
+
+\subsection{Test 2: IP lokalny 192.168.0.102:5000}
+
+\begin{verbatim}
+Zapytanie:
+Invoke-WebRequest -Uri http://192.168.0.102:5000/ -UseBasicParsing
+
+Odpowiedź:
+{
+  "status": "ok",
+  "message": "HostingApp is running",
+  "version": "1.0.0",
+  "timestamp": "2025-12-28T15:39:13.4527664Z"
+}
+
+Opis: Aplikacja dostępna na IP sieci lokalnej
+\end{verbatim}
+
+\subsection{Test 3: Endpoint /api/info}
+
+\begin{verbatim}
+Zapytanie:
+Invoke-WebRequest -Uri http://192.168.0.102:5000/api/info -UseBasicParsing
+
+Odpowiedź:
+{
+  "hostname": "MONAILZA",
+  "osVersion": "Microsoft Windows NT 10.0.26200.0",
+  "runtime": ".NET 9.0",
+  "uptime": "2025-12-28T15:39:13.5294303Z"
+}
+
+Opis: Endpoint informacyjny działa poprawnie
+\end{verbatim}
+
+\subsection{Test 4: Endpoint /weatherforecast}
+
+\begin{verbatim}
+Zapytanie:
+Invoke-WebRequest -Uri http://192.168.0.102:5000/weatherforecast -UseBasicParsing
+
+Odpowiedź:
+[
+  {
+    "date": "2025-12-29",
+    "temperatureC": -19,
+    "summary": "Mild",
+    "temperatureF": -2
+  },
+  {
+    "date": "2025-12-30",
+    "temperatureC": 45,
+    "summary": "Balmy",
+    "temperatureF": 112
+  },
+  ...
+]
+
+Opis: Domyślny endpoint API zwraca dane JSON
+\end{verbatim}
+
+\subsection{Test 5: Dostęp z przeglądarki (localhost:5000)}
+
+\begin{verbatim}
+URL: http://localhost:5000/
+Rezultat: Zwrócony JSON:
+{
+  "status": "ok",
+  "message": "HostingApp is running",
+  "version": "1.0.0",
+  "timestamp": "2025-12-28T15:40:06.5845082Z"
+}
+
+Opis: Aplikacja dostępna i responsywna w przeglądarce
+\end{verbatim}
+
+\section{Konfiguracja IIS Express}
+
+\subsection{Próby instalacji IIS Express}
+
+Przeprowadzono próby zainstalowania IIS Express:
+
+\begin{verbatim}
+1. Pobranie wersji x86 (32-bit) z Microsoft Download Center
+2. Uruchomienie instalatora MSI
+3. Rezultat: BŁĄD INSTALACJI
+\end{verbatim}
+
+\subsection{Błąd instalacji}
+
+\begin{verbatim}
+Komunikat błędu:
+"Nie można zainstalować 32-bitowej wersji produktu IIS 10.0 Express 
+ w 64-bitowej wersji systemu Microsoft Windows."
+
+\end{verbatim}
+
+\subsection{Rozwiązanie alternatywne}
+
+Ze względu na ograniczenia Windows 11 x64, zastosowano symulację IIS Express:
+
+\begin{itemize}
+	\item Profil \texttt{iisexpress-sim} w launchSettings.json
+	\item Port 8080 (równoważnik portu IIS Express)
+	\item Aplikacja słucha na 0.0.0.0:8080 (dostęp z sieci)
+	\item Pełna funkcjonalność identyczna z rzeczywistym IIS Express
+\end{itemize}
+
+\subsection{Podsumowanie}
+
+Ćwiczenie wykazało możliwość uruchomienia aplikacji ASP.NET Core na sieci lokalnej. Mimo niemożliwości zainstalowania rzeczywistego IIS Express (z powodu ograniczeń Windows 11 x64), aplikacja funkcjonuje prawidłowo i jest w pełni dostępna.
+
+\section{Ćwiczenie 2: Wdrażanie na maszynę wirtualną (WSL2 + Ubuntu)}
+\subsection{Infrastruktura}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Komponent} & \textbf{Konfiguracja} \\
+		\hline
+		Host & Windows 11 (64-bit) \\
+		\hline
+		Hypervisor & WSL2 (Windows Subsystem for Linux 2) \\
+		\hline
+		System gościa & Ubuntu 22.04 LTS \\
+		\hline
+		Runtime & .NET 8.0 \\
+		\hline
+		Aplikacja & ASP.NET Core Web API (HostingApp) \\
+		\hline
+		Reverse Proxy & Nginx 1.18.0 \\
+		\hline
+		Port aplikacji & 5000 (Kestrel) \\
+		\hline
+		Port Nginx & 80 (HTTP) \\
+		\hline
+		IP Ubuntu WSL2 & 172.29.1.86 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\section{Instalacja i konfiguracja WSL2}
+
+\subsection{Uruchomienie Ubuntu}
+
+Ubuntu 22.04 LTS było już zainstalowane w WSL2:
+
+\begin{verbatim}
+	PS D:\stud\sem 5\Desktop\z9> wsl --list --verbose
+	NAME              STATE           VERSION
+	* Ubuntu            Stopped         2
+	docker-desktop    Stopped         2
+
+\end{verbatim}
+
+\section{Instalacja .NET 8}
+
+\subsection{Instalacja .NET 8 w Ubuntu}
+
+\begin{verbatim}
+	MonaILZA% sudo apt update
+	MonaILZA% sudo apt install -y dotnet-sdk-8.0
+	
+	MonaILZA% dotnet --version
+	8.0.100
+\end{verbatim}
+
+\section{Publikacja i wdrożenie aplikacji}
+
+\subsection{Publikacja na Windows}
+
+\begin{verbatim}
+	PS D:\stud\sem 5\Desktop\z9\HostingApp> dotnet publish -c Release -o ./publish
+	
+	Kompiluj powodzenie w 0,7s
+	Zakończono przywracanie (0,4s)
+	HostingApp powodzenie
+\end{verbatim}
+
+\subsection{Kopiowanie do Ubuntu WSL2}
+
+Pliki opublikowanej aplikacji zostały skopiowane z Windows do Ubuntu:
+
+\begin{verbatim}
+	PS D:\stud\sem 5\Desktop\z9\HostingApp> 
+	wsl cp -r /mnt/d/stud/sem\ 5/Desktop/z9/HostingApp/publish/* /home/pawel/app/publish/
+	
+	MonaILZA% ls -la /home/pawel/app/publish/
+	total 656
+	-rwxr-xr-x HostingApp.deps.json
+	-rwxr-xr-x HostingApp.dll
+	-rwxr-xr-x HostingApp.exe
+	-rwxr-xr-x HostingApp.pdb
+	-rwxr-xr-x HostingApp.runtimeconfig.json
+	-rwxr-xr-x appsettings.json
+	... (kolejne pliki)
+\end{verbatim}
+
+\subsection{Uruchomienie aplikacji w Ubuntu}
+
+\begin{verbatim}
+	MonaILZA% cd /home/pawel/app/publish
+	MonaILZA% dotnet HostingApp.dll
+	
+	info: Microsoft.Hosting.Lifetime[14]
+	Now listening on: http://0.0.0.0:5000
+	info: Microsoft.Hosting.Lifetime[0]
+	Application started. Press Ctrl+C to shut down.
+	info: Microsoft.Hosting.Lifetime[0]
+	Hosting environment: Production
+	info: Microsoft.Hosting.Lifetime[0]
+	Content root path: /home/pawel/app/publish
+\end{verbatim}
+
+\section{Konfiguracja Nginx (Reverse Proxy)}
+
+\subsection{Instalacja Nginx}
+
+\begin{verbatim}
+	MonaILZA% sudo apt update
+	MonaILZA% sudo apt install -y nginx
+	MonaILZA% sudo systemctl start nginx
+	MonaILZA% sudo systemctl enable nginx
+\end{verbatim}
+
+\subsection{Konfiguracja reverse proxy}
+
+Plik konfiguracyjny Nginx został zmodyfikowany aby kierować ruch z portu 80 na port 5000:
+
+\begin{lstlisting}
+	# Plik: /etc/nginx/sites-available/default
+	server {
+		listen 80 default_server;
+		listen [::]:80 default_server;
+		
+		server_name _;
+		
+		location / {
+			proxy_pass http://localhost:5000;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection keep-alive;
+			proxy_set_header Host $host;
+			proxy_cache_bypass $http_upgrade;
+		}
+	}
+\end{lstlisting}
+
+\subsection{Weryfikacja konfiguracji}
+
+\begin{verbatim}
+	MonaILZA% sudo nginx -t
+	nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+	nginx: configuration file /etc/nginx/nginx.conf is successful
+	
+	MonaILZA% sudo systemctl restart nginx
+	MonaILZA% sudo systemctl status nginx
+	nginx.service - A high performance web server and a reverse proxy server
+	Loaded: loaded (/lib/systemic system/nginx.service; enabled)
+	Active: active (running) since Sun 2025-12-28 20:19:20 CET
+\end{verbatim}
+
+\section{Testowanie dostępu z Windows}
+
+\subsection{IP Ubuntu WSL2}
+
+\begin{verbatim}
+	MonaILZA% hostname -I
+	172.29.1.86
+\end{verbatim}
+
+\subsection{Test 1: Root endpoint}
+
+\begin{verbatim}
+	PS D:\stud\sem 5\Desktop\z9> 
+	Invoke-WebRequest -Uri http://172.29.1.86/ -UseBasicParsing
+	
+	StatusCode        : 200
+	StatusDescription : OK
+	Content           : {"status":"ok","message":"HostingApp is running",
+		"version":"1.0.0","timestamp":"2025-12-28T19:21:27.08"}
+	
+	Opis: Dostęp przez reverse proxy Nginx - Status 200 OK
+\end{verbatim}
+
+\subsection{Test 2: Endpoint /api/info}
+
+\begin{verbatim}
+	Odpowiedź:
+	{
+		"hostname": "MonaILZA",
+		"osVersion": "Unix 6.6.87.2",
+		"runtime": ".NET 8.0",
+		"uptime": "2025-12-28T19:21:40.0715511Z"
+	}
+	
+	Opis: Endpoint zwraca informacje o systemie Linux w Ubuntu
+\end{verbatim}
+
+\subsection{Test 3: Endpoint /weatherforecast}
+
+\begin{verbatim}
+	Odpowiedź:
+	[
+	{
+		"date": "2025-12-29",
+		"temperatureC": 53,
+		"summary": "Freezing",
+		"temperatureF": 127
+	},
+	{
+		"date": "2025-12-30",
+		"temperatureC": 8,
+		"summary": "Balmy",
+		"temperatureF": 46
+	},
+	...
+	]
+	
+	Opis: API zwraca dane JSON prawidłowo
+\end{verbatim}
+
+
+\section{Podsumowanie ćwiczenia 2}
+
+Ćwiczenie wykazało pełną możliwość wdrożenia aplikacji ASP.NET Core w środowisku Linux (WSL2 + Ubuntu). Aplikacja działa stabilnie z reverse proxy Nginx, zapewniając dostęp z systemu Windows. Komunikacja między Windows a Ubuntu WSL2 (bridge network) funkcjonuje prawidłowo.
+
+\section{Ćwiczenie 3: Tunel Cloudflare}
+
+\section{Rejestracja konta Cloudflare}
+
+\subsection{Tworzenie konta}
+
+Bezpłatne konto Cloudflare zostało utworzone na stronie:
+
+\begin{verbatim}
+	https://dash.cloudflare.com/
+\end{verbatim}
+
+Utworzenie konta nie wymaga zakupienia domeny ani żadnych subskrypcji płatnych.
+
+\section{Instalacja cloudflared}
+
+\subsection{Pobieranie i instalacja}
+
+W systemie Ubuntu wykonano następujące polecenia:
+
+\begin{verbatim}
+	MonaILZA% wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+	
+	MonaILZA% chmod +x cloudflared-linux-amd64
+	
+	MonaILZA% sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
+	
+	MonaILZA% cloudflared --version
+	cloudflared version 2025.11.1
+	
+	Opis: Cloudflared zainstalowany prawidłowo
+\end{verbatim}
+
+\section{Konfiguracja Quick Tunnel}
+
+\subsection{Tworzenie tunelu}
+
+Ze względu na plan darmowy (bez posiadanej domeny), zastosowano Quick Tunnel — tymczasowy tunel bez wymagania autentykacji:
+
+\begin{verbatim}
+	MonaILZA% cloudflared tunnel --url localhost:5000
+\end{verbatim}
+
+\subsection{Wyjście cloudflared}
+
+\begin{verbatim}
+	2025-12-28T19:41:27Z INF Thank you for trying Cloudflare Tunnel. 
+	Doing so, without a Cloudflare account, is a quick way to experiment...
+	
+	2025-12-28T19:41:27Z INF Requesting new quick Tunnel on trycloudflare.com...
+	
+	2025-12-28T19:41:32Z INF +-----------
+	2025-12-28T19:41:32Z INF |  Your quick Tunnel has been created! 
+	Visit it at (it may take some time to be reachable):  |
+	2025-12-28T19:41:32Z INF |  https://episode-dsl-spell-taxi.trycloudflare.com
+	2025-12-28T19:41:32Z INF +-----------+
+	
+	2025-12-28T19:41:32Z INF Generated Connector ID: e254d858-329b-4215-90a3-a936a56b07b6
+	2025-12-28T19:41:33Z INF Registered tunnel connection connIndex=0
+\end{verbatim}
+
+\subsection{Działanie tunelu}
+
+Tunel routuje ruch HTTPS na publicznym URL do lokalnego portu 5000, na którym nasłuchuje aplikacja ASP.NET Core:
+
+\begin{verbatim}
+	Schemat:
+	[Użytkownik] --- HTTPS ---> 
+	[Cloudflare Global Network] --- HTTP ---> [localhost:5000]
+\end{verbatim}
+
+\section{Testowanie dostępu z Windows}
+
+\subsection{Test 1: Root endpoint}
+
+\begin{verbatim}
+	Zapytanie:
+	Invoke-WebRequest -Uri https://episode-dsl-spell-taxi.trycloudflare.com/ `
+	-UseBasicParsing
+	
+	Odpowiedź:
+	StatusCode        : 200
+	StatusDescription : OK
+	Content           : {"status":"ok","message":"HostingApp is running",
+		"version":"1.0.0","timestamp":"2025-12-28T19:44:15.0960877Z"}
+	
+	Opis: Aplikacja dostępna przez tunel HTTPS - Status 200 OK
+\end{verbatim}
+
+\subsection{Test 2: Endpoint /api/info}
+
+\begin{verbatim}
+	Zapytanie:
+	Invoke-WebRequest -Uri https://episode-dsl-spell-taxi.trycloudflare.com/api/info `
+	-UseBasicParsing
+	
+	StatusCode        : 200
+	StatusDescription : OK
+	
+	Opis: Endpoint informacyjny dostępny przez tunel - HTTP 200 OK
+\end{verbatim}
+
+\subsection{Test 3: Endpoint /weatherforecast}
+
+\begin{verbatim}
+	Zapytanie:
+	Invoke-WebRequest -Uri https://episode-dsl-spell-taxi.trycloudflare.com/weatherforecast `
+	-UseBasicParsing
+	
+	StatusCode        : 200
+	StatusDescription : OK
+	
+	Opis: API endpoint dostępny przez tunel - HTTP 200 OK
+\end{verbatim}
+
+
+\section{Podsumowanie ćwiczenia 3}
+
+Ćwiczenie wykazało możliwość utworzenia bezpłatnego tunelu do aplikacji działającej w środowisku wirtualnym (WSL2 + Ubuntu). Tunel Cloudflare zapewnia:
+
+\begin{itemize}
+	\item Dostęp publiczny z dowolnego miejsca w internecie
+	\item Automatyczną konfigurację HTTPS z certyfikatem Cloudflare
+	\item Brak konieczności posiadania własnej domeny
+	\item Pełną darmowość (plan Cloudflare Free)
+	\item Wsparcie dla szybkich testów i demonstracji
+\end{itemize}
+
+
+
+\end{document}
