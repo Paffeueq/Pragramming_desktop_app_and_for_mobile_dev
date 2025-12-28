@@ -3,7 +3,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // OpenAPI nie jest dostępne w .NET 8 (tylko w .NET 9+)
 
-// Konfiguruj URLs - tylko HTTP (bez HTTPS dla Linux)
+// Konfiguruj URLs - port 5000 (proxy przez IIS module)
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
 var app = builder.Build();

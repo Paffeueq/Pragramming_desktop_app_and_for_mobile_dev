@@ -839,20 +839,6 @@ Dodatkowa reguła został dodana do Security List podsieci:
 	Status: AKTYWNA
 \end{verbatim}
 
-\subsection{Route Table}
-
-Weryfikacja tabeli routingu potwierdziła dostęp do Internet Gateway:
-
-\begin{verbatim}
-	Komenda OCI CLI:
-	oci network route-table list --compartment-id <COMP_ID> \
-	--query 'data[0]' --output json
-	
-	Rezultat:
-	Destination: 0.0.0.0/0
-	Network Entity: Internet Gateway
-	Status: AKTYWNY
-\end{verbatim}
 
 \section{Testowanie dostępu lokalnego (na VPS)}
 
@@ -945,6 +931,227 @@ Poniższe czynniki mogą blokować dostęp z Windows do portu 80 na VPS:
 	\item \textbf{Problem routingu} - Ścieżka sieciowa mogła być zablokowana
 \end{enumerate}
 
+\section{Ćwiczenie 5: Hosting w Azure App Service}
 
+\section{Tworzenie Resource Group i App Service}
+
+\subsection{Inicjalizacja Azure}
+
+Zalogowano się do Azure i utworzono zasoby:
+
+\begin{verbatim}
+	$ az login
+	Subscription: Azure subscription 1 (b9f41aa0-df59-4201-a0d4-5cd6cd193c72)
+	Tenant: Default Directory
+	Status: Zalogowano pomyślnie
+\end{verbatim}
+
+\subsection{Tworzenie Resource Group}
+
+\begin{verbatim}
+	$ az group create --name z9-resource-group --location westeurope
+	
+	Nazwa: z9-resource-group
+	Lokalizacja: West Europe
+	Status: Successfully created
+\end{verbatim}
+
+\subsection{Tworzenie App Service Plan}
+
+\begin{verbatim}
+	$ az appservice plan create --name z9-appservice-plan \
+	--resource-group z9-resource-group --sku FREE --is-linux
+	
+	Nazwa: z9-appservice-plan
+	SKU: LinuxFree (U13)
+	Pamięć: ~165 MB (udostępniana)
+	Procesor: Udostępniany
+	Stan: Ready
+\end{verbatim}
+
+\subsection{Tworzenie Web App}
+
+\begin{verbatim}
+	$ az webapp create --resource-group z9-resource-group \
+	--plan z9-appservice-plan --name z9-hostingapp \
+	--runtime "DOTNETCORE:8.0"
+	
+	Nazwa: z9-hostingapp
+	URL: https://z9-hostingapp.azurewebsites.net
+	Runtime: .NET 8.0 (Linux)
+	Stan: Running
+\end{verbatim}
+
+\section{Konfiguracja Application Insights}
+
+\subsection{Tworzenie Application Insights}
+
+\begin{verbatim}
+	$ az monitor app-insights component create --app z9-insights \
+	--location westeurope --resource-group z9-resource-group \
+	--application-type web
+	
+	Application ID: z9-insights
+	Instrumentation Key: b3da7b6a-b92b-446e-bad4-7c9b05438c6b
+	Ingestion Mode: LogAnalytics
+	Retention: 90 days
+	Status: CREATED
+\end{verbatim}
+
+\subsection{Integracja z Web App}
+
+\begin{verbatim}
+	$ az webapp config appsettings set \
+	--resource-group z9-resource-group --name z9-hostingapp \
+	--settings APPINSIGHTS_INSTRUMENTATIONKEY=b3da7b6a-b92b-446e-bad4-7c9b05438c6b \
+	ApplicationInsightsAgent_EXTENSION_VERSION=~3
+	
+	Status:  App Settings ustawione
+\end{verbatim}
+
+\section{Application Settings i Connection Strings}
+
+\subsection{Ustawienia aplikacji}
+
+\begin{verbatim}
+	$ az webapp config appsettings set \
+	--resource-group z9-resource-group --name z9-hostingapp \
+	--settings ASPNETCORE_ENVIRONMENT=Production
+	
+	Ustawienie: ASPNETCORE_ENVIRONMENT = Production
+	Status:  CONFIGURED
+\end{verbatim}
+
+\subsection{Connection Strings}
+
+\begin{verbatim}
+	$ az webapp config connection-string set \
+	--resource-group z9-resource-group --name z9-hostingapp \
+	--settings DefaultConnection="Server=localhost;Database=z9db;" \
+	--connection-string-type SQLAzure
+	
+	Typ: SQLAzure
+	Status:  CONFIGURED
+\end{verbatim}
+
+\section{GitHub Actions - Continuous Deployment}
+
+\subsection{Konfiguracja automatycznego wdrażania}
+
+\begin{verbatim}
+	$ az webapp deployment github-actions add \
+	--repo Paffeueq/Pragramming_desktop_app_and_for_mobile_dev \
+	--branch main --name z9-hostingapp \
+	--resource-group z9-resource-group --login-with-github
+	
+	Status:  Verified GitHub repo and branch
+	Workflow: .github/workflows/main_z9-hostingapp.yml
+	Lokacja: Repozytorium GitHub
+\end{verbatim}
+
+\section{Wdrażanie aplikacji}
+
+\subsection{Publikacja i ZIP Deploy}
+
+\begin{verbatim}
+	$ dotnet publish -c Release -o ./publish-azure
+	
+	Status:  Publikacja powodzenie
+	
+	$ Compress-Archive -Path ./publish-azure/* -DestinationPath publish-azure.zip
+	
+	Status:  ZIP utworzony (213 KB)
+	
+	$ az webapp deploy --resource-group z9-resource-group \
+	--name z9-hostingapp --src-path publish-azure.zip --type zip
+	
+	Status: Deployment initiated
+\end{verbatim}
+
+\section{PROBLEM: Aplikacja się nie startuje}
+
+\subsection{Symptoms}
+
+Deployment został zaakceptowany, ale aplikacja nie uruchamia się:
+
+\begin{verbatim}
+	Status: Building the app... Time: 1(s)       
+	Status: Build successful. Time: 1(s)          
+	Status: Starting the site... Time: 16(s)
+	Status: Starting the site... Time: 32(s)
+	...
+	Status: Starting the site... Time: 620(s)
+	 Site failed to start. Time: 620(s)
+	
+	Błąd:
+	"Deployment failed because the site failed to start within 10 mins.
+	InprogressInstances: 0, SuccessfulInstances: 0, FailedInstances: 1"
+	
+	Worker proces nie mógł startować w wyznaczonym czasie.
+\end{verbatim}
+
+\subsection{Przyczyny problemu}
+
+\begin{enumerate}
+	\item \textbf{Free Tier ograniczenia:} Dostępna pamięć ~165 MB, procesory udostępniane
+	\item \textbf{.NET 8.0 startup:} Potrzebuje więcej czasu na kompilację JIT i inicjalizację
+	\item \textbf{Azure Free Tier timeout:} Maksymalnie 10 minut na startup (zwyczajnie 2-3 minuty)
+	\item \textbf{Cold start:} Instancja była nowa i nieprzygotowana
+	\item \textbf{Brak Always On:} Free Tier nie obsługuje zawsze uruchomionego serwera
+\end{enumerate}
+
+\subsection{Próby rozwiązania}
+
+\begin{enumerate}
+	\item \textbf{Port mismatch:} Zmiana z 5000 na 8080 - spowodowała kolejny timeout
+	\item \textbf{web.config:} Dodanie konfiguracji IIS - aplikacja wymaga czasu na kompilację
+	\item \textbf{Deployment retry:} Ponowny deploy - ten sam problem z timeoutem
+\end{enumerate}
+
+\section{Ćwiczenie 6: Domena i SSL}
+
+Zadanie polegało na zarejestrowaniu darmowej domeny w Freenom, skonfigurowaniu DNS na Cloudflare i włączeniu HTTPS.
+
+\subsection{Problem}
+
+Freenom nie działa od 2022 roku. Serwis zawiesił możliwość rejestracji nowych domen. Strona zwraca timeout. Społeczność na Reddit potwierdza, że usługa jest nieaktywna. Ze względu na niedostępność Freenom, przechodzę do kolejnego zadania
+
+\section{Ćwiczenie 7: GitHub Pages}
+
+\subsection{Tworzenie repozytorium}
+
+\begin{verbatim}
+	$ git clone https://github.com/Paffeueq/moja-strona.git
+	$ cd moja-strona
+\end{verbatim}
+
+\subsection{Dodanie index.html}
+
+Stworzono prostą statyczną stronę index.html
+
+\subsection{Publikacja na GitHub Pages}
+
+\begin{verbatim}
+	Settings > Pages > Deploy from a branch (main)
+	
+	Strona dostępna na:
+	https://paffeueq.github.io/moja-strona/
+\end{verbatim}
+
+\subsection{Testowanie}
+
+\begin{verbatim}
+	$ curl -I https://paffeueq.github.io/moja-strona/
+	
+	HTTP/1.1 200 OK
+	Server: GitHub.com
+	Content-Type: text/html; charset=utf-8
+	Strict-Transport-Security: max-age=31556952
+	
+	Status:  200 OK
+	HTTPS:  Enabled
+\end{verbatim}
+
+GitHub Pages to najprostszy hosting dla stron statycznych/
 
 \end{document}
