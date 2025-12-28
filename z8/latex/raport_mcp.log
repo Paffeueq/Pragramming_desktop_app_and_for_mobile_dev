@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.26)  19 DEC 2025 11:16
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.26)  28 DEC 2025 16:56
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -487,12 +487,6 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 [5]
-Overfull \hbox (59.1513pt too wide) in paragraph at lines 301--301
-[]\T1/cmtt/m/n/10 2. Pobranie API Key: gsk_Ho3NhUZBiVipdqsIgyOtWGdyb3FYrhwDFOt5
-TIOyT6layYk7nuZE[] 
- []
-
-
 
 [6]
 
@@ -580,30 +574,41 @@ enddocument/afterlastpage (AED): lastpage setting LastPage.
 LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-10-09>
  ***********
-Package rerunfilecheck Info: File `raport_mcp.out' has not changed.
-(rerunfilecheck)             Checksum: 1196C61814D157503B41E6F050D0233F;9015.
+
+
+Package rerunfilecheck Warning: File `raport_mcp.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `raport_mcp.out':
+(rerunfilecheck)             Before: 1196C61814D157503B41E6F050D0233F;9015
+(rerunfilecheck)             After:  7BD7B1DBDA28934F3D0B214A0F6D991D;8731.
  ) 
 Here is how much of TeX's memory you used:
  14998 strings out of 468080
  234943 string characters out of 5443087
- 883870 words of memory out of 5000000
+ 884870 words of memory out of 5000000
  43187 multiletter control sequences out of 15000+600000
  635615 words of font info for 52 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,12n,79p,736b,1995s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt
-0900.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi60
-0\ectt1000.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec
-/dpi600\ecbx1000.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknap
-pen/ec/dpi600\tcrm1000.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour
-/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/
-ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fon
-ts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\pawel\AppData\Local\MiKT
-eX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\pawel\AppData\Loca
-l\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk>
-Output written on raport_mcp.pdf (17 pages, 256483 bytes).
+
+pdfTeX warning (dest): name{subsection.4.6} has been referenced but does not ex
+ist, replaced by a fixed one
+
+ <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt09
+00.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\
+ectt1000.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/d
+pi600\ecbx1000.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappe
+n/ec/dpi600\tcrm1000.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/ljfour/j
+knappen/ec/dpi600\ecbx1200.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts/pk/lj
+four/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fonts
+/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\pawel\AppData\Local\MiKTeX
+\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\pawel\AppData\Local\
+MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk>
+Output written on raport_mcp.pdf (17 pages, 254964 bytes).
 PDF statistics:
- 1090 PDF objects out of 1200 (max. 8388607)
+ 1087 PDF objects out of 1200 (max. 8388607)
  310 named destinations out of 1000 (max. 500000)
  401 words of extra memory for PDF output out of 10000 (max. 10000000)
 

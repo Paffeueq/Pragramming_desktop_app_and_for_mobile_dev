@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.26)  28 DEC 2025 20:52
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.26)  28 DEC 2025 22:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -545,8 +545,117 @@ udflare.com/weatherforecast `[]
  []
 
 
+Overfull \hbox (8.08966pt too wide) in paragraph at lines 605--605
+[]\T1/cmr/bx/n/14.4 ‚wiczenie 4: Wdra-»a-nie na VPS (Oracle Cloud) 
+ []
 
-[12] 
+
+Overfull \hbox (221.86157pt too wide) in paragraph at lines 620--620
+[] \T1/cmtt/m/n/10 Instance ID: ocid1.instance.oc1.eu-frankfurt-1.antheljtwn4et
+jicdvvv2zhnmrt77ziorh4vn63knwqjyipa6ext5gmeg6vq[] 
+ []
+
+
+
+[12]
+Overfull \hbox (227.11029pt too wide) in paragraph at lines 635--635
+[] \T1/cmtt/m/n/10 --instance-id ocid1.instance.oc1.eu-frankfurt-1.antheljtwn4e
+tjicdvvv2zhnmrt77ziorh4vn63knwqjyipa6ext5gmeg6vq[] 
+ []
+
+
+
+[13]
+Overfull \hbox (48.65387pt too wide) in paragraph at lines 704--704
+[] \T1/cmtt/m/n/10 https://github.com/Paffeueq/Pragramming_desktop_app_and_for_
+mobile_dev.git[] 
+ []
+
+
+Overfull \hbox (1.4154pt too wide) in paragraph at lines 704--704
+[] \T1/cmtt/m/n/10 Receiving objects: 100% (156/156), 145.45 KiB | 1.23 MiB/s, 
+done.[] 
+ []
+
+
+Overfull \hbox (148.37952pt too wide) in paragraph at lines 704--704
+[] \T1/cmtt/m/n/10 ubuntu@oracle-vm-ubuntu:~/app/z9$ cd Pragramming_desktop_app
+_and_for_mobile_dev/z9/HostingApp[] 
+ []
+
+
+Overfull \hbox (116.8872pt too wide) in paragraph at lines 720--720
+[] \T1/cmtt/m/n/10 ubuntu@oracle-vm-ubuntu:~/app/z9/.../HostingApp$ dotnet publ
+ish -c Release -o ./publish[] 
+ []
+
+
+Overfull \hbox (6.66412pt too wide) in paragraph at lines 720--720
+[] \T1/cmtt/m/n/10 Pliki opublikowane do: /home/ubuntu/app/z9/.../HostingApp/pu
+blish/[] 
+ []
+
+
+Overfull \hbox (74.89746pt too wide) in paragraph at lines 734--734
+[] \T1/cmtt/m/n/10 ubuntu@oracle-vm-ubuntu:~$ cp -r /home/ubuntu/app/z9/.../Hos
+tingApp/publish/* \[] 
+ []
+
+
+Overfull \hbox (43.40515pt too wide) in paragraph at lines 734--734
+[] \T1/cmtt/m/n/10 ubuntu@oracle-vm-ubuntu:~$ ls -la /home/ubuntu/app/z9/Hostin
+gApp/publish/[] 
+ []
+
+
+
+[14]
+Overfull \hbox (17.16156pt too wide) in paragraph at lines 750--750
+[] \T1/cmtt/m/n/10 ubuntu@oracle-vm-ubuntu:~$ cd /home/ubuntu/app/z9/HostingApp
+/publish[] 
+ []
+
+
+Overfull \hbox (48.65387pt too wide) in paragraph at lines 750--750
+[] \T1/cmtt/m/n/10 ubuntu@oracle-vm-ubuntu:~/app/z9/HostingApp/publish$ dotnet 
+HostingApp.dll[] 
+ []
+
+
+Overfull \hbox (32.90771pt too wide) in paragraph at lines 760--760
+[] \T1/cmtt/m/n/10 {"status":"ok","message":"HostingApp is running","version":"
+1.0.0",...}[] 
+ []
+
+
+Overfull \hbox (38.15643pt too wide) in paragraph at lines 777--777
+[] \T1/cmtt/m/n/10 nginx.service - A high performance web server and a reverse 
+proxy server[] 
+ []
+
+
+
+[15]
+
+[16]
+
+[17]
+Overfull \hbox (53.90259pt too wide) in paragraph at lines 905--905
+[] \T1/cmtt/m/n/10 ubuntu@oracle-vm-ubuntu:~$ curl http://localhost/weatherfore
+cast | head -20[] 
+ []
+
+
+Overfull \hbox (17.16156pt too wide) in paragraph at lines 920--920
+[] \T1/cmtt/m/n/10 curl: (28) Failed to connect to 79.76.102.23 port 80 after 2
+1067 ms:[] 
+ []
+
+
+
+[18]
+
+[19] 
 enddocument/afterlastpage (AED): lastpage setting LastPage.
 (raport_hosting.aux)
  ***********
@@ -554,13 +663,13 @@ LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-10-09>
  ***********
 Package rerunfilecheck Info: File `raport_hosting.out' has not changed.
-(rerunfilecheck)             Checksum: 8A78078B6D1E4C746550E8ADE4B9F425;9839.
+(rerunfilecheck)             Checksum: 054B69CBA47DA605DE21EB09C505FCAD;15963.
  ) 
 Here is how much of TeX's memory you used:
- 12676 strings out of 468080
- 193069 string characters out of 5443087
- 759636 words of memory out of 5000000
- 41090 multiletter control sequences out of 15000+600000
+ 12772 strings out of 468080
+ 194404 string characters out of 5443087
+ 759673 words of memory out of 5000000
+ 41125 multiletter control sequences out of 15000+600000
  635615 words of font info for 52 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,12n,79p,432b,1990s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -574,9 +683,9 @@ ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\pawel\AppData\Local\MiKTeX\fon
 ts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\pawel\AppData\Local\MiKT
 eX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\pawel\AppData\Loca
 l\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk>
-Output written on raport_hosting.pdf (12 pages, 199333 bytes).
+Output written on raport_hosting.pdf (19 pages, 244965 bytes).
 PDF statistics:
- 799 PDF objects out of 1000 (max. 8388607)
- 116 named destinations out of 1000 (max. 500000)
- 417 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1037 PDF objects out of 1200 (max. 8388607)
+ 177 named destinations out of 1000 (max. 500000)
+ 681 words of extra memory for PDF output out of 10000 (max. 10000000)
 

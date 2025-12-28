@@ -602,6 +602,349 @@ Tunel routuje ruch HTTPS na publicznym URL do lokalnego portu 5000, na którym n
 	\item Wsparcie dla szybkich testów i demonstracji
 \end{itemize}
 
+\section{Ćwiczenie 4: Wdrażanie na VPS (Oracle Cloud)}
+
+
+
+\section{Tworzenie instancji Compute}
+
+\subsection{Inicjalizacja instancji}
+
+Bezpłatna instancja Ubuntu została utworzona w Oracle Cloud:
+
+\begin{verbatim}
+	Instance ID: ocid1.instance.oc1.eu-frankfurt-1.antheljtwn4etjicdvvv2zhnmrt77ziorh4vn63knwqjyipa6ext5gmeg6vq
+	Image: Canonical Ubuntu 22.04
+	Kształt: VM.Standard.E2.1.Micro (1 vCPU, 1 GB RAM)
+	Dysk: 46 GB
+\end{verbatim}
+
+\subsection{Przydzielenie Public IP}
+
+Po uruchomieniu instancji przydzielono jej publiczny adres IP:
+
+\begin{verbatim}
+	Komenda OCI CLI:
+	oci compute instance assign-public-ip \
+	--instance-id ocid1.instance.oc1.eu-frankfurt-1.antheljtwn4etjicdvvv2zhnmrt77ziorh4vn63knwqjyipa6ext5gmeg6vq
+	
+	Wynik:
+	Public IP: 79.76.102.23
+	Typ: Ephemeral (tymczasowy)
+	Status: ASSIGNED (aktywny)
+\end{verbatim}
+
+\section{Konfiguracja SSH}
+
+\subsection{Pobieranie klucza prywatnego}
+
+Klucz SSH został wygenerowany i pobrany z Oracle Cloud Console:
+
+\begin{verbatim}
+	Plik: oracle_key.key
+	Uprawnienia: chmod 600 oracle_key.key
+	Typ: RSA 4096-bit
+\end{verbatim}
+
+\subsection{Połączenie SSH}
+
+Połączenie do instancji zostało nawiązane:
+
+\begin{verbatim}
+	Komenda:
+	ssh -i ~/.ssh/oracle_key ubuntu@79.76.102.23
+	
+	Rezultat:
+	ubuntu@oracle-vm-ubuntu:~$
+	Połączenie udane - dostęp do shell'a potwierdzony
+\end{verbatim}
+
+\section{Instalacja .NET 8}
+
+\subsection{Aktualizacja pakietów}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ sudo apt update
+	ubuntu@oracle-vm-ubuntu:~$ sudo apt upgrade -y
+\end{verbatim}
+
+\subsection{Instalacja .NET SDK 8.0}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ sudo apt install -y dotnet-sdk-8.0
+	
+	ubuntu@oracle-vm-ubuntu:~$ dotnet --version
+	8.0.100
+	
+	Opis: .NET 8.0 zainstalowany prawidłowo
+\end{verbatim}
+
+\section{Klonowanie aplikacji z GitHub}
+
+\subsection{Przygotowanie katalogu}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ mkdir -p /home/ubuntu/app/z9
+	ubuntu@oracle-vm-ubuntu:~$ cd /home/ubuntu/app/z9
+\end{verbatim}
+
+\subsection{Klonowanie repozytorium}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~/app/z9$ git clone \
+	https://github.com/Paffeueq/Pragramming_desktop_app_and_for_mobile_dev.git
+	
+	Rezultat:
+	Cloning into 'Pragramming_desktop_app_and_for_mobile_dev'...
+	remote: Enumerating objects: 156, done.
+	remote: Counting objects: 100% (156/156), done.
+	Receiving objects: 100% (156/156), 145.45 KiB | 1.23 MiB/s, done.
+	
+	ubuntu@oracle-vm-ubuntu:~/app/z9$ cd Pragramming_desktop_app_and_for_mobile_dev/z9/HostingApp
+\end{verbatim}
+
+\section{Publikacja i wdrożenie aplikacji}
+
+\subsection{Publikacja aplikacji}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~/app/z9/.../HostingApp$ dotnet publish -c Release -o ./publish
+	
+	Microsoft (R) .NET deployment tool version 8.0.100
+	Determining projects to restore...
+	Restored /home/ubuntu/app/z9/.../HostingApp.csproj (in 3,2s)
+	...
+	HostingApp powodzenie
+	
+	Pliki opublikowane do: /home/ubuntu/app/z9/.../HostingApp/publish/
+\end{verbatim}
+
+\subsection{Kopiowanie do katalogu aplikacji}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ cp -r /home/ubuntu/app/z9/.../HostingApp/publish/* \
+	/home/ubuntu/app/z9/HostingApp/publish/
+	
+	ubuntu@oracle-vm-ubuntu:~$ ls -la /home/ubuntu/app/z9/HostingApp/publish/
+	total 656
+	-rw-r--r-- HostingApp.dll
+	-rw-r--r-- HostingApp.deps.json
+	-rw-r--r-- HostingApp.runtimeconfig.json
+	... (dalsze pliki)
+\end{verbatim}
+
+\subsection{Uruchomienie aplikacji}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ cd /home/ubuntu/app/z9/HostingApp/publish
+	
+	ubuntu@oracle-vm-ubuntu:~/app/z9/HostingApp/publish$ dotnet HostingApp.dll
+	
+	info: Microsoft.Hosting.Lifetime[14]
+	Now listening on: http://0.0.0.0:5000
+	
+	info: Microsoft.Hosting.Lifetime[0]
+	Application started. Press Ctrl+C to shut down.
+	
+	Opis: Aplikacja uruchomiona na porcie 5000 - Status OK
+\end{verbatim}
+
+\subsection{Weryfikacja uruchomienia}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ curl http://localhost:5000/
+	
+	{"status":"ok","message":"HostingApp is running","version":"1.0.0",...}
+	
+	Opis: Aplikacja zwraca odpowiedź JSON - Status 200 OK
+\end{verbatim}
+
+\section{Konfiguracja Nginx (Reverse Proxy)}
+
+\subsection{Instalacja Nginx}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ sudo apt update
+	ubuntu@oracle-vm-ubuntu:~$ sudo apt install -y nginx
+	
+	ubuntu@oracle-vm-ubuntu:~$ sudo systemctl start nginx
+	ubuntu@oracle-vm-ubuntu:~$ sudo systemctl enable nginx
+	
+	ubuntu@oracle-vm-ubuntu:~$ sudo systemctl status nginx
+	nginx.service - A high performance web server and a reverse proxy server
+	Loaded: loaded (/lib/systemd/system/nginx.service; enabled)
+	Active: active (running) since Sun 2025-12-28 21:15:42 UTC
+\end{verbatim}
+
+\subsection{Konfiguracja reverse proxy}
+
+Plik Nginx został zmodyfikowany aby kierować ruch z portu 80 do aplikacji na porcie 5000:
+
+\begin{lstlisting}
+	# Plik: /etc/nginx/sites-available/default
+	server {
+		listen 80 default_server;
+		listen [::]:80 default_server;
+		
+		server_name _;
+		
+		location / {
+			proxy_pass http://localhost:5000;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection keep-alive;
+			proxy_set_header Host $host;
+			proxy_cache_bypass $http_upgrade;
+		}
+	}
+\end{lstlisting}
+
+\section{Konfiguracja firewall'u}
+
+\subsection{Network Security Group (NSG)}
+
+Reguła firewall'u została dodana do Network Security Group, aby zezwolić na ruch HTTP:
+
+\begin{verbatim}
+	Komenda OCI CLI:
+	oci network nsg rules add --nsg-id <NSG_ID> --security-rules \
+	'[{"direction":"INGRESS","protocol":"6","source":"0.0.0.0/0",\
+		"tcpOptions":{"destinationPortRange":{"min":80,"max":80}}}]'
+	
+	Rezultat:
+	Rule ID: 790646
+	Protocol: TCP (6)
+	Direction: INGRESS (przychodzący)
+	Source: 0.0.0.0/0 (wszyscy)
+	Port: 80 (HTTP)
+	Status: AKTYWNA
+\end{verbatim}
+
+\subsection{Security List (Subnet)}
+
+Dodatkowa reguła został dodana do Security List podsieci:
+
+\begin{verbatim}
+	Komenda OCI CLI:
+	oci network security-list update --security-list-id <SL_ID> \
+	--ingress-security-rules '[{"isStateless":false,"protocol":"6",\
+		"source":"0.0.0.0/0","tcpOptions":{"destinationPortRange":\
+			{"min":80,"max":80}}}]'
+	
+	Rezultat:
+	Status: Sukces
+	Protocol: TCP (6)
+	Port: 80
+	Source: 0.0.0.0/0 (wszyscy)
+	Status: AKTYWNA
+\end{verbatim}
+
+\subsection{Route Table}
+
+Weryfikacja tabeli routingu potwierdziła dostęp do Internet Gateway:
+
+\begin{verbatim}
+	Komenda OCI CLI:
+	oci network route-table list --compartment-id <COMP_ID> \
+	--query 'data[0]' --output json
+	
+	Rezultat:
+	Destination: 0.0.0.0/0
+	Network Entity: Internet Gateway
+	Status: AKTYWNY
+\end{verbatim}
+
+\section{Testowanie dostępu lokalnego (na VPS)}
+
+\subsection{Test 1: Root endpoint}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ curl http://localhost/
+	
+	{
+		"status": "ok",
+		"message": "HostingApp is running",
+		"version": "1.0.0",
+		"timestamp": "2025-12-28T21:30:15.2847363Z"
+	}
+	
+	Status:  200 OK
+\end{verbatim}
+
+\subsection{Test 2: Endpoint /api/info}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ curl http://localhost/api/info
+	
+	{
+		"hostname": "oracle-vm-ubuntu",
+		"osVersion": "Unix 6.1.98.7-generic",
+		"runtime": ".NET 8.0",
+		"uptime": "2025-12-28T21:30:45.0715511Z"
+	}
+	
+	Status:  200 OK
+\end{verbatim}
+
+\subsection{Test 3: Endpoint /weatherforecast}
+
+\begin{verbatim}
+	ubuntu@oracle-vm-ubuntu:~$ curl http://localhost/weatherforecast | head -20
+	
+	[
+	{
+		"date": "2025-12-29",
+		"temperatureC": 12,
+		"summary": "Freezing",
+		"temperatureF": 53
+	},
+	...
+	]
+	
+	Status:  200 OK
+\end{verbatim}
+
+\section{Brak dostępu z Windows}
+
+\subsection{Próba połączenia z Windows}
+
+Próby połączenia się z VPS z komputera z Windows zakonczyły się timeoutem:
+
+\begin{verbatim}
+	PS D:\> curl http://79.76.102.23/
+	
+	curl: (28) Failed to connect to 79.76.102.23 port 80 after 21067 ms: 
+	Could not connect to server
+	
+	Opis: Timeout po 21 sekundach - brak odpowiedzi z serwera
+\end{verbatim}
+
+\subsection{Próba PING'a}
+
+\begin{verbatim}
+	PS D:\> ping 79.76.102.23
+	
+	Reply from 79.76.102.23: bytes=32 time=<1ms TTL=64
+	Request timed out.
+	Request timed out.
+	Request timed out.
+	
+	Packets: Sent = 1, Received = 0, Lost = 1 (100% loss)
+	
+	Opis: ICMP zablokowany (Oracle Cloud blokuje PING)
+\end{verbatim}
+
+\subsection{Możliwe przyczyny problemu}
+
+Poniższe czynniki mogą blokować dostęp z Windows do portu 80 na VPS:
+
+\begin{enumerate}
+	\item \textbf{Windows Defender} - Firewall Windows może blokować połączenia wychodzące
+	\item \textbf{Blacklist Oracle Cloud} - Public IP może być na blackliście
+	\item \textbf{Proxy lub sieć korporacyjna} - Sieć mogła mieć restrykcje
+	\item \textbf{Problem routingu} - Ścieżka sieciowa mogła być zablokowana
+\end{enumerate}
+
 
 
 \end{document}

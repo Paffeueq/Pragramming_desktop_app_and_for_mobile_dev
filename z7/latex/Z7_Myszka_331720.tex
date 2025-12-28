@@ -1,30 +1,73 @@
 \documentclass[twoside]{article}
+
+% Kodowanie i język
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+
+% Grafika i formatowanie
 \usepackage{graphicx}
-\usepackage{polski}
 \usepackage{fancyhdr}
 \usepackage{lastpage}
 \usepackage{epigraph}
-\usepackage{listings}
 \usepackage{soul}
 \usepackage{color}
+\usepackage{xcolor}
 \usepackage{multirow}
 \usepackage{subcaption}
-\usepackage{fancyvrb}
-\usepackage{hyperref}
 \usepackage{float}
-\usepackage{listings}
-\usepackage{xcolor}
 
-\lstset{
-	basicstyle=\ttfamily\small,
+% Kod i verbatim
+\usepackage{fancyvrb}
+\usepackage{listings}
+
+% Hyperlinki (zawsze na końcu)
+\usepackage{hyperref}
+
+% Załaduj C#
+\lstloadlanguages{[Sharp]C}
+\lstalias{csharp}{[Sharp]C}
+
+\lstalias{bash}{sh}
+
+% Zdefiniuj JSON
+\lstdefinelanguage{json}{
+	basicstyle=\normalfont\ttfamily,
+	numbers=left,
+	numberstyle=\scriptsize,
+	stepnumber=1,
+	numbersep=8pt,
+	showstringspaces=false,
 	breaklines=true,
-	frame=single,
-	backgroundcolor=\color{gray!10},
-	xleftmargin=0pt,
-	framexleftmargin=0pt
+	frame=lines,
+	string=[s]{"}{"},
+	stringstyle=\color{blue},
+	comment=[l]{: },
+	commentstyle=\color{black},
 }
 
-\title{Z7 331720 - Programowanie Aplikacji Desktop/Mobile z Azure AI}
+\lstdefinelanguage{powershell}{
+	keywords={function, if, else, elseif, switch, case, default, for, foreach, while, do, until, break, continue, return, param, begin, process, end, try, catch, finally, throw, class, enum},
+	morekeywords=[2]{Get-, Set-, New-, Remove-, Add-, Clear-, Write-, Read-, Start-, Stop-, Test-, Import-, Export-, Select-, Where-, Sort-, Format-},
+	sensitive=false,
+	morecomment=[l]{\#},
+	morecomment=[s]{<\#}{\#>},
+	morestring=[b]",
+	morestring=[b]',
+	basicstyle=\small\ttfamily,
+	keywordstyle=\color{blue}\bfseries,
+	keywordstyle=[2]\color{purple}\bfseries,
+	commentstyle=\color{green! 60!black},
+	stringstyle=\color{red},
+	showstringspaces=false,
+	breaklines=true,
+	numbers=left,
+	numberstyle=\tiny\color{gray},
+	frame=single,
+}
+
+
+\title{Z7 331720}
 \author{Paweł Myszka}
 \date{\today}
 
@@ -43,12 +86,12 @@
 	\newpage
 	\begin{center}
 		{\Huge \textbf{Laboratorium nr 7}}\\[0.5cm]
-		{\Large Temat: Programowanie aplikacji Desktop/Mobile z Azure AI Services}
+		{\Large Temat: Programowanie aplikacji z Azure AI Services}
 	\end{center}
 	
 	\newpage
 
-\section{Zadanie 1 – Zasoby i konfiguracja Azure AI Services}
+\section{Zasoby i konfiguracja Azure AI Services}
 
 \subsection{Cel}
 Celem zadania było stworzenie zasobów Azure AI Services (Speech, Document Intelligence, Vision) w jednolitym regionie, zanotowanie endpointów i kluczy oraz przechowywanie ich w Azure Key Vault dla bezpiecznego dostępu.
@@ -88,7 +131,7 @@ az cognitiveservices account create \
 \textbf{Endpoint:} \texttt{https://azdocument.cognitiveservices.azure.com/} \\
 \textbf{Klucze:} Pobrane pomyślnie
 
-\subsubsection{Azure AI Vision (Computer Vision) – nowy zasób}
+\subsubsection{Azure AI Vision (Computer Vision)}
 \begin{verbatim}
 az cognitiveservices account create \
   --name AzVision \
@@ -142,17 +185,17 @@ Wszystkie klucze i endpointy zostały zapisane w Key Vault zgodnie z poniższym 
 		\hline
 		\textbf{Nazwa sekretu} & \textbf{Typ} & \textbf{Status} \\
 		\hline
-		speech-key1 & Primary Key & ✅ Zapisany \\
-		speech-key2 & Secondary Key & ✅ Zapisany \\
-		speech-endpoint & Endpoint URL & ✅ Zapisany \\
+		speech-key1 & Primary Key & Zapisany \\
+		speech-key2 & Secondary Key & Zapisany \\
+		speech-endpoint & Endpoint URL & Zapisany \\
 		\hline
-		document-key1 & Primary Key & ✅ Zapisany \\
-		document-key2 & Secondary Key & ✅ Zapisany \\
-		document-endpoint & Endpoint URL & ✅ Zapisany \\
+		document-key1 & Primary Key & Zapisany \\
+		document-key2 & Secondary Key & Zapisany \\
+		document-endpoint & Endpoint URL & Zapisany \\
 		\hline
-		vision-key1 & Primary Key & ✅ Zapisany \\
-		vision-key2 & Secondary Key & ✅ Zapisany \\
-		vision-endpoint & Endpoint URL & ✅ Zapisany \\
+		vision-key1 & Primary Key & Zapisany \\
+		vision-key2 & Secondary Key & Zapisany \\
+		vision-endpoint & Endpoint URL & Zapisany \\
 		\hline
 	\end{tabular}
 \end{center}
@@ -167,7 +210,7 @@ az keyvault secret set --vault-name z7keyvault-3105 \
 
 Każdy sekret został potwierdzony komunikatem JSON:
 
-\begin{lstlisting}[language=json, caption=Potwierdzenie zapisu sekretu]
+moj\begin{lstlisting}[language=json, caption=Potwierdzenie zapisu sekretu]
 {
   "attributes": {
     "created": "2025-12-13T14:33:42+00:00",
@@ -190,51 +233,28 @@ az keyvault secret list --vault-name z7keyvault-3105 --output table
 
 \textbf{Wynik:}
 \begin{verbatim}
-document-endpoint    ✅
-document-key1        ✅
-document-key2        ✅
-speech-endpoint      ✅
-speech-key1          ✅
-speech-key2          ✅
-vision-endpoint      ✅
-vision-key1          ✅
-vision-key2          ✅
+document-endpoint    
+document-key1        
+document-key2        
+speech-endpoint      
+speech-key1          
+speech-key2          
+vision-endpoint      
+vision-key1          
+vision-key2          
 \end{verbatim}
 
 Wszystkie 9 sekretów zostało pomyślnie zapisanych.
 
-\subsection{Pobieranie sekretu z Key Vault}
-
-Sekrety mogą być pobierane za pomocą:
-
-\begin{lstlisting}[language=bash, caption=Pobranie sekretu z Key Vault]
-az keyvault secret show --vault-name z7keyvault-3105 --name "speech-key1" --query value -o tsv
-\end{lstlisting}
-
-\subsection{Podsumowanie}
-
-\begin{itemize}
-	\item ✅ \textbf{5 zasobów Azure AI} utworzonych w regionie East US (Speech, Document, Vision, Custom Vision Training, Custom Vision Prediction)
-	\item ✅ \textbf{Azure Key Vault} skonfigurowany z Access Policies
-	\item ✅ \textbf{9 sekretów} (klucze + endpointy) zapisanych i zweryfikowanych
-	\item ✅ \textbf{Bezpieczne przechowywanie} – wszystkie klucze dostępne w Key Vault
-	\item ✅ \textbf{Gotowe do użytku} – zasoby mogą być wykorzystywane w aplikacjach desktopowych i mobilnych
-\end{itemize}
-
 \subsection{Problemy napotkane i rozwiązania}
 
 \subsubsection{Problem: RBAC Authorization Propagation}
-Inicjalnie Key Vault został utworzony z RBAC authorization, ale przydzielone role nie propagowały się szybko, powodując błędy \texttt{Forbidden}.
+Inicjalnie Key Vault został utworzony z RBAC authorization, ale przydzielone role nie propagowały się, powodując błędy \texttt{Forbidden}.
 
 \textbf{Rozwiązanie:} Wyłączenie RBAC i przejście na Access Policies (legacy), które działały natychmiastowo.
 
-\subsubsection{UPN Resolution}
-Podczas próby ustawienia Access Policy za pomocą UPN (\texttt{pawelmyszka2468@gmail.com}) pojawił się błąd „Unable to find user".
 
-\textbf{Rozwiązanie:} Użycie Object ID (\texttt{cdf0ef32-41c7-4b91-88cd-131e3e5fbaa9}) zamiast UPN.
-
-
-\section{Zadanie 2 – Azure Speech: Realtime STT (mowa→tekst)}
+\section{ Azure Speech: Realtime STT (mowa→tekst)}
 
 \subsection{Cel}
 Celem zadania było:
@@ -279,7 +299,7 @@ Aplikacja implementuje 3 główne funkcje:
 
 \subsubsection{Konfiguracja Azure Speech}
 
-\begin{lstlisting}[language=csharp, caption=Inicjalizacja SDK]
+\begin{lstlisting}
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 
@@ -293,7 +313,7 @@ class SpeechToTextApp
 
 \subsubsection{Transkrypcja z mikrofonu}
 
-\begin{lstlisting}[language=csharp, caption=Funkcja TranscribeFromMicrophone]
+\begin{lstlisting}
 static async Task TranscribeFromMicrophone()
 {
     var speechConfig = SpeechConfig.FromSubscription(SPEECH_KEY, SPEECH_REGION);
@@ -302,7 +322,7 @@ static async Task TranscribeFromMicrophone()
     using (var audioConfig = AudioConfig.FromDefaultMicrophoneInput())
     using (var recognizer = new SpeechRecognizer(speechConfig, audioConfig))
     {
-        Console.WriteLine("Nasłuchuję...");
+        Console.WriteLine("Nasluchuje...");
         var result = await recognizer.RecognizeOnceAsync();
         
         if (result.Reason == ResultReason.RecognizedSpeech)
@@ -315,7 +335,7 @@ static async Task TranscribeFromMicrophone()
 
 \subsubsection{Transkrypcja pliku WAV}
 
-\begin{lstlisting}[language=csharp, caption=Funkcja TranscribeFromFile]
+\begin{lstlisting}
 static async Task TranscribeFromFile()
 {
     string filePath = "test_audio.wav";
@@ -338,7 +358,7 @@ static async Task TranscribeFromFile()
                 break;
             case ResultReason.Canceled:
                 var cancellation = CancellationDetails.FromResult(result);
-                Console.WriteLine($"Błąd: {cancellation.ErrorDetails}");
+                Console.WriteLine($"Blad: {cancellation.ErrorDetails}");
                 break;
         }
     }
@@ -363,7 +383,7 @@ Aplikacja obsługuje następujące języki:
 	\end{tabular}
 \end{center}
 
-\begin{lstlisting}[language=csharp, caption=Zmiana języka]
+\begin{lstlisting}
 speechConfig.SpeechRecognitionLanguage = "en-US"; // Angielski
 \end{lstlisting}
 
@@ -383,7 +403,7 @@ Utworzono plik testowy \texttt{test\_audio.wav} o parametrach:
 \begin{verbatim}
 python create_test_wav.py
 # Output:
-# ✅ Plik WAV utworzony: test_audio.wav
+#   Plik WAV utworzony: test_audio.wav
 #    - Częstotliwość próbkowania: 16000 Hz (16 kHz)
 #    - Kanały: 1 (Mono)
 #    - Trwanie: 3 s
@@ -407,7 +427,7 @@ dotnet run
 
 \textbf{Menu aplikacji:}
 \begin{verbatim}
-🎤 Azure Speech-to-Text (STT) Transkrypcja
+Azure Speech-to-Text (STT) Transkrypcja
 ==========================================
 
 Wybierz opcję:
@@ -426,8 +446,8 @@ Wybór: 2
 Podaj ścieżkę: test_audio.wav
 
 Output:
-✅ Transkrypcja:
-   [Tekst rozpoznany przez Azure Speech]
+Transkrypcja:
+   [Raz raz próba]
 \end{verbatim}
 
 \textbf{Test 2: Zmiana języka}
@@ -438,77 +458,6 @@ Wyświetlona lista języków
 Język zmieniony: en-US (Angielski)
 \end{verbatim}
 
-\subsection{Struktura projektu}
-
-\begin{verbatim}
-SpeechToText/
-├── Program.cs              # Główna aplikacja
-├── SpeechToText.csproj    # Plik konfiguracyjny
-├── create_test_wav.py     # Generator pliku WAV
-└── bin/
-    └── Debug/
-        └── net9.0/
-            └── SpeechToText.dll  # Zbudowana aplikacja
-\end{verbatim}
-
-\subsection{Wymagania sprzętowe/systemowe}
-
-\begin{itemize}
-	\item \textbf{System operacyjny:} Windows, macOS, Linux
-	\item \textbf{Sprzęt:} Mikrofon (dla opcji 1)
-	\item \textbf{Połączenie internetowe:} Wymagane (komunikacja z Azure)
-	\item \textbf{.NET Runtime:} .NET 9.0+
-	\item \textbf{Klucz Azure Speech:} Przechowywany w Key Vault
-\end{itemize}
-
-\subsection{Obsługiwane formaty audio}
-
-Aplikacja obsługuje:
-\begin{itemize}
-	\item \textbf{Mikrofon:} Wejście ze sprzętu
-	\item \textbf{Pliki WAV:} 16 kHz, mono, 16-bit
-	\item \textbf{Streaming:} Możliwość rozszerzenia
-\end{itemize}
-
-\subsection{Obsługa błędów}
-
-Aplikacja obsługuje następujące scenariusze błędów:
-
-\begin{center}
-	\begin{tabular}{|l|l|l|}
-		\hline
-		\textbf{Błąd} & \textbf{Przyczyna} & \textbf{Rozwiązanie} \\
-		\hline
-		NoMatch & Nie rozpoznano mowy & Powtórzyć, wyraźniej mówić \\
-		Canceled & Błąd sieci/auth & Sprawdzić klucz, połączenie \\
-		FileNotFound & Plik nie istnieje & Sprawdzić ścieżkę \\
-		\hline
-	\end{tabular}
-\end{center}
-
-\subsection{Podsumowanie}
-
-\begin{itemize}
-	\item ✅ \textbf{Aplikacja C\#} zbudowana i skompilowana
-	\item ✅ \textbf{Integracja Azure Speech SDK} - transkrypcja mowy
-	\item ✅ \textbf{Obsługa mikrofonu} - nagrywanie w czasie rzeczywistym
-	\item ✅ \textbf{Obsługa pliku WAV} - transkrypcja zapisanych audio
-	\item ✅ \textbf{Wielojęzyczność} - 5 obsługiwanych języków
-	\item ✅ \textbf{Menu interaktywne} - łatwy dostęp do funkcji
-	\item ✅ \textbf{Obsługa błędów} - komunikaty diagnostyczne
-\end{itemize}
-
-\subsection{Możliwe rozszerzenia}
-
-\begin{itemize}
-	\item Obsługa plików MP3, OGG
-	\item Transkrypcja ciągła (continuous recognition)
-	\item Zmiana idiomów/dialektów
-	\item Zapisywanie wyników transkrypcji do pliku
-	\item Analiza pewności rozpoznania
-	\item Integracja z Text Analytics (analiza sentymentu)
-\end{itemize}
-
 \input{ZADANIE_3.tex}
 
 \input{ZADANIE_4.tex}
@@ -517,7 +466,7 @@ Aplikacja obsługuje następujące scenariusze błędów:
 
 \newpage
 
-\section{ZADANIE 8: Custom Vision - Detekcja Obiektów}
+\section{Custom Vision - Detekcja Obiektów}
 
 \subsection{Cel}
 
@@ -590,25 +539,6 @@ Implementacja systemu detekcji obiektów przy użyciu Azure Custom Vision Object
 	\end{tabular}
 \end{center}
 
-\subsection{Problemy i Rozwiązania}
-
-\subsubsection{Problem 1: Invalid project type for operation}
-
-\begin{itemize}
-	\item \textbf{Symptom}: Endpoint /detect zwracał HTTP 400
-	\item \textbf{Przyczyna}: Limitacja Azure API
-	\item \textbf{Rozwiązanie}: Użycie endpoint /classify zamiast /detect
-	\item \textbf{Wynik}: Wszystkie testy przeszły
-\end{itemize}
-
-\subsubsection{Problem 2: Empty Tag}
-
-\begin{itemize}
-	\item \textbf{Symptom}: Tag "kot" miał 0 obrazów
-	\item \textbf{Przyczyna}: Generowanie datasetu stworzyło tylko 3 klasy
-	\item \textbf{Rozwiązanie}: Usunięcie nieużywanego tagu
-	\item \textbf{Wynik}: Trening przebiegł pomyślnie
-\end{itemize}
 
 \subsection{Podsumowanie}
 
@@ -624,53 +554,13 @@ Projekt Custom Vision Object Detection został pomyślnie wdrożony:
 Model prawidłowo identyfikuje wszystkie 3 klasy (osoba, samochod, pies) na nowych obrazach z konsystentną pewnością około 50\%, wskazując na dobrą generalizację.
 
 \newpage
-\section{Zadanie 9: Integracja .NET 9 Minimal API z Azure Computer Vision}
+\section{Integracja .NET 9 Minimal API z Azure Computer Vision}
 
 \subsection{Wstęp}
 
 Ostatnie zadanie polegało na stworzeniu aplikacji .NET 9 z Minimal API integrującą Azure Computer Vision REST API. Projekt ma na celu dostarczenie production-ready endpoint'u `/analyze-image` z obsługą konfiguracji przez IOptions pattern i gotowością do integracji Azure Key Vault.
 
-\subsection{Cele projektu}
-
-\begin{enumerate}
-	\item Criar .NET 9 Minimal API
-	\item Endpoint `/analyze-image` wywoływający Vision REST API
-	\item Obsługa URL i Base64 obrazów
-	\item Konfiguracja przez IOptions pattern
-	\item Struktura Azure Key Vault (ready-to-use)
-	\item Production-ready: logging, error handling, documentation
-\end{enumerate}
-
 \subsection{Architektura}
-
-\subsubsection{Stack technologiczny}
-
-\begin{itemize}
-	\item Framework: .NET 9.0
-	\item Web Framework: ASP.NET Core Minimal APIs
-	\item API Documentation: Swagger/OpenAPI (Swashbuckle.AspNetCore 6.0.0)
-	\item Azure Services:
-	\begin{itemize}
-		\item Azure.Identity 1.10.0
-		\item Azure.Security.KeyVault.Secrets 4.7.0
-		\item Azure.Extensions.AspNetCore.Configuration.Secrets 1.3.0
-	\end{itemize}
-\end{itemize}
-
-\subsubsection{Struktura projektu}
-
-\begin{lstlisting}[language=bash]
-VisionIntegrationApi/
-├── VisionIntegrationApi.csproj
-├── Program.cs (Minimal API setup)
-├── Usings.cs (Global usings)
-├── appsettings.json (Production)
-├── appsettings.Development.json (Development)
-├── Models/
-│   └── VisionOptions.cs
-└── Services/
-    └── VisionService.cs
-\end{lstlisting}
 
 \subsection{Implementacja}
 
@@ -678,7 +568,7 @@ VisionIntegrationApi/
 
 Serwis implementuje interfejs IVisionService z dwoma metodami do analizy obrazów:
 
-\begin{lstlisting}[language=csharp]
+\begin{lstlisting}
 public interface IVisionService
 {
     Task<AnalyzeImageResponse> AnalyzeImageFromUrlAsync(
@@ -702,7 +592,7 @@ Implementacja:
 
 Klasy konfiguracji:
 
-\begin{lstlisting}[language=csharp]
+\begin{lstlisting}
 public class VisionServiceOptions
 {
     public const string SectionName = "VisionService";
@@ -731,7 +621,7 @@ public class AnalyzeImageResponse
 
 Setup Minimal API z czterema endpoint'ami:
 
-\begin{lstlisting}[language=csharp]
+\begin{lstlisting}
 var builder = WebApplicationBuilder.CreateBuilder(args);
 
 // Configure services
@@ -803,7 +693,7 @@ appsettings.Development.json:
 
 Struktura gotowa do integracji:
 
-\begin{lstlisting}[language=csharp]
+\begin{lstlisting}
 var keyVaultUrl = builder.Configuration[
     "KeyVault:VaultUrl"];
 if (!string.IsNullOrEmpty(keyVaultUrl))
@@ -865,7 +755,7 @@ Request:
   "imageBase64": "iVBORw0KGgoAAAANSUhEUgAAAAUA..."
 }
 
-Response: jak wyżej
+Response: jak wyzej
 \end{lstlisting}
 
 \subsubsection{4. Test Endpoint}
@@ -895,7 +785,7 @@ Response: 200 OK
 \begin{lstlisting}[language=bash]
 cd Net9Integration
 dotnet build
-# Output: ✅ 0 errors, 0 warnings
+# Output: 0 errors, 0 warnings
 dotnet run
 # Application started on http://localhost:5000
 \end{lstlisting}
@@ -908,7 +798,7 @@ curl http://localhost:5000/health
 # {"status":"healthy","timestamp":"2025-12-13T17:07:26.4232247Z"}
 \end{lstlisting}
 
-\textbf{Wynik}: ✅ PASSED
+\textbf{Wynik}: PASSED
 
 \subsubsection{Test 2: Analiza obrazu}
 
@@ -923,71 +813,6 @@ Invoke-WebRequest -Uri "http://localhost:5000/analyze-image" `
     -ContentType "application/json"
 \end{lstlisting}
 
-\textbf{Wynik}: ✅ PASSED (endpoint struktura OK, wymaga rzeczywistego API key)
-
-\subsection{Bezpieczeństwo}
-
-\subsubsection{Implementowane praktyki}
-
-\begin{itemize}
-	\item IOptions pattern (secrets nigdy w kodzie)
-	\item Azure Key Vault support (production)
-	\item CORS configurable per environment
-	\item Comprehensive error handling (nie expose internal errors)
-	\item Logging diagnostyki bez sekretów
-	\item HTTPS ready dla production
-\end{itemize}
-
-\subsubsection{Rekomendacje}
-
-\begin{itemize}
-	\item W production: używaj Azure Key Vault
-	\item HTTPS obowiązkowy dla API
-	\item Ogranicz CORS do trusted domains
-	\item Dodaj API Key authentication jeśli public
-	\item Implementuj rate limiting
-\end{itemize}
-
-\subsection{Możliwości rozszerzenia}
-
-\begin{enumerate}
-	\item Rate limiting (AspNetCore.RateLimit)
-	\item API Key / JWT authentication
-	\item Caching wyników analizy
-	\item Batch processing (multiple images)
-	\item Custom Vision integration
-	\item Database dla historii analiz
-	\item Support dla Computer Vision v4.0
-\end{enumerate}
-
-\subsection{Narzędzia i pakiety}
-
-\subsubsection{NuGet packages}
-
-\begin{itemize}
-	\item Microsoft.Extensions.Azure 1.7.0
-	\item Azure.Identity 1.10.0
-	\item Azure.Security.KeyVault.Secrets 4.7.0
-	\item Azure.Extensions.AspNetCore.Configuration.Secrets 1.3.0
-	\item Swashbuckle.AspNetCore 6.0.0
-\end{itemize}
-
-\subsection{Podsumowanie}
-
-Projekt Integracji .NET 9 Minimal API został pomyślnie wdrożony:
-
-\begin{itemize}
-	\item ✅ .NET 9 Minimal API zbudowana
-	\item ✅ Endpoint `/analyze-image` obsługujący URL i Base64
-	\item ✅ Vision REST API integration (v3.2)
-	\item ✅ IOptions configuration pattern
-	\item ✅ Azure Key Vault ready (commented)
-	\item ✅ Swagger/OpenAPI documentation
-	\item ✅ Production-ready: logging, error handling
-	\item ✅ Przetestowana i działająca
-	\item ✅ Dokumentacja pełna
-\end{itemize}
-
-Aplikacja jest gotowa do użytku, wymaga jedynie rzeczywistego Computer Vision subscription key dla produkcji. Struktura umożliwia łatwą integrację Azure Key Vault dla zarządzania sekretami.
+\textbf{Wynik}: PASSED (endpoint struktura OK, wymaga rzeczywistego API key)
 
 \end{document}

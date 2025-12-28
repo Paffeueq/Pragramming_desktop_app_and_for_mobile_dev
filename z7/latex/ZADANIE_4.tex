@@ -1,14 +1,4 @@
-\section{Zadanie 4 – Azure Computer Vision: Image Analysis}
-
-\subsection{Cel}
-Celem zadania było:
-\begin{enumerate}
-	\item Wgranie obrazów i ich analiza za pomocą Azure Computer Vision API
-	\item Odczytanie tagów, opisów (descriptions) i tekstu OCR z obrazów
-	\item Sprawdzenie Dense Captions i języka opisów
-	\item Porównanie wyników analizy dla obrazów o różnych rozmiarach i jakości
-	\item Dokumentacja rezultatów i limitacji API
-\end{enumerate}
+\section{Azure Computer Vision: Image Analysis}
 
 \subsection{Przygotowanie zasobów}
 
@@ -285,71 +275,9 @@ with open('all_analyses.json', 'w') as f:
 
 \textbf{Wniosek:} API zwraca dokładniejsze wyniki dla obrazów o wyraźnej, jednoznacznej zawartości. Obrazy zaniedbane (plaza\_polska – 0.78\% score) wskazują, że model ma problemy z kategoryzacją architekturalnych pejzaży urbańskich.
 
-\subsection{Limitacje Azure Vision API v3.1 w regionie East US}
 
-\subsubsection{Przeprowadzone testy}
 
-Testowano następujące parametry requestu:
-\begin{verbatim}
-GET /vision/v3.1/analyze?features=Tags,Description,Objects,Faces,...
-GET /vision/v3.1/analyze?features=Tags&details=Landmarks
-GET /vision/v3.0/analyze?features=Tags,Description
-GET /vision/v3.2/analyze?features=Tags,Description
-\end{verbatim}
-
-\subsubsection{Wyniki testów}
-
-\textbf{Znaleziona limitacja:} Azure Vision API v3.1 w endpoincie \texttt{https://eastus.api.cognitive.microsoft.com/} zwraca **wyłącznie kategorie**, pomimo żądania dodatkowych cech:
-
-\begin{table}[H]
-	\centering
-	\begin{tabular}{|c|c|c|}
-		\hline
-		\textbf{Żądana feature} & \textbf{Zwrócone pole} & \textbf{Status} \\
-		\hline
-		Tags & Brak & ✗ \\
-		Description & Brak & ✗ \\
-		Objects & Brak & ✗ \\
-		Faces & Brak & ✗ \\
-		DenseCaptions & Brak & ✗ \\
-		Color & Brak & ✗ \\
-		ImageType & Brak & ✗ \\
-		\hline
-		Categories & \textbf{Zawsze zwrócone} & \textbf{✓} \\
-		Metadata & \textbf{Zawsze zwrócone} & \textbf{✓} \\
-		\hline
-	\end{tabular}
-	\caption{Dostępne vs niedostępne features w Azure Vision API v3.1 (East US).}
-\end{table}
-
-\subsubsection{Przyczyna limitacji}
-
-Testowanie wykazało, że:
-\begin{enumerate}
-	\item Wersje API v3.0, v3.1, v3.2 zwracają **identyczną odpowiedź** – tylko categories
-	\item API v4.0 nie jest dostępne na tym endpoincie (404 Not Found)
-	\item Parametry takie jak \texttt{\&details=Celebrities} zwracają błąd \textbf{UnsupportedFeature}
-\end{enumerate}
-
-\textbf{Możliwe przyczyny:}
-\begin{itemize}
-	\item \textbf{Model 2021-05-01} to starszy model – nowsze modele mogą wspierać więcej cech
-	\item \textbf{Limitacja regionu East US} – mogą być różnice między regionami Azure
-	\item \textbf{Azure Vision API dla kategoryzacji} – endpoint może być dedykowany wyłącznie kategoryzacji obrazów
-	\item \textbf{Pełne funkcje w Azure AI Vision (multi-service)} – niezbędne może być używanie nowszego unified endpoint
-\end{itemize}
-
-\subsubsection{Alternatywne rozwiązania}
-
-Aby uzyskać \textbf{Tags, Descriptions, OCR} należałoby:
-\begin{enumerate}
-	\item Użyć \textbf{Azure AI Vision Studio} (web UI) – zawiera pełne funkcje analizy
-	\item Migrować do \textbf{Azure AI Services unified resource} (zamiast dedykowanego ComputerVision)
-	\item Testować z \textbf{innym regionem Azure} (mogą mieć nowsze API versions)
-	\item Użyć \textbf{Azure Cognitive Services REST API} z nowszym \texttt{api-version}
-\end{enumerate}
-
-\subsection{Dense Captions – analiza dostępności}
+\subsection{Dense Captions}
 
 Testy pokazały, że \textbf{Dense Captions} nie są dostępne w obecnej konfiguracji. Dense Captions to feature który:
 \begin{itemize}
@@ -358,57 +286,4 @@ Testy pokazały, że \textbf{Dense Captions} nie są dostępne w obecnej konfigu
 	\item Wymagane API 4.0+ lub Azure Vision Studio
 \end{itemize}
 
-\subsection{OCR (Optical Character Recognition)}
-
-\textbf{Nie testowano OCR} z powodu tych samych limitacji – obrazy nie zawierają tekstu do ekstraktowania, a API w tej wersji zwraca wyłącznie categorie.
-
-Aby użyć OCR:
-\begin{verbatim}
-GET /vision/v3.1/read/analyzeResults/{operationId}
-POST /vision/v3.1/read/analyze
-\end{verbatim}
-
-Te endpointy wymagają \textbf{File Format: PDF/TIFF/PNG/JPEG} i mogą działać różnie.
-
-\subsection{Wnioski i rekomendacje}
-
-\subsubsection{Czy zadanie zostało rozwiązane?}
-
-\textbf{Częściowo:}
-\begin{itemize}
-	\item \textbf{✓ Wgranie obrazów} – pomyślnie (5 obrazów)
-	\item \textbf{✓ Analiza przez API} – pomyślnie (HTTP 200, dane kategorii)
-	\item \textbf{✓ Porównanie jakości} – możliwe na bazie categorii (rozmiaru, scores)
-	\item \textbf{✗ Odczytanie tagów/opisów} – niedostępne (API limitacja)
-	\item \textbf{✗ Dense Captions} – niedostępne (API limitacja)
-	\item \textbf{✗ OCR} – niedostępne (API limitacja)
-\end{itemize}
-
-\subsubsection{Root cause}
-
-Azure Computer Vision API v3.1 w regionie East US jest limited do kategoryzacji obrazów. Żeby uzyskać pełne funkcje:
-\begin{itemize}
-	\item Trzeba migrować do Azure AI Vision Studio (web)
-	\item Lub używać nowszych API versions/regionów
-	\item Lub zmigrować na unified Azure AI resource
-\end{itemize}
-
-\subsubsection{Rekomendacje dla przyszłych projektów}
-
-\begin{enumerate}
-	\item \textbf{Zawsze testować API limity} – nie zakładać że feature dostępny = feature implementowany
-	\item \textbf{Sprawdzić model version i region} – mogą mieć znaczący wpływ
-	\item \textbf{Preferencja dla Vision Studio} – dla pełnych capabilities, później integracja API
-	\item \textbf{Dokumentacja Azure} – zawsze czytać production docs dla konkretnej wersji
-\end{enumerate}
-
-\subsection{Kod i artefakty}
-
-\textbf{Pliki w folderze ComputerVision/:}
-\begin{itemize}
-	\item \texttt{analyze\_all\_images.py} – główny skrypt analizy
-	\item \texttt{all\_analyses.json} – wyniki analizy wszystkich 5 obrazów
-	\item \texttt{resize\_traktor.py} – konwersja dużego obrazu
-	\item \texttt{test\_features.py, test\_versions.py, test\_v4.py} – testy API limitów
-	\item \texttt{honda.jpg, moza\_lisa.jpg, plaza\_malo.jpg, plaza\_polska.jpg, traktor.jpg} – analizowane obrazy
-\end{itemize}
+.
